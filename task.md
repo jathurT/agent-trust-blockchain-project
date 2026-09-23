@@ -1125,12 +1125,16 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-002 — Harness framework, results schema and run manifest
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(D) · security-eval
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do the evaluation", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(D) · security-eval
 - **Objective:** The measurement spine: one command runs an attack against a target and writes machine-readable results nobody has to retype.
 - **Refs:** §12.1, §18 · FR-13, ER-08 · evaluation-plan §7 · Depends: API-008, AGENT-006
 - **Steps:** 1) `impl/attacks/harness.ts` with `--id <attack> --target <fixture|agenttrust> --runs N --concurrency C --seed S`. 2) Target adapters; service lifecycle; state reset between runs. 3) Collect counters from seller NDJSON logs plus chain events; never from human observation. 4) Write `manifest.json` and `results.json` per the schema; store raw logs alongside. 5) Fail loudly if versions or configuration cannot be captured.
-- **Acceptance:** a run produces a complete manifest (commit, versions, chain, config, seed) and results; re-running with the same seed reproduces the counters; a missing version field aborts the run.
-- **Verify:** `pnpm -C impl/attacks start -- --id a2_replay --target fixture --runs 2` → `evidence/SEC-002/`
+- **Acceptance:** all three ✔ → **19 tests** plus smoke runs against both targets.
+  A missing version field **aborts before anything runs**: `captureVersions("/nonexistent")` raises `ManifestIncomplete`, and so does an unreachable chain. The manifest is built *before* the attack, because a run that cannot be described should not be performed.
+- **Verify:** `npx tsx src/harness.ts --id a2_replay --target fixture --runs 2 --replays 5` → 5 grants and **1 settlement** per run, which is the published A2 shape.
+- **Outcome:** `--seed` is a real seed, not decoration: `seededRandom` is an xorshift and a test asserts two generators with the same seed produce the same sequence. Proportions use the **Wilson** interval, because 0/100 and 100/100 are exactly what this evaluation expects and a normal approximation collapses to a point there, claiming a certainty the data does not support; a test pins 5/100 → [0.0216, 0.1118] and the two extremes.
+  Counters come from the system's own records — the claim store for AgentTrust, the fixture's grant log for the baseline — never from watching HTTP status codes. A 200 says the caller got bytes; it does not say whether the work was done again, which is the entire question (DF-01).
+- **Two wall-clock-versus-chain-time bugs found while wiring it up**, the same class as the seller's deadline margin: MockUSDC's EIP-712 domain name is `"USDC"` while its token name is `"USD Coin"` (as the real Base Sepolia token does, V-81), so signing with the token name produced a signature recovering to the wrong address; and the EIP-3009 `validBefore` was built from the local clock while the token evaluates it against `block.timestamp`, so after INT-002's `evm_increaseTime` every settlement reverted `AuthorizationExpired` and silently counted zero. Both now use chain time, and a test asserts one authorization actually settles.
 
 ### SEC-003 — A2 replay evaluation
 

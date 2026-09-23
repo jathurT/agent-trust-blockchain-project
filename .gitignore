@@ -41,3 +41,6 @@ impl/contracts/lib/
 
 # local devnet deployment: regenerated on every anvil start
 deployments/31337.json
+
+# harness run outputs are regenerated; the ones that matter are copied into evidence/
+impl/attacks/results/
