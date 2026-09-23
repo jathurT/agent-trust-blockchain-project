@@ -679,14 +679,16 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-010 — Administrative controls and bounds
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Configuration without power over user funds.
 - **Refs:** §9.2, §9.3 · FR-10, SR-10, FR-22 · DF-12, DF-22
 - **Skill:** `entry-point-analyzer`
 - **Depends:** CONTRACT-004
 - **Steps:** 1) `Ownable2Step`. 2) `setGateFloors`, `setTokenAllowed`, `setTtlBounds`, `setGrace`, each range-checked and event-emitting. 3) No sweep, no pause that could strand funds, no upgrade path.
-- **Acceptance:** the entry-point inventory shows no owner-reachable path that transfers escrowed tokens; every setter rejects out-of-range values; ownership transfer requires acceptance.
-- **Verify:** `forge test --match-contract Admin` + the entry-point report → `evidence/CONTRACT-010/`
+- **Acceptance:** no owner-reachable path transfers escrowed tokens ✔ — asserted by executing it, not by inspection: `test_NoSetterCanTouchAFundedJob` fires every setter at its extreme against a funded job, then settles it and checks the seller was paid in full and the owner holds nothing; every setter rejects out-of-range values ✔ (both ends for `reputationReadGas`); ownership transfer requires acceptance ✔.
+- **Verify:** `forge test --match-contract AdminTest` → **12 tests** → `evidence/CONTRACT-010/forge-test.log`; inventory in `evidence/CONTRACT-010/entry-points.md`.
+- **Outcome:** `MAX_TTL_LIMIT` 30 d, `MAX_GRACE` 30 d, `MAX_TRUSTED_CLIENTS_LIMIT` 32, `MAX_DISTINCT_FLOOR` 32, `MAX_COUNT_FLOOR` 1000, `reputationReadGas` in [45k, 5M]. The constructor applies the same bounds, so a deployment cannot sidestep them. The three registry addresses are `immutable` and `PASS_THRESHOLD`/`FEEDBACK_TAG` are `constant`, so no key can repoint the gate or lower the bar for a pass.
+- **Recorded, not fixed:** `renounceOwnership` is inherited from `Ownable` and lands in **one step**. It cannot strand funds — settlement reads no setting except the grace each job snapshotted — but it freezes configuration permanently. Pinned by `test_RenouncingOwnershipDoesNotStrandFunds` and listed in the entry-point inventory. Stray tokens are likewise unrecoverable, which is the accepted cost of having no sweep (STRETCH-008).
 
 ### CONTRACT-011 — Unit and boundary test suite
 

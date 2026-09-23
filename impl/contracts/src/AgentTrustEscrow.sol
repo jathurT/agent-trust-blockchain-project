@@ -155,6 +155,19 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     ///         that true rather than nearly true.
     uint64 public grace;
 
+    /// @notice Absolute bounds on what the owner may configure.
+    /// @dev    The owner is trusted to set policy, not to make the contract unusable or
+    ///         unaffordable. Every setter is clamped here, so a fat-fingered or hostile
+    ///         value is rejected at the door rather than discovered by a buyer whose
+    ///         `fund()` costs 60M gas or whose TTL cannot satisfy any seller.
+    ///         None of these can reach an existing job: every one of them is read only
+    ///         inside `fund()`, and `grace` — the one exception — is snapshotted.
+    uint64 public constant MAX_TTL_LIMIT = 30 days;
+    uint16 public constant MAX_TRUSTED_CLIENTS_LIMIT = 32;
+    uint64 public constant MAX_REPUTATION_READ_GAS = 5_000_000;
+    uint16 public constant MAX_DISTINCT_FLOOR = MAX_TRUSTED_CLIENTS_LIMIT;
+    uint64 public constant MAX_COUNT_FLOOR = 1_000;
+
     /// @notice Largest refund margin the owner may configure.
     /// @dev    Bounded so `deadline + grace` cannot overflow and so a new job's money
     ///         cannot be parked indefinitely. 30 days against a 24-hour maximum TTL.
@@ -210,6 +223,8 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     error ValidationExists(bytes32 jobId);
     error ValidationReadFailed(bytes32 requestHash);
     error GraceOutOfBounds(uint64 given, uint64 max);
+    /// @param parameter which setting was out of range, so a revert names itself
+    error OutOfBounds(string parameter, uint256 given, uint256 max);
     error InvalidTtlBounds();
     error UnknownJob(bytes32 jobId);
 
@@ -232,10 +247,16 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         ) {
             revert InvalidValidator(address(0));
         }
-        if (minTtl_ == 0 || maxTtl_ < minTtl_) revert InvalidTtlBounds();
+        if (minTtl_ == 0 || maxTtl_ < minTtl_ || maxTtl_ > MAX_TTL_LIMIT) revert InvalidTtlBounds();
         if (grace_ > MAX_GRACE) revert GraceOutOfBounds(grace_, MAX_GRACE);
+        if (maxTrustedClients_ > MAX_TRUSTED_CLIENTS_LIMIT) {
+            revert OutOfBounds("maxTrustedClients", maxTrustedClients_, MAX_TRUSTED_CLIENTS_LIMIT);
+        }
         if (reputationReadGas_ < MIN_REPUTATION_READ_GAS) {
             revert ReputationReadGasTooLow(reputationReadGas_, MIN_REPUTATION_READ_GAS);
+        }
+        if (reputationReadGas_ > MAX_REPUTATION_READ_GAS) {
+            revert OutOfBounds("reputationReadGas", reputationReadGas_, MAX_REPUTATION_READ_GAS);
         }
         identityRegistry = IIdentityRegistry(identityRegistry_);
         reputationRegistry = IReputationRegistry(reputationRegistry_);
@@ -718,7 +739,7 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     }
 
     function setTtlBounds(uint64 minTtl_, uint64 maxTtl_) external onlyOwner {
-        if (minTtl_ == 0 || maxTtl_ < minTtl_) revert InvalidTtlBounds();
+        if (minTtl_ == 0 || maxTtl_ < minTtl_ || maxTtl_ > MAX_TTL_LIMIT) revert InvalidTtlBounds();
         minTtl = minTtl_;
         maxTtl = maxTtl_;
         emit TtlBoundsUpdated(minTtl_, maxTtl_);
@@ -727,6 +748,10 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     /// @dev Floors only ever make the gate stricter: a buyer's policy is combined with
     ///      these by taking the larger requirement, never the smaller.
     function setGateFloors(uint16 minDistinct_, uint64 minCount_, int128 minAvgValue_) external onlyOwner {
+        if (minDistinct_ > MAX_DISTINCT_FLOOR) {
+            revert OutOfBounds("minDistinctFloor", minDistinct_, MAX_DISTINCT_FLOOR);
+        }
+        if (minCount_ > MAX_COUNT_FLOOR) revert OutOfBounds("minCountFloor", minCount_, MAX_COUNT_FLOOR);
         minDistinctFloor = minDistinct_;
         minCountFloor = minCount_;
         minAvgValueFloor = minAvgValue_;
@@ -745,11 +770,17 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         if (reputationReadGas_ < MIN_REPUTATION_READ_GAS) {
             revert ReputationReadGasTooLow(reputationReadGas_, MIN_REPUTATION_READ_GAS);
         }
+        if (reputationReadGas_ > MAX_REPUTATION_READ_GAS) {
+            revert OutOfBounds("reputationReadGas", reputationReadGas_, MAX_REPUTATION_READ_GAS);
+        }
         reputationReadGas = reputationReadGas_;
         emit ReputationReadGasUpdated(reputationReadGas_);
     }
 
     function setMaxTrustedClients(uint16 maxTrustedClients_) external onlyOwner {
+        if (maxTrustedClients_ > MAX_TRUSTED_CLIENTS_LIMIT) {
+            revert OutOfBounds("maxTrustedClients", maxTrustedClients_, MAX_TRUSTED_CLIENTS_LIMIT);
+        }
         maxTrustedClients = maxTrustedClients_;
         emit MaxTrustedClientsUpdated(maxTrustedClients_);
     }

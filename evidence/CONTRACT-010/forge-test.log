@@ -1,0 +1,18 @@
+No files changed, compilation skipped
+
+Ran 12 tests for test/Admin.t.sol:AdminTest
+[PASS] test_EverySetterIsOwnerOnly() (gas: 163972)
+[PASS] test_GateFloorsAreClamped() (gas: 109447)
+[PASS] test_GraceIsClamped() (gas: 74592)
+[PASS] test_MaxTrustedClientsIsClamped() (gas: 74299)
+[PASS] test_NoSetterCanTouchAFundedJob() (gas: 1118902)
+[PASS] test_OwnershipTransferNeedsAcceptance() (gas: 144262)
+[PASS] test_RenouncingOwnershipDoesNotStrandFunds() (gas: 841904)
+[PASS] test_ReputationReadGasIsClampedAtBothEnds() (gas: 105606)
+[PASS] test_RevokingATokenStillLetsExistingJobsRefund() (gas: 443640)
+[PASS] test_TheConstructorRejectsWhatTheSettersReject() (gas: 18430)
+[PASS] test_TheOwnerHasNoWayToWithdraw() (gas: 472836)
+[PASS] test_TtlBoundsAreClamped() (gas: 125005)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 2.54ms (3.73ms CPU time)
+
+Ran 1 test suite in 23.51ms (2.54ms CPU time): 12 tests passed, 0 failed, 0 skipped (12 total tests)
