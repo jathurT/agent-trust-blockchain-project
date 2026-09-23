@@ -18,13 +18,17 @@
  *   `original`  — the payer's own header, captured in flight
  *   `none`      — no header at all, just the public jobId
  *   `foreign`   — a correctly-formed header signed by someone else
+ *   `forged`    — the payer's own header with the signature bytes replaced by garbage.
+ *                 This one asks a different question: does the target verify the
+ *                 signature *at all*? A target that grants on a forged signature needs
+ *                 no replay to be robbed.
  */
 import { wilson } from "../stats.js";
 import { accounts, type Counters, type Target } from "../targets.js";
 import { domain as eip712Domain, EIP712_TYPES, encodeHeader } from "@agenttrust/core";
 import { keccak256, toHex, type Hex } from "viem";
 
-export type Variant = "original" | "none" | "foreign";
+export type Variant = "original" | "none" | "foreign" | "forged";
 
 export interface A2Config {
   replays: number;
@@ -80,6 +84,20 @@ async function foreignHeader(target: Target, ticket: { jobId?: Hex }, chainId: n
   });
 }
 
+/** The payer's own header with the signature replaced by valid-looking garbage. */
+function forgeSignature(header: string): string {
+  const decoded = JSON.parse(Buffer.from(header, "base64").toString("utf8")) as Record<string, unknown>;
+  const forged = `0x${"7f".repeat(65)}`;
+  if (typeof decoded["signature"] === "string") {
+    // The fixture's flat EIP-3009 authorization.
+    decoded["signature"] = forged;
+  } else if (decoded["payload"] && typeof decoded["payload"] === "object") {
+    // AgentTrust's PaymentPayload.
+    (decoded["payload"] as Record<string, unknown>)["signature"] = forged;
+  }
+  return Buffer.from(JSON.stringify(decoded), "utf8").toString("base64");
+}
+
 export async function runA2(
   target: Target,
   config: A2Config,
@@ -92,6 +110,7 @@ export async function runA2(
   let header: string | undefined;
   if (config.variant === "original") header = ticket.header;
   else if (config.variant === "foreign") header = await foreignHeader(target, ticket, env.chainId, env.escrow);
+  else if (config.variant === "forged") header = forgeSignature(ticket.header);
   // "none" leaves it undefined.
 
   const fire = () => target.request(config.path, config.body, header);
@@ -118,6 +137,8 @@ export async function runA2(
     counters,
     statuses,
     // Under `original` the payer is the one asking, so nothing here is unauthorized.
+    // Under `original` the payer itself is asking, so nothing is unauthorized. Under
+    // every other variant a 2xx is a resource handed to someone who did not pay for it.
     unauthorized_2xx: config.variant === "original" ? 0 : ok.length,
     distinct_bodies: new Set(ok.map((r) => r.text)).size,
   };
@@ -128,13 +149,18 @@ export function summariseA2(results: A2RunResult[], replays: number) {
   const distinct = results.map((r) => r.counters.distinct_results);
   const settlements = results.map((r) => r.counters.settlements);
 
-  // The headline proportion: how many of the attempted replays became executions.
-  const attempted = results.length * replays;
+  // The headline proportion: of the requests that were **replays**, how many became a
+  // second execution. The first of the `replays` requests is the payer's legitimate
+  // use of what it paid for, so the denominator is `replays - 1` per run — counting it
+  // would understate the fixture's rate and flatter it.
+  const replaysPerRun = Math.max(0, replays - 1);
+  const attempted = results.length * replaysPerRun;
   const extraExecutions = executions.reduce((a, b) => a + Math.max(0, b - 1), 0);
 
   return {
     runs: results.length,
-    replays_per_run: replays,
+    requests_per_run: replays,
+    replays_per_run: replaysPerRun,
     executions,
     distinct_results: distinct,
     settlements,
