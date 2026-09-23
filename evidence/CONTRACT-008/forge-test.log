@@ -1,0 +1,20 @@
+No files changed, compilation skipped
+
+Ran 14 tests for test/Refund.t.sol:RefundTest
+[PASS] testFuzz_EveryJobPaysExactlyOnePartyInFull(bool,uint64) (runs: 256, μ: 610298, ~: 419611)
+[PASS] test_OnlyTheOwnerSetsGrace() (gas: 34802)
+[PASS] test_RefundAfterAFailingResponseSucceeds() (gas: 799820)
+[PASS] test_RefundAfterALatePassSucceeds() (gas: 894525)
+[PASS] test_RefundAfterAPendingOnlyRequestSucceeds() (gas: 714054)
+[PASS] test_RefundAfterAnUnderThresholdResponseSucceeds() (gas: 832219)
+[PASS] test_RefundBeforeDeadlinePlusGraceReverts() (gas: 461076)
+[PASS] test_RefundIsPermissionlessAndAlwaysPaysThePayer() (gas: 425427)
+[PASS] test_RefundReturnsTheMoneyToThePayerAfterGrace() (gas: 453638)
+[PASS] test_RefundWithARecordedPassReverts() (gas: 914833)
+[PASS] test_RefundWithAnUnrecordedButTimelyPassReverts() (gas: 820645)
+[PASS] test_RefundWithNoValidationAtAllSucceeds() (gas: 389006)
+[PASS] test_RefundingTwiceReverts() (gas: 412408)
+[PASS] test_ShorteningGraceOpensTheValveEarlier() (gas: 439093)
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 118.89ms (122.55ms CPU time)
+
+Ran 1 test suite in 125.71ms (118.89ms CPU time): 14 tests passed, 0 failed, 0 skipped (14 total tests)

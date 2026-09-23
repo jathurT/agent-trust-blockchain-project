@@ -659,7 +659,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-007 — `bindValidation`, `confirmValidation` and `release`
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(A) · contracts-protocol
+- [ ] **Status:** IN_PROGRESS (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Tie exactly one validation request to a job and pay only against a timely pass.
 - **Refs:** §5.1(6)(7), §9.2 · FR-06, FR-07, FR-21, FR-22, SR-03 · DF-05, DF-06, DF-15 · V-94, V-98, V-99
 - **Depends:** CONTRACT-004, REG-004, SPEC-003
@@ -669,7 +669,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-008 — `refund()` after deadline plus grace
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [ ] **Status:** IN_PROGRESS (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Give the buyer a safety valve that cannot steal a delivered, attested job.
 - **Refs:** §5.1(7), §9.2, §9.3 · FR-07, FR-22 · DF-05 · V-99
 - **Depends:** CONTRACT-007

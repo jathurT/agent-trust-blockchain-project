@@ -1,0 +1,25 @@
+No files changed, compilation skipped
+
+Ran 19 tests for test/Settlement.t.sol:SettlementTest
+[PASS] test_AJobLeavesFundedExactlyOnce() (gas: 863850)
+[PASS] test_APassAtTheDeadlineStillReleasesAnHourLater() (gas: 850581)
+[PASS] test_ASquattedHashForcesANewSaltAndStillBinds() (gas: 1048412)
+[PASS] test_AnAttestationAfterTheDeadlineNeverReleases() (gas: 828235)
+[PASS] test_AnAttestationOnAnotherJobDoesNotRelease() (gas: 1273759)
+[PASS] test_AnOverwriteAfterTheSnapshotCannotUnRelease() (gas: 880571)
+[PASS] test_AnOverwriteBeforeTheSnapshotDoesLoseThePass() (gas: 839674)
+[PASS] test_BindingARequestWithTheWrongValidatorReverts() (gas: 550681)
+[PASS] test_BindingTiesOneRequestHashToTheJob() (gas: 605408)
+[PASS] test_BindingTwiceReverts() (gas: 770271)
+[PASS] test_BindingWithoutFilingTheRequestReverts() (gas: 361321)
+[PASS] test_ConfirmingBeforeBindingReverts() (gas: 324418)
+[PASS] test_ConfirmingSnapshotsAPassingAttestation() (gas: 786832)
+[PASS] test_ConfirmingWithoutAPassReverts() (gas: 805837)
+[PASS] test_OnlyThePayeeMayBind() (gas: 526325)
+[PASS] test_ReleaseIsImpossibleWithoutABoundHash() (gas: 329581)
+[PASS] test_ReleaseIsPermissionlessAndStillPaysThePayee() (gas: 821093)
+[PASS] test_ReleasePaysTheSnapshottedPayee() (gas: 865283)
+[PASS] test_SettlementCallsOnAnUnknownJobRevert() (gas: 108603)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 3.94ms (11.31ms CPU time)
+
+Ran 1 test suite in 12.00ms (3.94ms CPU time): 19 tests passed, 0 failed, 0 skipped (19 total tests)

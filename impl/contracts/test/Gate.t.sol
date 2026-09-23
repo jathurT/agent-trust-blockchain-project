@@ -1,55 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test, console} from "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
+import {EscrowFixture} from "./support/EscrowFixture.sol";
 import {AgentTrustEscrow} from "../src/AgentTrustEscrow.sol";
-import {MockIdentityRegistry} from "../src/mocks/MockIdentityRegistry.sol";
-import {MockReputationRegistry} from "../src/mocks/MockReputationRegistry.sol";
-import {MockUSDC} from "../src/mocks/MockUSDC.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @notice CONTRACT-005 — the trust-anchored reputation gate (DF-09).
-contract GateTest is Test {
-    AgentTrustEscrow internal escrow;
-    MockIdentityRegistry internal identity;
-    MockReputationRegistry internal reputation;
-    MockUSDC internal usdc;
-
-    address internal owner = makeAddr("owner");
-    address internal buyer = makeAddr("buyer");
-    address internal seller = makeAddr("seller");
-    address internal validator = makeAddr("validator");
-
+contract GateTest is EscrowFixture {
     address internal alice = makeAddr("alice"); // trusted by the buyer
     address internal bob = makeAddr("bob"); // trusted by the buyer
     address internal mallory = makeAddr("mallory"); // not trusted
-
-    uint256 internal sellerAgentId;
-
-    uint64 internal constant MIN_TTL = 10 minutes;
-    uint64 internal constant MAX_TTL = 24 hours;
-    uint16 internal constant MAX_TRUSTED = 10;
-    uint64 internal constant READ_GAS = 250_000;
-    uint256 internal constant PRICE = 250_000;
-
-    function setUp() public {
-        identity = new MockIdentityRegistry();
-        reputation = new MockReputationRegistry(address(identity));
-        usdc = new MockUSDC();
-
-        vm.prank(seller);
-        sellerAgentId = identity.register("https://seller.example/agent.json");
-
-        escrow = new AgentTrustEscrow(
-            owner, address(identity), address(reputation), MIN_TTL, MAX_TTL, MAX_TRUSTED, READ_GAS
-        );
-        vm.prank(owner);
-        escrow.setTokenAllowed(address(usdc), true);
-
-        usdc.mint(buyer, 1000 * PRICE);
-        vm.prank(buyer);
-        usdc.approve(address(escrow), type(uint256).max);
-    }
 
     // ------------------------------------------------------------------ helpers
 
@@ -81,7 +42,7 @@ contract GateTest is Test {
         clients[1] = bob;
     }
 
-    function _fund(AgentTrustEscrow.GatePolicy memory gate, bytes32 nonce) internal returns (bytes32) {
+    function _fundWith(AgentTrustEscrow.GatePolicy memory gate, bytes32 nonce) internal returns (bytes32) {
         vm.prank(buyer);
         return escrow.fund(
             sellerAgentId,
@@ -106,7 +67,7 @@ contract GateTest is Test {
         _rate(alice, 9500);
         _rate(bob, 9000);
 
-        bytes32 jobId = _fund(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
+        bytes32 jobId = _fundWith(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
         assertEq(escrow.jobs(jobId).amount, PRICE);
     }
 
@@ -148,11 +109,11 @@ contract GateTest is Test {
         assertEq(reputation.distinctClientsUnfiltered(sellerAgentId), 5);
 
         vm.expectRevert();
-        _fund(_policy(_two(), 1, 1, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 1, 1, 0), bytes32(uint256(1)));
 
         // One genuine relationship is worth more than all five.
         _rate(alice, 8000);
-        _fund(_policy(_two(), 1, 1, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 1, 1, 0), bytes32(uint256(1)));
     }
 
     // ------------------------------------------------------------ each dimension
@@ -166,7 +127,7 @@ contract GateTest is Test {
                 AgentTrustEscrow.ReputationTooLow.selector, AgentTrustEscrow.GateDimension.Count, int256(2), int256(5)
             )
         );
-        _fund(_policy(_two(), 2, 5, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 5, 0), bytes32(uint256(1)));
     }
 
     function test_AverageDimensionIsReported() public {
@@ -181,7 +142,7 @@ contract GateTest is Test {
                 int256(9000)
             )
         );
-        _fund(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
     }
 
     /// @dev The average is weighted by entries, not by client: ten mediocre reviews
@@ -201,7 +162,7 @@ contract GateTest is Test {
                 int256(7500)
             )
         );
-        _fund(_policy(_two(), 2, 10, 7500), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 10, 7500), bytes32(uint256(1)));
     }
 
     /// @dev Clients are free to use different `valueDecimals`; the gate normalises.
@@ -209,7 +170,7 @@ contract GateTest is Test {
         _rate(alice, 90, 0, escrow.FEEDBACK_TAG()); // 90, zero decimals
         _rate(bob, 9000, 2, escrow.FEEDBACK_TAG()); // 90.00, two decimals
 
-        bytes32 jobId = _fund(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
+        bytes32 jobId = _fundWith(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
         assertEq(escrow.jobs(jobId).amount, PRICE);
     }
 
@@ -225,7 +186,7 @@ contract GateTest is Test {
                 int256(5000)
             )
         );
-        _fund(_policy(_two(), 2, 2, 5000), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 2, 5000), bytes32(uint256(1)));
     }
 
     function test_FeedbackUnderAnotherTagDoesNotCount() public {
@@ -237,7 +198,7 @@ contract GateTest is Test {
                 AgentTrustEscrow.ReputationTooLow.selector, AgentTrustEscrow.GateDimension.Distinct, int256(1), int256(2)
             )
         );
-        _fund(_policy(_two(), 2, 2, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 2, 0), bytes32(uint256(1)));
     }
 
     function test_RevokedFeedbackDoesNotCount() public {
@@ -251,7 +212,7 @@ contract GateTest is Test {
                 AgentTrustEscrow.ReputationTooLow.selector, AgentTrustEscrow.GateDimension.Distinct, int256(1), int256(2)
             )
         );
-        _fund(_policy(_two(), 2, 2, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 2, 0), bytes32(uint256(1)));
     }
 
     // ------------------------------------------------------------- list integrity
@@ -265,13 +226,13 @@ contract GateTest is Test {
         clients[1] = alice;
 
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.DuplicateTrustedClient.selector, alice));
-        _fund(_policy(clients, 2, 1, 0), bytes32(uint256(1)));
+        _fundWith(_policy(clients, 2, 1, 0), bytes32(uint256(1)));
     }
 
     function test_ZeroTrustedClientReverts() public {
         address[] memory clients = new address[](1);
         vm.expectRevert(AgentTrustEscrow.ZeroTrustedClient.selector);
-        _fund(_policy(clients, 0, 0, 0), bytes32(uint256(1)));
+        _fundWith(_policy(clients, 0, 0, 0), bytes32(uint256(1)));
     }
 
     /// @dev Acceptance (c).
@@ -285,7 +246,7 @@ contract GateTest is Test {
                 AgentTrustEscrow.TooManyTrustedClients.selector, uint256(MAX_TRUSTED + 1), MAX_TRUSTED
             )
         );
-        _fund(_policy(clients, 0, 0, 0), bytes32(uint256(1)));
+        _fundWith(_policy(clients, 0, 0, 0), bytes32(uint256(1)));
     }
 
     // -------------------------------------------------------------- owner floors
@@ -303,10 +264,10 @@ contract GateTest is Test {
                 AgentTrustEscrow.ReputationTooLow.selector, AgentTrustEscrow.GateDimension.Count, int256(2), int256(3)
             )
         );
-        _fund(_policy(_two(), 0, 0, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 0, 0, 0), bytes32(uint256(1)));
 
         _rate(alice, 9500);
-        _fund(_policy(_two(), 0, 0, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 0, 0, 0), bytes32(uint256(1)));
     }
 
     function test_ABuyerMayBeStricterThanTheFloor() public {
@@ -319,7 +280,7 @@ contract GateTest is Test {
                 AgentTrustEscrow.ReputationTooLow.selector, AgentTrustEscrow.GateDimension.Distinct, int256(1), int256(2)
             )
         );
-        _fund(_policy(_two(), 2, 1, 0), bytes32(uint256(1)));
+        _fundWith(_policy(_two(), 2, 1, 0), bytes32(uint256(1)));
     }
 
     function test_OnlyTheOwnerSetsFloorsAndTheReadCeiling() public {
@@ -343,7 +304,7 @@ contract GateTest is Test {
         _rate(bob, 9000);
 
         // Alice's read blows the ceiling and is dropped; Bob still decides the outcome.
-        bytes32 jobId = _fund(_policy(_two(), 1, 1, 9000), bytes32(uint256(1)));
+        bytes32 jobId = _fundWith(_policy(_two(), 1, 1, 9000), bytes32(uint256(1)));
         assertEq(escrow.jobs(jobId).amount, PRICE);
 
         // And with Alice alone there is nothing left to satisfy the policy.
@@ -354,7 +315,7 @@ contract GateTest is Test {
                 AgentTrustEscrow.ReputationTooLow.selector, AgentTrustEscrow.GateDimension.Distinct, int256(0), int256(1)
             )
         );
-        _fund(_policy(onlyAlice, 1, 1, 0), bytes32(uint256(2)));
+        _fundWith(_policy(onlyAlice, 1, 1, 0), bytes32(uint256(2)));
     }
 
     /// @dev The attack the bounded read would otherwise open: starve every registry
@@ -411,7 +372,17 @@ contract GateTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(AgentTrustEscrow.ReputationReadGasTooLow.selector, uint64(1), floor_)
         );
-        new AgentTrustEscrow(owner, address(identity), address(reputation), MIN_TTL, MAX_TTL, MAX_TRUSTED, 1);
+        new AgentTrustEscrow(
+            owner,
+            address(identity),
+            address(reputation),
+            address(validation),
+            MIN_TTL,
+            MAX_TTL,
+            GRACE,
+            MAX_TRUSTED,
+            1
+        );
     }
 
     /// @dev Acceptance (d): gas against history length, for EVAL-002 and DOC-004. The

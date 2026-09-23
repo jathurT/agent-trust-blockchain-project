@@ -1,83 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
+import {EscrowFixture} from "./support/EscrowFixture.sol";
 import {AgentTrustEscrow} from "../src/AgentTrustEscrow.sol";
-import {CanonicalHash} from "../src/CanonicalHash.sol";
-import {MockIdentityRegistry} from "../src/mocks/MockIdentityRegistry.sol";
-import {MockReputationRegistry} from "../src/mocks/MockReputationRegistry.sol";
 import {MockUSDC} from "../src/mocks/MockUSDC.sol";
 import {FeeOnTransferToken, ReentrantToken, RevertingToken} from "../src/mocks/AdversarialTokens.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @notice CONTRACT-004 — the escrow state machine and `fund()`.
-contract FundTest is Test {
-    AgentTrustEscrow internal escrow;
-    MockIdentityRegistry internal identity;
-    MockReputationRegistry internal reputation;
-    MockUSDC internal usdc;
-
-    address internal owner = makeAddr("owner");
-    address internal buyer = makeAddr("buyer");
-    address internal seller = makeAddr("seller");
-    address internal validator = makeAddr("validator");
-    address internal stranger = makeAddr("stranger");
-
-    uint256 internal sellerAgentId;
-
-    uint64 internal constant MIN_TTL = 10 minutes;
-    uint64 internal constant MAX_TTL = 24 hours;
-    uint16 internal constant MAX_TRUSTED = 10;
-    uint64 internal constant READ_GAS = 250_000;
-    uint256 internal constant PRICE = 250_000; // 0.25 USDC, 6 decimals
-
-    bytes32 internal constant METHOD_HASH = keccak256("POST");
-    bytes32 internal constant URI_HASH = keccak256("https://seller.example/v1/summarise");
-    bytes32 internal constant BODY_HASH = keccak256('{"text":"hello"}');
-    bytes32 internal constant NONCE = bytes32(uint256(1));
-
-    function setUp() public {
-        identity = new MockIdentityRegistry();
-        reputation = new MockReputationRegistry(address(identity));
-        usdc = new MockUSDC();
-
-        vm.prank(seller);
-        sellerAgentId = identity.register("https://seller.example/agent.json");
-
-        escrow = new AgentTrustEscrow(
-            owner, address(identity), address(reputation), MIN_TTL, MAX_TTL, MAX_TRUSTED, READ_GAS
-        );
-        vm.prank(owner);
-        escrow.setTokenAllowed(address(usdc), true);
-
-        usdc.mint(buyer, 100 * PRICE);
-        vm.prank(buyer);
-        usdc.approve(address(escrow), type(uint256).max);
-    }
-
+contract FundTest is EscrowFixture {
     // ------------------------------------------------------------------ helpers
-
-    function _resource() internal pure returns (AgentTrustEscrow.ResourceRef memory) {
-        return AgentTrustEscrow.ResourceRef({methodHash: METHOD_HASH, uriHash: URI_HASH, bodyHash: BODY_HASH});
-    }
-
-    function _emptyGate() internal pure returns (AgentTrustEscrow.GatePolicy memory) {
-        return AgentTrustEscrow.GatePolicy({
-            trustedClients: new address[](0),
-            minDistinct: 0,
-            minCount: 0,
-            minAvgValue: 0
-        });
-    }
-
-    function _fund(bytes32 nonce) internal returns (bytes32) {
-        vm.prank(buyer);
-        return escrow.fund(
-            sellerAgentId, address(usdc), PRICE, _resource(), nonce, MIN_TTL, validator, _emptyGate()
-        );
-    }
 
     // --------------------------------------------------------------- happy path
 
@@ -137,7 +70,7 @@ contract FundTest is Test {
         _fund(NONCE);
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.ReplayedNonce.selector, buyer, NONCE));
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
     }
 
     /// @dev Nonces are payer-scoped, so one buyer cannot burn another's.
@@ -148,7 +81,7 @@ contract FundTest is Test {
         vm.startPrank(stranger);
         usdc.approve(address(escrow), PRICE);
         bytes32 other = escrow.fund(
-            sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate()
+            sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate()
         );
         vm.stopPrank();
         assertEq(escrow.jobs(other).payer, stranger);
@@ -166,11 +99,11 @@ contract FundTest is Test {
 
         vm.prank(buyer);
         vm.expectRevert(RevertingToken.TransferBlocked.selector);
-        escrow.fund(sellerAgentId, address(stop), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(stop), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
 
         assertFalse(escrow.consumedNonce(buyer, NONCE));
         vm.prank(buyer);
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
         assertTrue(escrow.consumedNonce(buyer, NONCE));
     }
 
@@ -179,7 +112,7 @@ contract FundTest is Test {
         usdc.mint(poor, PRICE);
         vm.prank(poor);
         vm.expectRevert();
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
         assertFalse(escrow.consumedNonce(poor, NONCE));
     }
 
@@ -199,7 +132,7 @@ contract FundTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(AgentTrustEscrow.TransferAmountMismatch.selector, PRICE, PRICE - PRICE / 100)
         );
-        escrow.fund(sellerAgentId, address(fee), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(fee), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
     }
 
     function test_TokenNotOnTheAllowlistReverts() public {
@@ -207,13 +140,13 @@ contract FundTest is Test {
         other.mint(buyer, PRICE);
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.TokenNotAllowed.selector, address(other)));
-        escrow.fund(sellerAgentId, address(other), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(other), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
     }
 
     function test_ZeroAmountReverts() public {
         vm.prank(buyer);
         vm.expectRevert(AgentTrustEscrow.ZeroAmount.selector);
-        escrow.fund(sellerAgentId, address(usdc), 0, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), 0, _resource(), NONCE, MIN_TTL, validator, _openGate());
     }
 
     /// @dev A token that calls back into `fund()` mid-transfer gets the guard, not a
@@ -229,7 +162,7 @@ contract FundTest is Test {
 
         bytes memory reentry = abi.encodeCall(
             escrow.fund,
-            (sellerAgentId, address(rent), PRICE, _resource(), bytes32(uint256(99)), MIN_TTL, validator, _emptyGate())
+            (sellerAgentId, address(rent), PRICE, _resource(), bytes32(uint256(99)), MIN_TTL, validator, _openGate())
         );
         rent.setReentry(address(escrow), reentry);
 
@@ -237,7 +170,7 @@ contract FundTest is Test {
         // would also pass if the callback never fired at all.
         vm.expectCall(address(escrow), reentry);
         vm.prank(buyer);
-        escrow.fund(sellerAgentId, address(rent), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(rent), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
 
         assertEq(rent.balanceOf(address(escrow)), PRICE);
         assertFalse(escrow.consumedNonce(buyer, bytes32(uint256(99))));
@@ -250,7 +183,7 @@ contract FundTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(AgentTrustEscrow.TtlOutOfBounds.selector, MIN_TTL - 1, MIN_TTL, MAX_TTL)
         );
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL - 1, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL - 1, validator, _openGate());
     }
 
     /// @dev DF-22: an unbounded TTL lets a buyer set a one-second deadline and refund a
@@ -260,14 +193,14 @@ contract FundTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(AgentTrustEscrow.TtlOutOfBounds.selector, MAX_TTL + 1, MIN_TTL, MAX_TTL)
         );
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MAX_TTL + 1, validator, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MAX_TTL + 1, validator, _openGate());
     }
 
     function testFuzz_TtlWithinBoundsIsAccepted(uint64 ttl) public {
         ttl = uint64(bound(ttl, MIN_TTL, MAX_TTL));
         vm.prank(buyer);
         bytes32 jobId =
-            escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, ttl, validator, _emptyGate());
+            escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, ttl, validator, _openGate());
         assertEq(escrow.jobs(jobId).deadline, uint64(block.timestamp) + ttl);
     }
 
@@ -276,19 +209,19 @@ contract FundTest is Test {
     function test_ValidatorCannotBeThePayer() public {
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.InvalidValidator.selector, buyer));
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, buyer, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, buyer, _openGate());
     }
 
     function test_ValidatorCannotBeZero() public {
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.InvalidValidator.selector, address(0)));
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, address(0), _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, address(0), _openGate());
     }
 
     function test_ValidatorCannotBeTheAgentOwner() public {
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.InvalidValidator.selector, seller));
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, seller, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, seller, _openGate());
     }
 
     /// @dev The self-attestation route the blueprint left open: an operator of the
@@ -299,7 +232,7 @@ contract FundTest is Test {
 
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.InvalidValidator.selector, stranger));
-        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, stranger, _emptyGate());
+        escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, stranger, _openGate());
     }
 
     // ---------------------------------------------------------------------- payee
@@ -334,7 +267,7 @@ contract FundTest is Test {
     function test_FundingAnUnknownAgentReverts() public {
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721NonexistentToken.selector, uint256(42)));
-        escrow.fund(42, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _emptyGate());
+        escrow.fund(42, address(usdc), PRICE, _resource(), NONCE, MIN_TTL, validator, _openGate());
     }
 
     function _setAgentWallet(address wallet, uint256 walletKey) internal {
@@ -406,7 +339,7 @@ contract FundTest is Test {
         address escrowAt = vm.parseJsonAddress(json, string.concat(base, ".input.escrow"));
         deployCodeTo(
             "AgentTrustEscrow.sol:AgentTrustEscrow",
-            abi.encode(owner, address(identity), address(reputation), MIN_TTL, MAX_TTL, MAX_TRUSTED, READ_GAS),
+            _constructorArgs(),
             escrowAt
         );
 

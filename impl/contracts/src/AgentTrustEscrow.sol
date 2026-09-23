@@ -6,15 +6,27 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable, Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {CanonicalHash} from "./CanonicalHash.sol";
-import {IIdentityRegistry, IReputationRegistry} from "./interfaces/erc8004/IERC8004.sol";
+import {IIdentityRegistry, IReputationRegistry, IValidationRegistry} from "./interfaces/erc8004/IERC8004.sol";
 
 /// @title AgentTrustEscrow
 /// @notice Escrow that binds one agent-to-agent payment to one canonical HTTP request
 ///         and releases it only against a validator attestation.
-/// @dev    CONTRACT-004 builds the state machine and `fund()`; CONTRACT-005 adds the
-///         reputation gate. `bindValidation`/`confirmValidation`/`release`/`refund`
-///         arrive in CONTRACT-007/008, so this contract can take money but cannot yet
-///         pay it out. **Do not deploy it.**
+/// @dev    Settlement rules worth stating plainly, because each one is a correction
+///         to the blueprint rather than a detail:
+///          - `release()` has **no deadline of its own**. What must be timely is the
+///            *attestation* (`lastUpdate <= deadline`). A validator that attests at
+///            `deadline - 1` and a release mined an hour later still pays the seller;
+///            the blueprint's version lost the seller's money in exactly that case
+///            (DF-05).
+///          - ERC-8004 responses are **repeatable** (V-94), so the first passing
+///            attestation is **snapshotted** into the job. A later overwrite cannot
+///            un-pay a job that has already been confirmed (DF-15).
+///          - `refund()` needs `deadline + grace` **and** no pass that is recorded or
+///            recordable. There is no early refund on "fail", because a pending
+///            request reads identically to a response of 0 (DF-05, V-99/V-99a).
+///          - the ERC-8004 `requestHash` is globally unique and squattable, so the
+///            payee **binds one salted hash, once**, and every later read uses only
+///            that (DF-06).
 ///
 ///         Design decisions this implements, with their findings:
 ///          - the resource hash is derived **on-chain** from the request fields plus
@@ -101,8 +113,13 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     /// @dev The project's feedback units: two decimals (DF-21).
     uint8 internal constant FEEDBACK_DECIMALS = 2;
 
+    /// @notice Attestation score that counts as a pass. A constant: an owner able to
+    ///         lower it could pay out jobs no validator ever approved.
+    uint8 public constant PASS_THRESHOLD = 100;
+
     IIdentityRegistry public immutable identityRegistry;
     IReputationRegistry public immutable reputationRegistry;
+    IValidationRegistry public immutable validationRegistry;
 
     mapping(bytes32 => Job) private _jobs;
     mapping(address => mapping(bytes32 => bool)) public consumedNonce;
@@ -118,6 +135,12 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     ///         unbounded read would let a seller brick `fund()` by accumulating
     ///         feedback. A read that exceeds this contributes nothing.
     uint64 public reputationReadGas;
+
+    /// @notice How long after the deadline a refund has to wait.
+    /// @dev    Margin for an attestation that is timely but mined late. Too short and
+    ///         an honest seller loses; too long and the buyer's money is held for no
+    ///         reason. DF-05 calls this the tunable that carries the residual risk.
+    uint64 public grace;
 
     /// @notice Owner floors. A buyer may be stricter than these, never weaker.
     uint16 public minDistinctFloor;
@@ -136,6 +159,11 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         uint64 deadline
     );
     event TokenAllowed(address indexed token, bool allowed);
+    event ValidationBound(bytes32 indexed jobId, bytes32 indexed requestHash, address indexed payee);
+    event ValidationRecorded(bytes32 indexed jobId, bytes32 indexed requestHash, uint8 response, uint256 lastUpdate);
+    event JobReleased(bytes32 indexed jobId, address indexed payee, address token, uint256 amount);
+    event JobRefunded(bytes32 indexed jobId, address indexed payer, address token, uint256 amount);
+    event GraceUpdated(uint64 grace);
     event GateFloorsUpdated(uint16 minDistinct, uint64 minCount, int128 minAvgValue);
     event ReputationReadGasUpdated(uint64 reputationReadGas);
     event TtlBoundsUpdated(uint64 minTtl, uint64 maxTtl);
@@ -154,6 +182,14 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     error ReputationTooLow(GateDimension dimension, int256 observed, int256 required);
     error InsufficientGasForReputationRead(uint256 available, uint256 required);
     error ReputationReadGasTooLow(uint64 given, uint64 min);
+    error NotPayee(address caller, address payee);
+    error AlreadyBound(bytes32 jobId, bytes32 requestHash);
+    error NotBound(bytes32 jobId);
+    error RequestMismatch(bytes32 requestHash);
+    error NotValidated(bytes32 jobId);
+    error BadState(bytes32 jobId, State state);
+    error DeadlineNotReached(uint64 nowTs, uint64 refundableAt);
+    error ValidationExists(bytes32 jobId);
     error InvalidTtlBounds();
     error UnknownJob(bytes32 jobId);
 
@@ -163,12 +199,17 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         address owner_,
         address identityRegistry_,
         address reputationRegistry_,
+        address validationRegistry_,
         uint64 minTtl_,
         uint64 maxTtl_,
+        uint64 grace_,
         uint16 maxTrustedClients_,
         uint64 reputationReadGas_
     ) Ownable(owner_) {
-        if (identityRegistry_ == address(0) || reputationRegistry_ == address(0)) {
+        if (
+            identityRegistry_ == address(0) || reputationRegistry_ == address(0)
+                || validationRegistry_ == address(0)
+        ) {
             revert InvalidValidator(address(0));
         }
         if (minTtl_ == 0 || maxTtl_ < minTtl_) revert InvalidTtlBounds();
@@ -177,11 +218,14 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         }
         identityRegistry = IIdentityRegistry(identityRegistry_);
         reputationRegistry = IReputationRegistry(reputationRegistry_);
+        validationRegistry = IValidationRegistry(validationRegistry_);
         minTtl = minTtl_;
         maxTtl = maxTtl_;
+        grace = grace_;
         maxTrustedClients = maxTrustedClients_;
         reputationReadGas = reputationReadGas_;
         emit TtlBoundsUpdated(minTtl_, maxTtl_);
+        emit GraceUpdated(grace_);
         emit MaxTrustedClientsUpdated(maxTrustedClients_);
         emit ReputationReadGasUpdated(reputationReadGas_);
     }
@@ -402,6 +446,145 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         return a > b ? a : b;
     }
 
+    // ---------------------------------------------------------------- settlement
+
+    /// @notice Ties this job to exactly one ERC-8004 validation request.
+    /// @dev    The payee files `validationRequest` on the registry first, then calls
+    ///         this. The salt is what makes the hash unguessable: ERC-8004 request
+    ///         hashes are unique registry-wide and first-come, so a predictable one can
+    ///         be burned by anyone, for any agent (DF-06). If that happens the payee
+    ///         simply files again under a new salt — nothing here is consumed by the
+    ///         failed attempt, because binding only succeeds against a registry entry
+    ///         that already names this job's agent and validator.
+    /// @param salt the payee's secret for this job; also carried in the delivery
+    ///        receipt so the validator can derive the same hash (SPEC-001).
+    function bindValidation(bytes32 jobId, bytes32 salt) external returns (bytes32 requestHash) {
+        Job storage job = _requireFunded(jobId);
+        if (msg.sender != job.payee) revert NotPayee(msg.sender, job.payee);
+        if (job.requestHash != bytes32(0)) revert AlreadyBound(jobId, job.requestHash);
+
+        requestHash = CanonicalHash.requestHash(block.chainid, address(this), jobId, job.resourceHash, salt);
+
+        (bool found, address validator, uint256 agentId,,) = _readValidation(requestHash);
+        if (!found || validator != job.validator || agentId != job.payeeAgentId) {
+            revert RequestMismatch(requestHash);
+        }
+
+        job.requestHash = requestHash;
+        emit ValidationBound(jobId, requestHash, job.payee);
+    }
+
+    /// @notice Snapshots a passing, timely attestation into the job.
+    /// @dev    Permissionless and idempotent-by-revert: once recorded, a later
+    ///         overwrite in the registry cannot take it back (DF-15).
+    function confirmValidation(bytes32 jobId) external {
+        Job storage job = _requireFunded(jobId);
+        if (job.validationRecorded) revert ValidationExists(jobId);
+        if (!_recordPass(jobId, job)) revert NotValidated(jobId);
+    }
+
+    /// @notice Pays the snapshotted payee against a passing attestation.
+    /// @dev    Permissionless: anyone may settle a job that has earned its money, which
+    ///         is what lets the validator release immediately after attesting (DF-15).
+    ///         There is deliberately **no deadline on this call** (DF-05).
+    function release(bytes32 jobId) external nonReentrant {
+        Job storage job = _requireFunded(jobId);
+        if (!job.validationRecorded && !_recordPass(jobId, job)) revert NotValidated(jobId);
+
+        job.state = State.Released;
+        address payee = job.payee;
+        address token = job.token;
+        uint256 amount = job.amount;
+
+        emit JobReleased(jobId, payee, token, amount);
+        IERC20(token).safeTransfer(payee, amount);
+    }
+
+    /// @notice Returns the escrowed amount to the payer once the job has plainly failed.
+    /// @dev    Permissionless, and the money can only ever go to `job.payer`, so a
+    ///         third party calling this gains nothing but the gas bill.
+    ///
+    ///         No early refund on "fail": a request that is merely pending reads as
+    ///         response 0, so an early-fail rule would let anyone refund the moment the
+    ///         seller filed its request and take the service for free (DF-05).
+    function refund(bytes32 jobId) external nonReentrant {
+        Job storage job = _requireFunded(jobId);
+
+        uint64 refundableAt = job.deadline + grace;
+        // forge-lint: disable-next-line(block-timestamp)
+        if (block.timestamp <= refundableAt) revert DeadlineNotReached(uint64(block.timestamp), refundableAt);
+        if (job.validationRecorded) revert ValidationExists(jobId);
+        // A pass that was earned in time but never snapshotted still counts.
+        if (_isPassing(job)) revert ValidationExists(jobId);
+
+        job.state = State.Refunded;
+        address payer = job.payer;
+        address token = job.token;
+        uint256 amount = job.amount;
+
+        emit JobRefunded(jobId, payer, token, amount);
+        IERC20(token).safeTransfer(payer, amount);
+    }
+
+    /// @notice Whether `release()` would succeed right now.
+    function isReleasable(bytes32 jobId) external view returns (bool) {
+        Job storage job = _jobs[jobId];
+        if (job.state != State.Funded) return false;
+        return job.validationRecorded || _isPassing(job);
+    }
+
+    /// @notice Whether `refund()` would succeed right now.
+    function isRefundable(bytes32 jobId) external view returns (bool) {
+        Job storage job = _jobs[jobId];
+        if (job.state != State.Funded) return false;
+        // forge-lint: disable-next-line(block-timestamp)
+        if (block.timestamp <= job.deadline + grace) return false;
+        return !job.validationRecorded && !_isPassing(job);
+    }
+
+    function _requireFunded(bytes32 jobId) private view returns (Job storage job) {
+        job = _jobs[jobId];
+        if (job.state == State.None) revert UnknownJob(jobId);
+        if (job.state != State.Funded) revert BadState(jobId, job.state);
+    }
+
+    /// @dev A pass is a response of at least the threshold whose `lastUpdate` is no
+    ///      later than the job's deadline. `lastUpdate` is set by `validationRequest`
+    ///      as well as by `validationResponse`, so the response value is what
+    ///      distinguishes a real pass from a pending request (V-99).
+    function _isPassing(Job storage job) private view returns (bool) {
+        if (job.requestHash == bytes32(0)) return false;
+        (bool found, address validator, uint256 agentId, uint8 response, uint256 lastUpdate) =
+            _readValidation(job.requestHash);
+        return found && validator == job.validator && agentId == job.payeeAgentId && response >= PASS_THRESHOLD
+            && lastUpdate <= job.deadline;
+    }
+
+    function _recordPass(bytes32 jobId, Job storage job) private returns (bool) {
+        if (job.requestHash == bytes32(0)) revert NotBound(jobId);
+        if (!_isPassing(job)) return false;
+        job.validationRecorded = true;
+        (,,, uint8 response, uint256 lastUpdate) = _readValidation(job.requestHash);
+        emit ValidationRecorded(jobId, job.requestHash, response, lastUpdate);
+        return true;
+    }
+
+    /// @dev `getValidationStatus` reverts "unknown" for a hash nobody has filed, so the
+    ///      read is wrapped and a revert means "no validation" rather than a dead job.
+    function _readValidation(bytes32 requestHash)
+        private
+        view
+        returns (bool found, address validator, uint256 agentId, uint8 response, uint256 lastUpdate)
+    {
+        try validationRegistry.getValidationStatus(requestHash) returns (
+            address v, uint256 a, uint8 r, bytes32, string memory, uint256 u
+        ) {
+            return (true, v, a, r, u);
+        } catch {
+            return (false, address(0), 0, 0, 0);
+        }
+    }
+
     // --------------------------------------------------------------------- views
 
     function jobs(bytes32 jobId) external view returns (Job memory) {
@@ -412,6 +595,11 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
 
     function jobState(bytes32 jobId) external view returns (State) {
         return _jobs[jobId].state;
+    }
+
+    /// @notice The hash the payee must file with the registry for this salt.
+    function previewRequestHash(bytes32 jobId, bytes32 salt) external view returns (bytes32) {
+        return CanonicalHash.requestHash(block.chainid, address(this), jobId, _jobs[jobId].resourceHash, salt);
     }
 
     /// @notice Lets a client derive the same hash the chain will, before it pays.
@@ -460,6 +648,11 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         minCountFloor = minCount_;
         minAvgValueFloor = minAvgValue_;
         emit GateFloorsUpdated(minDistinct_, minCount_, minAvgValue_);
+    }
+
+    function setGrace(uint64 grace_) external onlyOwner {
+        grace = grace_;
+        emit GraceUpdated(grace_);
     }
 
     function setReputationReadGas(uint64 reputationReadGas_) external onlyOwner {
