@@ -439,7 +439,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SPEC-001 — Canonical request hash, typed data and shared vectors
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 2.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 2.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Define, once and unambiguously, every byte that is hashed — and publish vectors that all three languages must reproduce. **This gates every component.**
 - **Refs:** §9.1 · FR-03, FR-20, IR-05 · DF-04, DF-02 · V-81
 - **Skill:** `solidity@solskill`, `spec-to-code-compliance` / fallback: Context7 (EIP-712, keccak)
@@ -447,7 +447,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - **Steps:** 1) Write `docs/specs/canonical-hash.md` with: method uppercased ASCII; URI built from the **configured origin** (lowercase scheme/host, default port omitted, no fragment), path percent-encoding normalised (uppercase hex, unreserved decoded), query parameters **sorted by (key, value)** — this fully determines the order, so the original order of duplicate keys is *not* preserved (a deliberate choice: it makes the rule unambiguous across languages) — empty query → no `?`; body = exact bytes before parsing, with `Content-Encoding` rejected in v1 and the media type recorded but not hashed; price as an atomic-unit integer; token address; chainId; typehash constants. 2) Define `RESOURCE_TYPEHASH`, `JOB_TYPEHASH`, `VALIDATION_TYPEHASH` and the EIP-712 domain plus `DeliveryRequest`, `DeliveryReceipt`, `EvidenceAccess`. 3) Write `impl/vectors/canonical-v1.json`: ≥15 cases — simple GET; POST with JSON body; empty body; binary body; unicode path; percent-encoding variants; duplicate query keys supplied in two different input orders that must hash **identically**; default vs explicit port; uppercase host; trailing slash; large body; price edge values; wrong-token variant; plus jobId, requestHash and the three digests per case. 4) State the versioning rule (`canonicalVersion` travels in the 402). 5) Write the **minimal TypeScript reference implementation** of the hashes next to the Solidity one, so both can be checked at G1; AGENT-001 later packages it rather than re-implementing it.
 - **Files:** `docs/specs/canonical-hash.md`, `impl/vectors/canonical-v1.json`
 - **Acceptance:** (a) every vector carries inputs and all expected outputs; (b) two independent implementations (Solidity and TypeScript) reproduce 100% of them; (c) ambiguities from §9.1 (origin, query order, raw body) are each resolved explicitly in the text.
-- **Verify:** `forge test --match-contract CanonicalVectors` and `pnpm -C impl/packages/core test` both green → `evidence/SPEC-001/`
+- **Verify:** `forge test --match-contract CanonicalHashTest` (4 pass) and `pnpm -C impl/packages/core test` (38 pass) and `pnpm typecheck` (exit 0) and `gen-vectors.py --check` → `evidence/SPEC-001/acceptance.txt`
 - **Risks:** URI normalisation disagreements between libraries → the vectors, not the libraries, are authoritative; mismatches are fixed in the spec first (R-05).
 
 ### SPEC-002 — HTTP protocol: 402, payer-signed retry, claim semantics, confirmations
@@ -1504,6 +1504,19 @@ Each gate is a **default stopping point**: Claude stops and reports for review.
 | ENV-001 | 2026-09-23 | `docs/specs/versions.md` written: 54 pinned rows across toolchain, ERC-8004, chain/token, Node, Python, extended scope and skills. Library versions re-confirmed the same day; **web3.py is on 8.x and TypeScript on 7.x**, both flagged as major bumps to re-check at VAL-001/AGENT-001 | `evidence/ENV-001/acceptance.txt` |
 | ENV-002 | 2026-09-23 | Private repo on `main`; first commit `6295e71` with 51 files. `.gitignore`, layout skeleton, and a pre-commit hook that refuses private keys, PEM keys and `.env` files while allowing the public Anvil test mnemonic (verified: exit 1 on a staged fake key). **DF-20 measured, not assumed:** SQLite WAL locking works on `/mnt/d` (second writer blocked), but small-file writes are ~38× slower than ext4 — repo stays put, `CLAIMS_DB_PATH` defaults to ext4, and the planned hard refusal became a warning | `evidence/ENV-002/acceptance.txt` |
 | ENV-003 | 2026-09-23 | Foundry **v1.8.3** installed (build 2026-09-15, matching the pin) and added to `~/.bashrc`; OpenZeppelin **5.7.0** (`cab19933`) and forge-std **1.16.2** (`bf647bd6`) installed. A probe importing `SafeERC20`/`ReentrancyGuard`/`Ownable2Step` compiles under solc 0.8.37 + `evm_version=cancun`. **Deviation:** the submodule route wrote a path relative to `impl/contracts` into the root `.gitmodules` and checked nothing out, so dependencies are vendored through `impl/scripts/install-deps.sh` with `lib/` git-ignored (re-run from an empty `lib/` verified) | `evidence/ENV-003/acceptance.txt` |
+
+### Implementation evidence — SPEC-001 (2026-09-23)
+
+| Item | Result |
+|---|---|
+| Spec | `docs/specs/canonical-hash.md` — canonicalisation rules to the byte, three type hashes, three derivations, EIP-712 domain and messages, versioning |
+| Vectors | `impl/vectors/canonical-v1.json` — **21 canonicalisation, 9 hashing, 3 typed-data** cases, generated by `impl/scripts/gen-vectors.py` using `cast`, so expected values do not come from either implementation |
+| Solidity | `impl/contracts/src/CanonicalHash.sol`; `forge test --match-contract CanonicalHashTest` → 4 passed (all vectors, binding properties, 256 fuzz runs on domain separation) |
+| TypeScript | `impl/packages/core/src/canonical.ts`; `pnpm test` → **38 passed**; `pnpm typecheck` → exit 0 |
+| Three-way agreement | `cast` (Rust) vs solc 0.8.37 vs viem 2.56.8 all produce identical hashes |
+| Ambiguities closed | configured origin rather than `Host`; query sorted by (key,value) with duplicate order not preserved; `+` is a literal plus; raw wire bytes for the body with `Content-Encoding` rejected; amount/token/chainId inside `resourceHash` |
+| Python | Deliberately deferred to VAL-003, written from the spec rather than ported, so its agreement is evidence |
+| Honesty note | A typecheck first reported clean because it was piped into `tail`; re-run with the exit code checked, it failed with 3 real type errors, which were fixed rather than silenced |
 
 ### Review outcomes (PLAN-006)
 

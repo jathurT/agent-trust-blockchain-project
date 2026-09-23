@@ -73,6 +73,7 @@ Same-ABI mocks are the default substrate (DF-14); REG-008 checks conformance, an
 | supertest | **7.3.0** | HTTP assertions |
 | better-sqlite3 | **13.0.3** | Claim store; fall back to `node:sqlite` if the native build fails on WSL (API-005) |
 | dotenv | **18.0.3** | Config loading |
+| @types/node | **26.6.2** | Type definitions (SPEC-001 typecheck) |
 | wagmi | **3.7.7** | Dashboard only (DASH-001, E2) |
 
 **Baseline only — never on the AgentTrust path** (DF-03): `@x402/core`, `@x402/evm`, `@x402/express`, `@x402/fetch` all at **2.26.0** (V-63), used solely by API-009's pinned-upstream baseline (E2).

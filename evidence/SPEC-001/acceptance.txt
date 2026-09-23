@@ -1,0 +1,41 @@
+SPEC-001 acceptance evidence — 2026-09-23T06:38:48+05:30
+
+Artefacts
+  docs/specs/canonical-hash.md          normative rules (canonical-v1)
+  impl/vectors/canonical-v1.json        {'canonicalisation': 21, 'hashing': 9, 'typedData': 3}
+  impl/scripts/gen-vectors.py           generator; expected values come from cast
+  impl/contracts/src/CanonicalHash.sol  Solidity derivation
+  impl/packages/core/src/canonical.ts   TypeScript reference implementation
+
+Independence of the three implementations
+  expected values : cast (Foundry, Rust)
+  on-chain        : solc 0.8.37, evm_version=cancun
+  off-chain       : viem 2.56.8
+  Python is deliberately deferred to VAL-003 and written from the spec, not ported.
+
+$ forge test --match-contract CanonicalHashTest
+[PASS] testFuzz_JobIdIsDomainSeparated(bytes32,bytes32,address,address) (runs: 256, μ: 3412, ~: 3412)
+[PASS] test_AllHashingVectors() (gas: 36193394)
+[PASS] test_BindingProperties() (gas: 3946323)
+[PASS] test_TypeHashesMatchVectors() (gas: 3455672)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 75.06ms (102.30ms CPU time)
+
+$ pnpm -C impl/packages/core test
+ Test Files  1 passed (1)
+      Tests  38 passed (38)
+
+$ pnpm -C impl/packages/core typecheck   (exit code checked, not piped)
+  exit 0 — clean
+
+$ python3 impl/scripts/gen-vectors.py --check
+ok: impl/vectors/canonical-v1.json is up to date (21 canonicalisation, 9 hashing, 3 typed-data cases)
+
+Ambiguities in blueprint §9.1 that this spec closes
+  - URI is built from the seller's CONFIGURED origin, never the Host header
+  - query sorts by (key,value); duplicate-key input order is NOT preserved
+  - '+' is a literal plus, not a space (canonical-v1 is not form encoding)
+  - body is hashed as raw wire bytes before parsing; Content-Encoding is rejected
+  - amount/token/chainId are inside resourceHash, which is why quotedMax is gone
+
+Note: an earlier typecheck run reported clean because the command was piped into
+tail; re-running it with the exit code checked surfaced 3 real type errors, now fixed.

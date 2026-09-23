@@ -1,0 +1,756 @@
+{
+  "version": "canonical-v1",
+  "spec": "docs/specs/canonical-hash.md",
+  "generatedBy": "impl/scripts/gen-vectors.py using cast (Foundry)",
+  "note": "Expected values come from cast, not from the implementations that must reproduce them. Canonical method/URI strings are stated by hand from the §2 rules.",
+  "typeStrings": {
+    "resource": "AgentTrustResource(bytes32 methodHash,bytes32 uriHash,bytes32 bodyHash,uint256 amount,address token,uint256 chainId)",
+    "job": "AgentTrustJob(uint256 chainId,address escrow,address payer,address payee,bytes32 resourceHash,bytes32 nonce)",
+    "validation": "AgentTrustValidation(uint256 chainId,address escrow,bytes32 jobId,bytes32 resourceHash,bytes32 salt)",
+    "eip712Domain": "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)",
+    "deliveryRequest": "DeliveryRequest(bytes32 jobId,bytes32 resourceHash,string sellerOrigin,uint64 expiry,bytes32 clientNonce)",
+    "deliveryReceipt": "DeliveryReceipt(bytes32 jobId,bytes32 resourceHash,bytes32 responseHash,uint256 sellerAgentId,uint64 servedAt,bytes32 salt)",
+    "evidenceAccess": "EvidenceAccess(bytes32 jobId,uint64 expiry,bytes32 clientNonce)"
+  },
+  "typeHashes": {
+    "RESOURCE_TYPEHASH": "0x93198e50fc83e323656b6ef27f36bd3a92e217b65f8eb5c4280518ee56f2ca18",
+    "JOB_TYPEHASH": "0x0ce27c827f058bf8356362e62d49c6275bbed7f606df431d93ff78e1784736e5",
+    "VALIDATION_TYPEHASH": "0x4ea8b3fd6ff9eeebab250904466b967da3a35043c0952c6bbbb8350e9fe988ab"
+  },
+  "counts": {
+    "canonicalisation": 21,
+    "hashing": 9,
+    "typedData": 3
+  },
+  "canonicalisation": [
+    {
+      "name": "simple_get",
+      "why": "baseline GET, default port omitted",
+      "input": {
+        "method": "get",
+        "scheme": "HTTPS",
+        "host": "Seller.AgentTrust.test",
+        "port": 443,
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "post_json_body",
+      "why": "the normal paid call",
+      "input": {
+        "method": "POST",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x7b2274657874223a2268656c6c6f20776f726c64227d",
+        "utf8": "{\"text\":\"hello world\"}"
+      },
+      "expected": {
+        "canonicalMethod": "POST",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb"
+      }
+    },
+    {
+      "name": "empty_body",
+      "why": "empty body hashes keccak256('')",
+      "input": {
+        "method": "POST",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "POST",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "binary_body",
+      "why": "body is raw bytes, not text",
+      "input": {
+        "method": "POST",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x00ff10fe8081"
+      },
+      "expected": {
+        "canonicalMethod": "POST",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xa5d65ded49808a4c0d9afbf6ce47287b7553513a68cf637c6207029ea6af18f6"
+      }
+    },
+    {
+      "name": "unicode_path",
+      "why": "UTF-8 path bytes hashed as received after normalisation",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/na%C3%AFve",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/na%C3%AFve",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x8ee676ee076404f52bc631c3c74f3e954e65b0be0dd40be13c01a34a56d00741",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "percent_case_normalised",
+      "why": "%2f -> %2F, hex digits uppercased",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/a%2fb",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/a%2Fb",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xeb931729a23f01c831a8d300a1078b4fbab281313253c58a54b43ba65ad04f72",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "unreserved_decoded",
+      "why": "%7E is unreserved, so it decodes to ~",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/%7Euser",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/~user",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xb9b0a4f417d168a526c7daadc779d8b03e2a7016402cb930d43770f0b80a77a5",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "query_sorted_distinct_keys",
+      "why": "?b=2&a=1 sorts to a=1&b=2",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "b=2&a=1"
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise?a=1&b=2",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xbd01d02fa363b6f95a6d23f7a19c803953c6ca9c337ccc38ffa6e121ac393013",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "query_sorted_distinct_keys_other_order",
+      "why": "must hash identically to the previous case",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "a=1&b=2"
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise?a=1&b=2",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xbd01d02fa363b6f95a6d23f7a19c803953c6ca9c337ccc38ffa6e121ac393013",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "query_duplicate_keys",
+      "why": "duplicates sort by value; input order is NOT preserved",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "k=2&k=1"
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise?k=1&k=2",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xa68ee13ebe29750dcf2f969cc987b0d488ec8add44e685f12355150fdf1f6118",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "query_duplicate_keys_other_order",
+      "why": "must hash identically to the previous case",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "k=1&k=2"
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise?k=1&k=2",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xa68ee13ebe29750dcf2f969cc987b0d488ec8add44e685f12355150fdf1f6118",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "query_plus_is_literal",
+      "why": "'+' is a literal plus, not a space; it re-encodes to %2B",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "q=a+b"
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise?q=a%2Bb",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x2cfde7ef8890b69f603ca8144b9659f21b423a7d256c09a46b2e20a139301dfd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "query_empty_value",
+      "why": "a key with an empty value keeps its '='",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "flag="
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise?flag=",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x00edc688aee5ec60f65be0ea5af5b98e184465dc32bf48ab33ae6d936709fcc9",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "explicit_non_default_port",
+      "why": "non-default port is kept",
+      "input": {
+        "method": "GET",
+        "scheme": "http",
+        "host": "localhost",
+        "port": 8080,
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "http://localhost:8080/v1/summarise",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xb226d10560a33f26a9ca30234a2251e34172762f8028afe71fca8c59009695c1",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "default_http_port_omitted",
+      "why": "port 80 on http is dropped",
+      "input": {
+        "method": "GET",
+        "scheme": "http",
+        "host": "localhost",
+        "port": 80,
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "http://localhost/v1/summarise",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x1b879a678d7b9094fea25906d696d6892b17418f516c52dbd06eb9a98023c31a",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "trailing_slash_is_significant",
+      "why": "/v1/summarise/ differs from /v1/summarise",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise/",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise/",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x13180646ef8f574fb09d64809c892b013de8e307c9ae63a978c291e13c21be44",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "dot_segments_resolved",
+      "why": "/v1/x/../summarise resolves before hashing",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/x/../summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "empty_path_becomes_root",
+      "why": "an empty path is '/'",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xf22568b0820f9fff349973e02c7718ebbab798325ac1b4e07bdeb7de31cde815",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "fragment_stripped",
+      "why": "fragments never reach the server",
+      "input": {
+        "method": "GET",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": "",
+        "fragment": "section-2"
+      },
+      "body": {
+        "hex": "0x",
+        "utf8": ""
+      },
+      "expected": {
+        "canonicalMethod": "GET",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      }
+    },
+    {
+      "name": "large_body",
+      "why": "4 KiB body, no truncation anywhere",
+      "input": {
+        "method": "POST",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/summarise",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x78787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878",
+        "utf8": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "expected": {
+        "canonicalMethod": "POST",
+        "canonicalUri": "https://seller.agenttrust.test/v1/summarise",
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x010aa279086ab917c15c5de3245f6bdc749a04cdbfe917eb71f10874ec7f1b87"
+      }
+    },
+    {
+      "name": "sibling_resource_classify",
+      "why": "the equal-priced A3 sibling of /v1/summarise",
+      "input": {
+        "method": "POST",
+        "scheme": "https",
+        "host": "seller.agenttrust.test",
+        "path": "/v1/classify",
+        "query": ""
+      },
+      "body": {
+        "hex": "0x7b2274657874223a2268656c6c6f20776f726c64227d",
+        "utf8": "{\"text\":\"hello world\"}"
+      },
+      "expected": {
+        "canonicalMethod": "POST",
+        "canonicalUri": "https://seller.agenttrust.test/v1/classify",
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x68a47431d842c5934aa3fd61ff1823fabb1299b2c48f3d9b0cde333f3d5b65a2",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb"
+      }
+    }
+  ],
+  "hashing": [
+    {
+      "name": "post_json_body__amount250000__chain84532",
+      "why": "baseline paid call, 0.25 USDC on Base Sepolia",
+      "resourceCase": "post_json_body",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb",
+        "amount": 250000,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0x7d3ed927dc28baf4d5de84511b0056184ca6de55c078cfcffb20067697cbf94a",
+        "jobId": "0x3b1b09e9d0317a63174af6c531986cb9734c36e844f6fe2f4cfa34876d65804a",
+        "requestHash": "0x3cb34ed526750742278653240c4da3d8db732616dc16eae4cb74ef799838522e"
+      }
+    },
+    {
+      "name": "sibling_resource_classify__amount250000__chain84532",
+      "why": "same price, different resource -> different hash (A3)",
+      "resourceCase": "sibling_resource_classify",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x68a47431d842c5934aa3fd61ff1823fabb1299b2c48f3d9b0cde333f3d5b65a2",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb",
+        "amount": 250000,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0x3b6c825c8e62c3dc1e20e59874611dfe103afb0b80b4d7f3558434dbda8a24fb",
+        "jobId": "0xb607c8182732dc6038ab6fc6c3b60881f365c8644abf0737f16f4bac634692da",
+        "requestHash": "0x9ce3a05143f0290807b1c891d270ff3dceebd209024cc5319d2594c03ff4d8d1"
+      }
+    },
+    {
+      "name": "post_json_body__amount250001__chain84532",
+      "why": "one atomic unit more -> different hash",
+      "resourceCase": "post_json_body",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb",
+        "amount": 250001,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0xe429f386dd9a028239f93d59448573d004d99d090084b8f8f72a49893cd2a506",
+        "jobId": "0x90fe55e2da644bb3479d17939e3de9efc5f6fe1017dd61af323e42041c1e4791",
+        "requestHash": "0xb8dc31a434ad339a23dd723315a4e0e01e97b460c204d87fffc38df8c5ff83e9"
+      }
+    },
+    {
+      "name": "post_json_body__amount250000__chain84532",
+      "why": "different token -> different hash",
+      "resourceCase": "post_json_body",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb",
+        "amount": 250000,
+        "token": "0x1111111111111111111111111111111111111111",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0xa38bb63c05843f88c0a7fa1f04caee25ea74456093a8ae1f3b1650ef4ca7c6db",
+        "jobId": "0xe63f8eb723c82585c6ce59d5874c9ed59da6e59b7a9b2721df29d01510419ea6",
+        "requestHash": "0x6b990ca8c3849dafc58adb36a6cbe291baafe91cdfdd6f783b6d104aa91086e2"
+      }
+    },
+    {
+      "name": "post_json_body__amount250000__chain31337",
+      "why": "different chain -> different hash",
+      "resourceCase": "post_json_body",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x8247fcda4a39af767e0d0475ddc8b5e859625bc74cebd945c8a160194029cfcb",
+        "amount": 250000,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 31337,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0x91ab7e18ea6152ee19799e6788c6d8473cc90c37bdc9fce7ac147850829f7a54",
+        "jobId": "0x00daab3abc51ee08bc6c057740ae682067e1eb8ea6a41690f94c6c1c8f3e0510",
+        "requestHash": "0xd51e72e9f28dfb7d1a8bc7800772031751da9d8d9cd48b8201f2f9537af0e963"
+      }
+    },
+    {
+      "name": "empty_body__amount1__chain31337",
+      "why": "minimum amount, empty body, local chain",
+      "resourceCase": "empty_body",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "amount": 1,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 31337,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0xdd99c4d520067df800868b77b8b046f6420c4398250d3bca2dc70143c3381495",
+        "jobId": "0xf93d25cd141e57c9277a1848f46b3a0d303b916a7272042a4ad0834694310dc5",
+        "requestHash": "0x2d7fc816921eeb3dfe7c26accb77f36430dc6f4e027d57e9451cfa4715562892"
+      }
+    },
+    {
+      "name": "simple_get__amount250000__chain84532",
+      "why": "GET with no body",
+      "resourceCase": "simple_get",
+      "input": {
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "amount": 250000,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0xe7952439bebfd54925f9d18afaf95a4e46d5415449842081f6e0fb441081a947",
+        "jobId": "0xf37c304bef3fbeaa0257eb8802e29ae3b0d96379e3598c007197fc64767ca4bd",
+        "requestHash": "0x72ab5a025cb4511a1673b29c291265392b4c343076c8d1cf0c28464958557d4d"
+      }
+    },
+    {
+      "name": "query_duplicate_keys__amount250000__chain84532",
+      "why": "duplicate query keys after sorting",
+      "resourceCase": "query_duplicate_keys",
+      "input": {
+        "methodHash": "0x5a61babeb76c554783ca90a1a250e84f1b703409fdff33c217ab64dd51f05199",
+        "uriHash": "0xa68ee13ebe29750dcf2f969cc987b0d488ec8add44e685f12355150fdf1f6118",
+        "bodyHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "amount": 250000,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0x0b72ad102e0ebfa4dfb97aab2dd2c77bbde457477ea04979a5db63fc39766dd2",
+        "jobId": "0x1778f87c72a875e2c09130716fd627d97126edb0d859ed9501d41ff8f926b195",
+        "requestHash": "0x92b0b389a54ae136bc920d21cbd71eef0395ed3bcebb63f216927be9b1a0adce"
+      }
+    },
+    {
+      "name": "large_body__amount999999999999__chain84532",
+      "why": "large body and large amount",
+      "resourceCase": "large_body",
+      "input": {
+        "methodHash": "0x2fca5a5e7ccde9ff7491efb205181f9945d95feee2f835f237ff423414a824e3",
+        "uriHash": "0x39fc4aea9836dd5bb7fb0f305ac6e7cb2b6a95b8d00ea76f5c8281bdd3123fbd",
+        "bodyHash": "0x010aa279086ab917c15c5de3245f6bdc749a04cdbfe917eb71f10874ec7f1b87",
+        "amount": 999999999999,
+        "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "chainId": 84532,
+        "escrow": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "payer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "payee": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "nonce": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "resourceHash": "0x02e9028358c0892c8abedbacc35813d72eac103a3f2a9117a0dae589562654e4",
+        "jobId": "0x2075b254478455910193cdea8f50080ee17c7001a9de81be1e6f8cf16a4a4119",
+        "requestHash": "0x4b1548c3f96579f8f62a4160bf531b6513942a5721644518b5d7cd444074c24f"
+      }
+    }
+  ],
+  "typedData": {
+    "domain": {
+      "name": "AgentTrust",
+      "version": "1",
+      "chainId": 84532,
+      "verifyingContract": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "domainSeparator": "0xb29986ca2c5d013b6783599f3dbe14102af904cbc1d9aa0fbe2e4040c6ed079f"
+    },
+    "messages": [
+      {
+        "primaryType": "DeliveryRequest",
+        "signer": "payer",
+        "message": {
+          "jobId": "0x3b1b09e9d0317a63174af6c531986cb9734c36e844f6fe2f4cfa34876d65804a",
+          "resourceHash": "0x7d3ed927dc28baf4d5de84511b0056184ca6de55c078cfcffb20067697cbf94a",
+          "sellerOrigin": "https://seller.agenttrust.test",
+          "expiry": 1790000000,
+          "clientNonce": "0x3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "expected": {
+          "structHash": "0xebd53205b196c38b2dca6636ed2b842178da12d2f19513bb19cfd1dab0585ca3",
+          "digest": "0x48739aa7345493a145fb9a28ff6d448ccbedf165f0944ea299866eae22d8314d"
+        }
+      },
+      {
+        "primaryType": "DeliveryReceipt",
+        "signer": "seller payee wallet",
+        "message": {
+          "jobId": "0x3b1b09e9d0317a63174af6c531986cb9734c36e844f6fe2f4cfa34876d65804a",
+          "resourceHash": "0x7d3ed927dc28baf4d5de84511b0056184ca6de55c078cfcffb20067697cbf94a",
+          "responseHash": "0x4444444444444444444444444444444444444444444444444444444444444444",
+          "sellerAgentId": 7,
+          "servedAt": 1789999000,
+          "salt": "0x2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "expected": {
+          "structHash": "0x2a65c04a4ef5bd6b9fcca557716606e09965b2fade195f3946f443710fa7060c",
+          "digest": "0x6e9d495016f83bcebfcb3e2b53d20041f322e02276b8102e2202eb345ca9c81c"
+        }
+      },
+      {
+        "primaryType": "EvidenceAccess",
+        "signer": "payer",
+        "message": {
+          "jobId": "0x3b1b09e9d0317a63174af6c531986cb9734c36e844f6fe2f4cfa34876d65804a",
+          "expiry": 1790000000,
+          "clientNonce": "0x3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "expected": {
+          "structHash": "0x174ba4246e3fd31822e9b433680873c8782fdd857ac148dc3a8a6cdd7be615d9",
+          "digest": "0x1390b276fc93e5d52a3c62d78a1b2f6b43b7f2125741c21be619860fa0b9ecbe"
+        }
+      }
+    ]
+  }
+}

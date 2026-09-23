@@ -1,6 +1,10 @@
+# Minimal configuration for SPEC-001 vector conformance.
+# CONTRACT-001 extends this (fuzz/invariant settings, profiles, formatter).
 [profile.default]
 src = "src"
 out = "out"
 libs = ["lib"]
-
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+solc = "0.8.37"          # pinned, docs/specs/versions.md (V-102)
+evm_version = "cancun"   # portable; avoids Foundry #16960 (V-103)
+bytecode_hash = "none"
+fs_permissions = [{ access = "read", path = "../vectors" }]

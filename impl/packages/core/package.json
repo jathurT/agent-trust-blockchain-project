@@ -1,0 +1,20 @@
+{
+  "name": "@agenttrust/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared canonical hashing, typed data and chain clients for AgentTrust (SPEC-001).",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "2.56.8"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vitest": "5.0.1",
+    "@types/node": "26.6.2"
+  }
+}
