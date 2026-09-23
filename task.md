@@ -177,10 +177,16 @@ Registry reads are wrapped so a revert ("unknown", "clientAddresses required") i
 
 ### 6.5 HTTP protocol (SPEC-002)
 
-- **402** carries `PAYMENT-REQUIRED` (base64 JSON) in x402 v2 shape: `scheme: "agenttrust-escrow"`, `network: "eip155:84532"`, `asset`, `amount` (atomic), `payTo`, `maxTimeoutSeconds`, `extra: {escrow, sellerAgentId, acceptedValidators[], minDeadlineMargin, quoteId, expiry, canonicalVersion}`.
-- **Retry** carries `PAYMENT-SIGNATURE` (base64 JSON): `{jobId, fundTxHash, signature}` over `DeliveryRequest{jobId, resourceHash, sellerOrigin, expiry, clientNonce}`.
-- **Success** returns the resource plus `PAYMENT-RESPONSE` `{jobId, executed|replayed, responseHash, evidenceId}` and `Cache-Control: no-store`.
-- **Errors:** 402 missing/invalid payment · 403 signature not from the payer · 409 `resource_mismatch` / `already_delivered` / `claim_in_progress` · 425 not enough confirmations · 410 deadline margin too small · 503 chain unreachable (fail closed).
+**Authoritative text: `docs/specs/http-protocol.md`.** The summary below is corrected
+against the v2 specification (V-142) — two of the three envelopes were described one
+level too deep here, so an implementation written from this table alone would have been
+wrong on the wire.
+
+- **402** carries `PAYMENT-REQUIRED` = base64 **PaymentRequired**: `{x402Version: 2, error, resource, accepts: [PaymentRequirements], extensions}`. The PaymentRequirements inside it is `scheme: "agenttrust-escrow"`, `network: "eip155:84532"`, `asset`, `amount` (atomic, decimal string), `payTo` (registry-resolved), `maxTimeoutSeconds`, `extra: {paymentFlow: "escrow", escrow, sellerAgentId, acceptedValidators[], minDeadlineMargin, canonicalVersion, quoteId, expiry}`.
+- **Retry** carries `PAYMENT-SIGNATURE` = base64 **PaymentPayload**: `{x402Version: 2, resource, accepted, payload, extensions}`, where `payload = {jobId, fundTxHash, deliveryRequest: {expiry, clientNonce}, signature}`. Only those two message fields travel: `resourceHash` and `sellerOrigin` are **re-derived by the seller** and fed into recovery, so a buyer that lies about either recovers to the wrong address.
+- **Success** returns the resource plus `PAYMENT-RESPONSE` = base64 **SettlementResponse**: `{success, network, transaction, extra: {scheme, jobId, disposition: "executed"|"replayed", responseHash, evidenceId, confirmations}}`, with `Cache-Control: no-store` on **every** paid-route response, 402 included.
+- **Errors:** 402 missing/invalid payment · 403 `signature_invalid` / `signature_expired` / `wrong_origin` · 409 `resource_mismatch` / `validator_not_accepted` / `signature_replayed` / `claim_in_progress` / `already_delivered` · 410 `deadline_margin` · 425 `insufficient_confirmations` · 500 `execution_failed` · 503 `chain_unavailable` (fail closed).
+- **Check order** (normative, claim taken last): decode → scheme/network → re-derive hash → recover signer → nonce → read `jobs(jobId)` → validator accepted → deadline margin → confirmations → **claim** → execute.
 
 ### 6.6 Claim store (API-005)
 
@@ -462,14 +468,17 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SPEC-002 — HTTP protocol: 402, payer-signed retry, claim semantics, confirmations
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Fix the wire format and the delivery rules so buyer, seller and harness agree.
 - **Refs:** §11.1, §11.2 · FR-05, FR-17, FR-19, FR-20, SR-11, SR-14, IR-04 · DF-01, DF-02, DF-03, DF-17, DF-23 · V-62, V-63
 - **Depends:** SPEC-001
 - **Steps:** 1) Write `docs/specs/http-protocol.md` covering §6.5 of task.md in full: 402 body and headers, retry payload, success response, error codes and their meanings. 2) Define "one grant" = one execution; idempotent replay only for the authenticated payer; `REPLAY_POLICY` values. 3) Define the confirmation policy and fail-closed behaviour. 4) State the honest interoperability sentence verbatim (DF-03). 5) Define the seller's check order, with the claim taken last.
 - **Files:** `docs/specs/http-protocol.md`
-- **Acceptance:** every error code has a trigger and an expected client action; the seller's check order is unambiguous; the interoperability wording is quotable as-is.
-- **Verify:** API-003/004/005 tests reference this document section by section → `evidence/SPEC-002/`
+- **Acceptance:** every error code has a trigger and an expected client action ✔ (13 codes, §8); the seller's check order is unambiguous ✔ (11 numbered steps, §7, claim last); the interoperability wording is quotable as-is ✔ (§1, blockquoted).
+- **Verify:** `docs/specs/http-protocol.md`; API-003/004/005 tests reference it section by section (§10 conformance table).
+- **Outcome:** the v2 envelopes were **re-checked against the specification** before being fixed, as this task's own risk note demanded, and **two of the three were wrong in task.md §6.5** (V-142): `PAYMENT-REQUIRED` carries a `PaymentRequired` envelope around the PaymentRequirements, and `PAYMENT-SIGNATURE` carries a `PaymentPayload` whose `payload` field is what §6.5 had described as the whole thing. `PAYMENT-RESPONSE` is a `SettlementResponse`, so the project's fields move into `extra`. §6.5 is corrected and now points here.
+  Also settled: `extra.paymentFlow: "escrow"` is a real reserved value, not an invention; the retry sends **only** `expiry` and `clientNonce` from the signed struct, because a seller must verify against its own re-derivation rather than the buyer's copy (the mistake `quotedMax` made); and §7.1 derives `minDeadlineMargin` from the CONTRACT-007 review's finding that `requestHash` squatting is unbounded against a mempool-watching adversary, so the seller needs a retry budget and must stop delivering when the remaining time cannot cover it.
+- **Related finding:** the official `auth-capture` scheme already defines an escrow with capture and refund deadlines (V-143), so DF-19's novelty wording narrows further — the claim is the **reputation gate plus validator-attested release**, not "escrow for x402".
 
 ### SPEC-003 — Settlement, validation binding and the reputation gate
 
