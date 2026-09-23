@@ -23,6 +23,7 @@ import {
   type SettlementResponse,
 } from "@agenttrust/core";
 import type { ClaimStore } from "./claims.js";
+import { depositAndBind, EvidenceError, type DepositResult, type EvidenceDeps } from "./evidence.js";
 import { SellerError, sendError } from "./errors.js";
 import { parseJsonBody } from "./rawBody.js";
 import { classify, serialise, summarise, BadRequest } from "./routes/deterministic.js";
@@ -32,6 +33,13 @@ export interface DeliverDeps {
   claims: ClaimStore;
   chainId: number;
   replayPolicy: "idempotent" | "strict";
+  /**
+   * API-006. When present, the result is deposited with the validator and the
+   * validation request filed and bound **before** any byte reaches the buyer, so
+   * payment is impossible unless the artefact exists outside the seller (DF-08).
+   * Absent leaves the narrower claim, and DOC-004 has to say so.
+   */
+  evidence?: Omit<EvidenceDeps, "chain"> & { chain: EvidenceDeps["chain"] };
 }
 
 type Handler = (body: unknown) => unknown;
@@ -46,6 +54,7 @@ function settlement(
   req: GatedRequest,
   disposition: Disposition,
   responseHash: Hex,
+  evidenceId?: string,
 ): SettlementResponse {
   const verified = req.verified!;
   return {
@@ -58,18 +67,28 @@ function settlement(
       jobId: verified.jobId,
       disposition,
       responseHash,
+      evidenceId,
       confirmations: verified.confirmations,
     },
   };
 }
 
-function send(deps: DeliverDeps, req: GatedRequest, res: Response, body: Buffer, hash: Hex, contentType: string, disposition: Disposition): void {
+function send(
+  deps: DeliverDeps,
+  req: GatedRequest,
+  res: Response,
+  body: Buffer,
+  hash: Hex,
+  contentType: string,
+  disposition: Disposition,
+  evidenceId?: string,
+): void {
   res
     .status(200)
     .set("Content-Type", contentType)
     .set("Cache-Control", "no-store")
     .set("Content-Length", String(body.length))
-    .set(HEADER_RESPONSE, encodeHeader(settlement(deps, req, disposition, hash)))
+    .set(HEADER_RESPONSE, encodeHeader(settlement(deps, req, disposition, hash, evidenceId)))
     .end(body);
 }
 
@@ -123,9 +142,43 @@ export function createDeliveryHandler(deps: DeliverDeps) {
 
     const responseHash = keccak256(body);
     const contentType = "application/json; charset=utf-8";
+
     // Persist, then send. Never the other way round.
     deps.claims.storeResult(key, body, responseHash, contentType);
-    deps.claims.markServed(key, false);
-    send(deps, req, res, body, responseHash, contentType, "executed");
+
+    if (!deps.evidence) {
+      deps.claims.markServed(key, false);
+      send(deps, req, res, body, responseHash, contentType, "executed");
+      return;
+    }
+
+    // API-006: the artefact leaves the seller before the buyer does. A failure here
+    // leaves the claim in RESULT_STORED -- retryable, and never a second execution.
+    depositAndBind(
+      { ...deps.evidence, chain: deps.evidence.chain },
+      {
+        jobId: verified.jobId,
+        resourceHash: verified.resourceHash,
+        requestBody: req.rawBody ?? Buffer.alloc(0),
+        responseBody: body,
+        path: req.path,
+      },
+    )
+      .then((deposit: DepositResult) => {
+        deps.claims.markServed(key, false);
+        send(deps, req, res, body, responseHash, contentType, "executed", deposit.evidenceId);
+      })
+      .catch((error: unknown) => {
+        const attempts = error instanceof EvidenceError ? error.attempts : 0;
+        sendError(
+          res,
+          new SellerError(
+            "execution_failed",
+            `the result was computed and stored but could not be deposited and bound after ` +
+              `${attempts} attempt(s): ${(error as Error)?.message}. The buyer has not been ` +
+              `charged for anything it did not receive -- the job refunds after its deadline.`,
+          ),
+        );
+      });
   };
 }

@@ -30,7 +30,14 @@ export const ORIGIN = "https://seller.agenttrust.test";
 
 export const deployment = JSON.parse(
   readFileSync(new URL("../../../../../deployments/31337.json", import.meta.url), "utf8"),
-) as { chainId: number; escrow: Address; token: Address; identityRegistry: Address };
+) as {
+  chainId: number;
+  escrow: Address;
+  token: Address;
+  identityRegistry: Address;
+  reputationRegistry: Address;
+  validationRegistry: Address;
+};
 
 export const accounts = {
   deployer: mnemonicToAccount(TEST_MNEMONIC, { addressIndex: 0 }),

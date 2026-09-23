@@ -848,13 +848,15 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-006 — Evidence deposit, `validationRequest` and `bindValidation`
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Make payment impossible without the result existing outside the seller, and bind exactly one validation request to the job.
 - **Refs:** §5.1(6), §11.2 · FR-06, FR-21, FR-25 · DF-06, DF-08
 - **Depends:** API-005, VAL-002, CONTRACT-007
 - **Steps:** 1) Generate a random salt **first** and compute `requestHash`. 2) Sign a `DeliveryReceipt` that includes the salt and POST it with the response bytes to the validator; store the returned `evidenceId`. 3) Send `validationRequest(validator, agentId, requestURI, requestHash)`. 4) Send `bindValidation(jobId, salt)`; on a squatting revert, regenerate the salt, **re-deposit the corrected receipt** and retry (bounded). 5) Only then release the response to the buyer. 6) Record both transaction hashes in the claim row.
-- **Acceptance:** (a) the buyer never receives bytes before the evidence is deposited; (b) a squatted hash is recovered from within 3 attempts; (c) binding happens exactly once per job; (d) failures leave a retryable state, never a double execution.
-- **Verify:** `pnpm -C impl/agents/seller test -- evidence` (Anvil) → `evidence/API-006/`
+- **Acceptance:** all four ✔, against the deployed escrow and registry on a local Anvil → **7 tests** → `evidence/API-006/vitest.log`.
+  (a) the deposit is asserted to have **happened before** the response was sent, and the deposited bytes are asserted equal to the bytes the buyer received; the request is bound on-chain before the response goes out. (b) **two salts are squatted and recovery happens on the third**, inside a budget of 3. (c) a second `bindValidation` for the same job is refused. (d) a failed deposit returns 500 with no bytes, and the claim is left in `RESULT_STORED` — a retry **replays**, `executions_completed` stays 1.
+- **Outcome:** the salt is generated **first**, because `requestHash` depends on it and the receipt carries it so the validator derives the same hash without being told (DF-06). The bytes do not reach the buyer until the artefact is in the validator's hands — without that ordering the strongest honest claim would be "the seller says it delivered something" (DF-08).
+- **A test that was asserting rather than demonstrating, and was fixed.** The first version squatted *a* hash and then checked the seller still bound successfully — but the seller uses random salts, so it never collided and the retry path was never executed. `depositAndBind` now takes an injectable `saltSource` (defaulting to `randomBytes`) purely so a test can **force** the collision. That also exposed the real distinction worth stating: random salts defeat a *blind* squatter outright, and only a **mempool-watching** adversary can follow the salt — which is exactly the corrected DF-06 residual, and why the budget is finite and folded into `minDeadlineMargin` (SPEC-002 §7.1). Exhausting it raises rather than returning, so a seller never delivers work no validator can attest to.
 - **Risks:** two extra transactions per job → seller ETH budget (ENV-007), gas in EVAL-002.
 
 ### API-007 — Response headers, error mapping, structured logs
