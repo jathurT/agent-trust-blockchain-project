@@ -332,14 +332,14 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### ENV-002 — Private git init, ignore rules, layout, secret scan
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · delivery-completeness
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · delivery-completeness
 - **Objective:** Turn the workspace into a private repository with the agreed layout and a pre-commit secret check.
 - **Refs:** App. B · OR-10, SR-13 · DF-20 · U5
 - **Depends:** ENV-001
 - **Steps:** 1) `git init`; default branch `main`. 2) `.gitignore`: `.env*`, `node_modules/`, `out/`, `cache/`, `broadcast/`, `*.key`, `keystore/`, `__pycache__/`, `.venv/`, `impl/attacks/results/**/raw/`. 3) Create the directory skeleton (CLAUDE.md §8) with `.gitkeep` files only. 4) Add a pre-commit hook that greps for private-key and mnemonic patterns and blocks the commit. 5) First commit: planning docs + CLAUDE.md + task.md + `.claude/`. 6) Decide whether `/mnt/d` is workable (DF-20 trigger).
 - **Files:** `.gitignore`, `.githooks/pre-commit`, directory skeleton
 - **Acceptance:** `git status` clean after the first commit; the hook blocks a test commit containing a fake `0x`-64-hex key; no `.env` is tracked.
-- **Verify:** the hook rejects a staged dummy secret → `evidence/ENV-002/`
+- **Verify:** the hook rejects a staged dummy secret (exit 1) → `evidence/ENV-002/acceptance.txt`; commit `6295e71`, 51 files
 - **Risks:** DrvFs slowness/locking → if `pnpm install` later exceeds 5 min or lock tests fail, move to ext4 and re-clone (R-06).
 
 ### ENV-003 — Install Foundry and OpenZeppelin (pinned)
@@ -788,10 +788,10 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - **Refs:** §5.1(5), §9.3, §12.2 · FR-19 · DF-01, DF-17, DF-20 · V-13, V-17, V-25 · Gate: **G2**
 - **Skill:** `test-driven-development`, `systematic-debugging`
 - **Depends:** API-003, API-004, SPEC-002
-- **Steps:** 1) SQLite in WAL mode at `CLAIMS_DB_PATH`; **refuse to start if the path is under `/mnt/`** (DF-20). 2) Table keyed by (chain_id, escrow, job_id) with the §6.6 columns; a `retry_nonces` table with a UNIQUE constraint. 3) Every transition in one `BEGIN IMMEDIATE` transaction. 4) Persist the result **before** sending bytes; lease takeover only when no result exists. 5) `REPLAY_POLICY=idempotent` default: re-serve stored bytes to the authenticated payer, counted as a replay, never a new execution. 6) Take the claim only after API-003/004 pass.
-- **Acceptance:** (a) 50 concurrent authenticated retries across 2 processes → `executions_completed = 1`, `distinct_results = 1`, no 5xx; (b) `kill -9` mid-execution then restart → at most one stored result; (c) a handler exception → FAILED, retry allowed up to `MAX_EXEC_ATTEMPTS`; (d) a `/mnt/` database path is refused at startup.
+- **Steps:** 1) SQLite in WAL mode at `CLAIMS_DB_PATH`, defaulting to `$HOME/.local/state/agenttrust/`; **warn loudly if the path is under `/mnt/`** (DF-20 — locking was measured working there, but writes are ~38× slower). 2) Table keyed by (chain_id, escrow, job_id) with the §6.6 columns; a `retry_nonces` table with a UNIQUE constraint. 3) Every transition in one `BEGIN IMMEDIATE` transaction. 4) Persist the result **before** sending bytes; lease takeover only when no result exists. 5) `REPLAY_POLICY=idempotent` default: re-serve stored bytes to the authenticated payer, counted as a replay, never a new execution. 6) Take the claim only after API-003/004 pass.
+- **Acceptance:** (a) 50 concurrent authenticated retries across 2 processes → `executions_completed = 1`, `distinct_results = 1`, no 5xx; (b) `kill -9` mid-execution then restart → at most one stored result; (c) a handler exception → FAILED, retry allowed up to `MAX_EXEC_ATTEMPTS`; (d) a `/mnt/` database path produces a startup warning naming the measured slowdown, and the service still runs.
 - **Verify:** `pnpm -C impl/agents/seller test -- claim` and `bash impl/scripts/claim-multiproc.sh 50 2` → `evidence/API-005/`
-- **Risks:** DrvFs locking (guarded); native SQLite build issues → fall back to `node:sqlite`. Lease/crash edge tests move to E1 if G2 is at risk.
+- **Risks:** DrvFs write latency under concurrency (default path avoids it; locking itself measured sound in ENV-002); native SQLite build issues → fall back to `node:sqlite`. Lease/crash edge tests move to E1 if G2 is at risk.
 
 ### API-006 — Evidence deposit, `validationRequest` and `bindValidation`
 

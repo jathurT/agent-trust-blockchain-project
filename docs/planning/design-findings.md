@@ -270,8 +270,9 @@ Once accepted, each becomes an ADR under `docs/adr/` (DOC-008). The blueprint is
 
 ## DF-20 — WSL DrvFs performance and SQLite locking
 
-- **Analysis.** The workspace is on `/mnt/d` (DrvFs). Node installs are slow and POSIX file locking is unreliable, which is fatal for a claim store whose whole purpose is atomicity.
-- **PROPOSED decision.** `CLAIMS_DB_PATH` defaults to a Linux-filesystem location and the seller **refuses to start** if it points under `/mnt/`. Trigger: if `pnpm install` exceeds 5 minutes or lock tests fail, move the repository to ext4 and keep a Windows-side copy only for documents.
+- **Analysis.** The workspace is on `/mnt/d` (DrvFs). Node installs are slow, and POSIX file locking was **assumed** unreliable — which would be fatal for a claim store whose whole purpose is atomicity.
+- **Measured on this machine (ENV-002, 2026-09-23).** SQLite WAL with `BEGIN IMMEDIATE` behaves correctly on `/mnt/d`: the second writer is blocked, exactly as on ext4. **The locking failure did not reproduce.** Small-file writes, however, are about **38× slower** (300 files: 0.487 s on `/mnt/d` vs 0.013 s on ext4).
+- **PROPOSED decision (revised after measurement).** Keep the repository on `/mnt/d`. `CLAIMS_DB_PATH` still defaults to a Linux-filesystem location (`$HOME/.local/state/agenttrust/`) for **speed** under concurrent claims, but the seller only **warns** when the path is under `/mnt/` instead of refusing to start — a hard refusal is not justified by evidence. Trigger to move the whole repository to ext4: `pnpm install` exceeding 5 minutes, or any concurrency test failing in a way that points at the filesystem.
 - **Validation tasks.** ENV-002, ENV-004, API-005.
 - **Group:** default.
 

@@ -172,7 +172,7 @@ Keep `task.md` current: it is the handover document between sessions.
 
 ## 15. Environment notes
 
-- WSL2, workspace on `/mnt/d` (DrvFs). Installs are slow and file locking is unreliable, so any SQLite claim-store database must live outside `/mnt/d` (configurable path). If `pnpm install` takes over 5 minutes or lock tests fail, move the repository to the Linux filesystem (DF-20).
+- WSL2, workspace on `/mnt/d` (DrvFs). **Measured 2026-09-23 (ENV-002):** SQLite WAL locking works correctly here, but small-file writes are ~38× slower than ext4. So the repository stays on `/mnt/d`, while `CLAIMS_DB_PATH` defaults to `$HOME/.local/state/agenttrust/` for speed; a `/mnt/` path warns rather than refusing. Move the whole repository to ext4 if `pnpm install` exceeds 5 minutes or a concurrency test fails in a filesystem-shaped way (DF-20).
 - Missing tools that ENV-003 installs later: `forge`, `anvil`, `cast`, `solc`, and optionally `slither`/`aderyn`.
 - Present: node 22.17, npm, pnpm, python 3.12, uv, go 1.23, docker, gh (authenticated), jq.
 - The Base Sepolia public RPC is HTTP-only, so watch events by polling, never by WebSocket subscription (V-83).
