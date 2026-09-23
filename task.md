@@ -1026,22 +1026,27 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### INT-001 — Local happy-path end to end, with per-stage timestamps
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.75 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.75 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** One command that runs discovery → quote → fund → deliver → attest → release on Anvil, and records timings.
 - **Refs:** §5.1, §15 M1 · FR-05…FR-07, ER-06 · Gate: **G3b** · Depends: AGENT-002, API-006, VAL-004, ENV-004
 - **Steps:** 1) `impl/scripts/e2e-happy.sh` starting the devnet and all services. 2) Run one job; assert the seller's balance increased by exactly the amount and the buyer's decreased by the same. 3) Capture timestamps at each stage into `evidence/INT-001/timings.ndjson` (EVAL-006). 4) Assert exactly one execution and one attestation.
-- **Acceptance:** a green run from a cold start; balances exact; one execution; timings recorded for every stage.
-- **Verify:** `bash impl/scripts/e2e-happy.sh` → `evidence/INT-001/`
-- **Risks:** the most likely task to overrun; orchestration issues are cut first by simplifying to a single-process runner.
+- **Acceptance:** all four ✔ — `"ok": true`, buyer **−250000**, payee **+250000** exactly, `executions_completed: 1`, `distinct_results: 1`, attestation **100** from the agreed validator, and seven stages timed into `evidence/INT-001/timings.ndjson`.
+- **Verify:** `bash impl/scripts/e2e-happy.sh` → `evidence/INT-001/run.log`. Total **~7.3 s** on a local Anvil (services up 5.9 s, purchase→delivered 0.6 s, delivered→validator decided 0.5 s). These are **devnet** latencies and must never be quoted as Base Sepolia numbers (EVAL-006).
+- **Everything in the run is real**: the deployed escrow and ERC-8004 mocks, the Express seller with its claim store and evidence deposit, the **Python validator in its own process**, and the deterministic buyer.
+- **It found a genuine deadlock that nothing else could have.** The seller awaits the validator's `/evidence` response before filing `validationRequest` and `bindValidation`, because the receipt it deposits carries the salt those transactions use. The validator's `attest` **waits for that binding**. Attesting inside the POST handler therefore deadlocked: the validator waited for a binding the seller could not make until the validator replied. It showed up as a 30-second binding timeout on **every** job and a release that never happened. Attestation now runs as a FastAPI background task, `/evidence` returns the verdict immediately, and `GET /decisions/{jobId}` reports the outcome once the transactions land. Delivery went from 31 s to 0.6 s.
+- **And a flaw in the test itself.** The first driver waited a fixed 60 s and then reported "not released" for a job the validator **had already released** — the two were racing. It now waits on the validator's decision endpoint, which is a signal rather than a guess; the run went from 67 s to 7.3 s and stopped being flaky.
+- **Risks:** it was indeed the most likely task to overrun, and did — twice, for the two reasons above. Both were real defects rather than orchestration noise.
 
 ### INT-002 — Local refund paths
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Prove the buyer's safety valve in the two realistic failure modes.
 - **Refs:** §5.1(7) · FR-07 · DF-05 · Depends: INT-001, CONTRACT-008
 - **Steps:** 1) Validator offline: fund, deliver, no attestation → warp past deadline + grace → refund succeeds, buyer made whole. 2) Failing validation: validator responds 0 → refund after grace succeeds. 3) Assert refund is impossible while a timely pass exists.
-- **Acceptance:** both refunds succeed with exact balances; the negative case reverts `ValidationExists`.
-- **Verify:** `bash impl/scripts/e2e-refund.sh` → `evidence/INT-002/`
+- **Acceptance:** ✔ with one correction to the wording. **A** (the validator never attests) and **B** (the validator attests **0**) both refund after deadline + grace with the buyer made whole — `netToBuyer: 0` in each case, job state `Refunded`. **C** (a timely pass exists) is refused.
+  The negative case reverts **`BadState`**, not `ValidationExists`, because the validator **releases immediately** on a pass (DF-15), so by the time a refund is attempted the job has already left `Funded`. `ValidationExists` is the revert when a pass exists on a job that is still funded, which `RefundTest.test_RefundWithARecordedPassReverts` covers at the contract level. Both are the right refusal; the acceptance criterion named only one of them.
+- **Verify:** `bash impl/scripts/e2e-refund.sh` → `evidence/INT-002/run.log`. Time is moved with `evm_increaseTime`, a devnet facility — on Base Sepolia the wait is real, which is why `GRACE` is 15 minutes.
+- **A test that was not testing its criterion, and was rewritten.** Case B first attested a pass, let the validator release, then overwrote the verdict with a 0 — which exercises DF-15's "an overwrite cannot claw back a released payment", not "a failing attestation still allows a refund". It now uses a silent stub for the deposit so the seller files and binds, then posts a genuine 0 from the validator account, and refunds after grace.
 
 ### INT-003 — Full Base Sepolia end to end
 

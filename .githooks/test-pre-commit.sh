@@ -52,10 +52,14 @@ check allow "impl/scripts/s.sh"               "SLOT=$SLOT"
 check allow "src/b.sol"                       "bytes32 constant T = keccak256(\"Foo(uint256 a)\");"
 check allow "docs/notes.md"                   "the anvil mnemonic is test test test test test test test test test test test junk"
 check allow "evidence/DEPLOY-001/run.log"     "deployTx $HASH"
+check allow "evidence/INT-001/timings.ndjson" "{\"jobId\":\"$HASH\"}"
+check allow "evidence/SEC-003/results.json"   "{\"jobId\":\"$HASH\"}"
 check allow "deployments/84532.json"          "{\"deployTx\": \"$HASH\"}"
 
 echo "must block even in an exempt path:"
 check block "evidence/DEPLOY-001/run.log"     "PRIVATE_KEY=$KEY"
+# .txt under evidence stays scanned: a hand-written note is where a pasted key lands.
+check block "evidence/NOTES/scratch.txt"      "$KEY"
 check block "evidence/DEPLOY-001/run.log"     "forge script --private-key $KEY"
 check block "impl/vectors/canonical-v1.json"  "$PEM"
 

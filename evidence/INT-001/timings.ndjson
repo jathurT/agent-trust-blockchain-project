@@ -1,0 +1,7 @@
+{"runId":"int-001-1790153906957","stage":"start","atMs":1790153906962,"sinceStartMs":5}
+{"runId":"int-001-1790153906957","stage":"services_up","atMs":1790153913122,"sinceStartMs":6165,"detail":{"sellerOrigin":"http://127.0.0.1:8621","agentId":"40"}}
+{"runId":"int-001-1790153906957","stage":"purchase_begin","atMs":1790153913135,"sinceStartMs":6178}
+{"runId":"int-001-1790153906957","stage":"delivered","atMs":1790153913925,"sinceStartMs":6968,"detail":{"jobId":"0xdf5a3ef92e5cf1e70b6ea767db681c7cf5f542479bc69189ff97e11dc2abc4b6","disposition":"executed"}}
+{"runId":"int-001-1790153906957","stage":"validator_decided","atMs":1790153914184,"sinceStartMs":7227,"detail":{"evidenceId":"c76e317bb5bce9e7e14e8e56af2292a6c5f6d2d3297b0514829d4f1a153b1c46","passed":true,"reason":"recomputed output matches the delivered bytes","requestHash":"0x1bcb7f14e60f21518fa0a087ee7e3b129e27a1a6879ba6e62a1936007e7227ff","responseHash":"0xc76e317bb5bce9e7e14e8e56af2292a6c5f6d2d3297b0514829d4f1a153b1c46","responseTx":"3d6e0c15ccb156ba168c707a878ca4d938bfea9714acd0e8e70411f106079f81","releaseTx":"88f4506ae8dfa68625e650d3f139b38c2cc816cdc5c8603108a616416bf7663d"}}
+{"runId":"int-001-1790153906957","stage":"released","atMs":1790153914191,"sinceStartMs":7234,"detail":{"state":2}}
+{"runId":"int-001-1790153906957","stage":"verified","atMs":1790153914200,"sinceStartMs":7243,"detail":{"attestation":100,"metrics":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"aborted_executions":0}}}

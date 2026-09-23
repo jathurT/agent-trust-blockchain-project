@@ -34,6 +34,10 @@ is_hash_artifact() {
     impl/packages/core/abi/*) return 0;;
     deployments/*.json) return 0;;
     evidence/*.log|evidence/*/*.log|evidence/*/*/*.log) return 0;;
+    evidence/*.ndjson|evidence/*/*.ndjson|evidence/*/*/*.ndjson) return 0;;
+    evidence/*.json|evidence/*/*.json|evidence/*/*/*.json) return 0;;
+    # Deliberately NOT *.txt: a hand-written note is where a pasted key would land,
+    # and the self-test has a case asserting that stays blocked.
     *) return 1;;
   esac
 }

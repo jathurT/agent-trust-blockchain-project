@@ -1,0 +1,41 @@
+INT-002 — refund paths
+======================
+date:   2026-09-23T08:58:34Z
+commit: 31cc083905c934944a68c28eb28effae6c0b7440
+
+A. the validator never attests   -> refunded after deadline + grace, buyer whole
+B. the validator attests 0       -> refunded after deadline + grace, buyer whole
+C. a timely pass exists          -> the refund is refused
+
+{
+  "runId": "int-002-1790153833669",
+  "ok": true,
+  "failures": [],
+  "cases": {
+    "A_noAttestation": {
+      "jobId": "0x777e98568fada0a502ad070b4bc2f2f5a08580bf16491077c300a4da5fcf7a06",
+      "state": 3,
+      "netToBuyer": "0"
+    },
+    "B_failingAttestation": {
+      "jobId": "0xd4d933f1b7cfcef4f60684a12530b94fbd967930e9a5edb8541b15e96f6ba211",
+      "attestation": 0,
+      "state": 3,
+      "netToBuyer": "0"
+    },
+    "C_timelyPassBlocksRefund": {
+      "jobId": "0xfda17711b8d573fefbf5733524297a373ddce128e72a26081187cfa4aa2258fb",
+      "refusedWith": "The contract function \"refund\" reverted.\n\nError: BadState(bytes32 jobId, uint8 state)\n               (0xfda17711b8d573fefbf5733524297a373ddce128e72a26081187cfa4"
+    }
+  },
+  "durationsMs": {
+    "start->A_delivered": 1038,
+    "A_delivered->A_warped": 21,
+    "A_warped->A_refunded": 222,
+    "A_refunded->B_failed_attestation": 1429,
+    "B_failed_attestation->B_refunded": 235,
+    "B_refunded->C_checked": 7301,
+    "total": 10250
+  },
+  "note": "Local Anvil; time moved with evm_increaseTime. Devnet measurement only."
+}

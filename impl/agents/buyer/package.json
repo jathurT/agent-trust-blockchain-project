@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@agenttrust/seller": "link:../seller",
+    "@types/express": "5.0.6",
     "@types/node": "26.6.2",
     "express": "5.2.1",
     "tsx": "4.23.15",

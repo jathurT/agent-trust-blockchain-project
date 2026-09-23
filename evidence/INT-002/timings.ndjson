@@ -1,0 +1,7 @@
+{"runId":"int-002-1790153833669","stage":"start","atMs":1790153833674,"sinceStartMs":4}
+{"runId":"int-002-1790153833669","stage":"A_delivered","atMs":1790153834712,"sinceStartMs":1042,"detail":{"jobId":"0x777e98568fada0a502ad070b4bc2f2f5a08580bf16491077c300a4da5fcf7a06"}}
+{"runId":"int-002-1790153833669","stage":"A_warped","atMs":1790153834733,"sinceStartMs":1063}
+{"runId":"int-002-1790153833669","stage":"A_refunded","atMs":1790153834955,"sinceStartMs":1285}
+{"runId":"int-002-1790153833669","stage":"B_failed_attestation","atMs":1790153836384,"sinceStartMs":2714}
+{"runId":"int-002-1790153833669","stage":"B_refunded","atMs":1790153836619,"sinceStartMs":2949}
+{"runId":"int-002-1790153833669","stage":"C_checked","atMs":1790153843920,"sinceStartMs":10250}
