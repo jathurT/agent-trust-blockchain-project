@@ -869,14 +869,17 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-008 — Labelled vulnerable baseline fixture (A2/A3)
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(D) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(D) · agents-backend
 - **Objective:** A control target that reproduces the published conditions — clearly labelled as a fixture, never as upstream x402.
 - **Refs:** §12.1, §12.2 · FR-24 · DF-18 · V-13, V-24
 - **Depends:** API-001, CONTRACT-002
 - **Steps:** 1) A separate server sharing the fixture handlers. 2) Accept an EIP-3009-style authorization, verify it **off-chain only**, and grant immediately. 3) **No idempotency** (A2 conditions) and **no resource binding** (A3 conditions: the authorization names amount and payee, not the resource). 4) Settle asynchronously against MockUSDC so settlements can be counted. 5) Banner in the code, the logs, the CLI help and the results: "deliberately vulnerable fixture reproducing <paper §>; not upstream x402".
-- **Acceptance:** the label appears in code, logs and `results.json`; replaying one authorization N times grants N times; an authorization minted for one sibling resource is accepted for the other.
-- **Verify:** `pnpm -C impl/attacks test -- fixture` → `evidence/API-008/`
-- **Risks:** being mistaken for upstream → the labelling rule is enforced by SEC-012.
+- **Acceptance:** all three ✔. The label appears in the module docstring, the startup log, **every grant log line**, the help route, the metrics route, every 402 body and an `X-Fixture-Label` response header; `results.json` inherits it through `fixtureBanner()`, which is the single source of the wording so the copies cannot drift. Replaying one authorization **20 times grants 20 times**, with `grantIndex` 1…20 recorded. An authorization minted for `/v1/summarise` is accepted for `/v1/classify`, and against a body it was never minted for.
+- **Verify:** `npx vitest run` in `impl/attacks` → **10 tests** → `evidence/API-008/vitest.log`.
+- **Outcome:** the vulnerability is stated in the source rather than merely present: the off-chain check asks only whether the *authorization* is the right amount, to the right payee, inside its validity window — and an EIP-3009 authorization carries **no resource field**, which is precisely why A3 works. Settlement is asynchronous and does not gate the grant, which is what makes grants and settlements countable separately; a test holds settlement open and shows the grant returns anyway. That separation is the shape of the published 248-grants-per-settlement result (V-13, V-24).
+  The label denies upstream **explicitly** rather than merely omitting it ("NOT upstream x402", "NOT the @x402/* packages", "NOT evidence about anyone else's implementation") and cites both papers by number, so SEC-012 has one string to audit.
+- **One thing that had to change:** the full label contains an em dash, which Node rejects in an HTTP header value — the fixture returned 500 on every grant until this was found. The header now carries a short ASCII form (`FIXTURE_HEADER`), asserted printable-ASCII by a test, while the full text travels in every JSON body and log line.
+- **Risks:** being mistaken for upstream → the labelling rule is enforced by SEC-012, and the fixture now makes that easy by having exactly one label constant.
 
 ### API-009 — Pinned upstream baseline on an Anvil fork
 

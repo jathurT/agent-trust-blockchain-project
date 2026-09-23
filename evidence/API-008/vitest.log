@@ -1,0 +1,19 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/attacks
+
+ ✓ test/fixture.test.ts > labelling > names itself in the help route, the metrics and the response header 26ms
+ ✓ test/fixture.test.ts > labelling > says what it is not, in as many words 0ms
+ ✓ test/fixture.test.ts > labelling > logs the banner on startup and on every grant 3ms
+ ✓ test/fixture.test.ts > A2 — replay without idempotency > grants N times for one authorization replayed N times 29ms
+ ✓ test/fixture.test.ts > A2 — replay without idempotency > grants far more often than it settles 12ms
+ ✓ test/fixture.test.ts > A2 — replay without idempotency > does not wait for settlement before granting 2ms
+ ✓ test/fixture.test.ts > A3 — no resource binding > accepts an authorization minted for one sibling against the other 3ms
+ ✓ test/fixture.test.ts > A3 — no resource binding > accepts an authorization against a body it was never minted for 3ms
+ ✓ test/fixture.test.ts > what it does still check > refuses an under-priced, mis-addressed or expired authorization 5ms
+ ✓ test/fixture.test.ts > what it does still check > quotes when no authorization is presented 2ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  12:36:41
+   Duration  9.15s (import 96%, transform 2%, tests 1%, worker 1%)
+
