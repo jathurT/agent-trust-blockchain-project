@@ -1,0 +1,11 @@
+ENV-001 acceptance evidence — 2026-09-23T06:07:03+05:30
+
+$ grep -nE '(latest|[~^][0-9])' docs/specs/versions.md | grep -viE 'pragma|\^0\.8\.(20|24)'
+3:**Rule:** exact versions only. No `latest`, no `^`, no `~`, anywhere — in this file, in manifests or in CI. Changing a pin means editing this file and re-running the acceptance checks of every task that depends on it.
+
+Only match is line 3, the rule sentence itself, which quotes the forbidden tokens.
+Solidity pragma carets are allowed: solc is pinned to 0.8.37 separately.
+
+Pinned rows: 54
+V-IDs cited: V-17 V-50 V-62 V-63 V-80 V-81 V-83 V-84 V-85 V-86 V-87 V-97 V-100 V-101 V-102 V-103 V-104 V-106 V-108 V-109 V-139 
+Library versions re-confirmed 2026-09-23 via npm view / pip index versions.

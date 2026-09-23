@@ -1,0 +1,24 @@
+{
+  "enabledPlugins": {
+    "building-secure-contracts@trailofbits": true,
+    "entry-point-analyzer@trailofbits": true,
+    "spec-to-code-compliance@trailofbits": true,
+    "differential-review@trailofbits": true,
+    "solidity@solskill": true,
+    "context7@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "trailofbits": {
+      "source": {
+        "source": "github",
+        "repo": "trailofbits/skills"
+      }
+    },
+    "solskill": {
+      "source": {
+        "source": "github",
+        "repo": "Cyfrin/solskill"
+      }
+    }
+  }
+}
