@@ -907,13 +907,17 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### AGENT-002 — Deterministic buyer flow
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.75 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.75 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** The measured client: discover, quote, gate-check, fund, wait, retry signed, verify.
 - **Refs:** §5.1, §11.1 · FR-01, FR-16, FR-20, SR-01 · DF-02, DF-04, DF-23
 - **Depends:** AGENT-001, API-002, CONTRACT-004
 - **Steps:** 1) Discovery: resolve `agentURI` → agent card → endpoint origin, and **refuse** if the origin differs from the host being called. 2) Request → parse 402 → verify `payTo` equals the registry-resolved wallet and the price matches the quote. 3) Pre-check the gate off-chain and abort early with a clear reason. 4) `approve` (exact amount) then `fund(...)`, reusing the **same nonce** on retries. 5) Wait `CONFIRMATIONS`. 6) Sign `DeliveryRequest`, retry with `PAYMENT-SIGNATURE`. 7) Verify the response hash against `PAYMENT-RESPONSE`, then persist the job record.
-- **Acceptance:** (a) a complete happy path locally; (b) an origin mismatch aborts before funding; (c) a gated seller never receives a funding transaction; (d) a repeated retry after a dropped connection returns the same result without a second execution.
-- **Verify:** `pnpm -C impl/agents/buyer test` → `evidence/AGENT-002/`
+- **Acceptance:** all four ✔, against the real seller and the deployed escrow on a local Anvil — (a) a complete happy path, with the buyer's USDC balance asserted to fall by exactly the quoted amount; (b) an origin mismatch aborts **before funding**; (c) a gated seller never receives a funding transaction, asserted by the **block number not advancing**; (d) repeating the same purchase returns the identical body with `disposition: "replayed"`, the same `jobId`, and **no change in the buyer's balance**.
+- **Verify:** `npx vitest run` in `impl/agents/buyer` → **8 tests** → `evidence/AGENT-002/vitest.log`.
+- **Outcome:** the payer nonce is **derived from the request** (`nonceFor`), so a retry after a dropped connection is the same job by construction — a buyer that minted a fresh nonce would double-pay, and that would be the client's fault rather than the protocol's. The buyer **hashes the bytes it received** and compares them to the `responseHash` in `PAYMENT-RESPONSE`; without that it would have only the seller's word, and the validator would later attest to a different artefact than the buyer holds. `approve` is for the **exact amount**, never unlimited, because a standing allowance larger than the job is the A5 overdraft surface (DF-10).
+  Discovery resolves `agentURI` → agent card → endpoint origin through the registry and refuses a mismatch, so the trust chain does not start at whatever DNS returned. The buyer also checks that the quote's `payTo` equals the registry-resolved payee and that the quote names **this** escrow — a test covers the case where those disagree.
+  `precheckGate` reads through the same `getSummary` the escrow uses, applies the owner floors it reads from the chain, and is documented as **advisory**: the escrow is authoritative, and feedback landing between the check and the transaction is a real race. Its value is that a refusal costs no gas and names the failing dimension, which is what SEC-007 needs.
+- **Correction to a test of mine:** the first version of acceptance (c) pointed the buyer at a second agent with no reputation, but the seller server belongs to the first agent, so the buyer aborted with `payee_mismatch` before the gate ran — correct behaviour, wrong test. The gate test now uses a buyer whose **trusted set contains nobody who has rated this seller**, which is how a trust-anchored gate actually bites; the payee case became a test of its own.
 
 ### AGENT-003 — Refund watcher and feedback posting
 

@@ -1,0 +1,19 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/buyer
+
+(node:226746) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ test/e2e.test.ts > the happy path > discovers, quotes, gate-checks, funds, retries signed and verifies 230ms
+ ✓ test/e2e.test.ts > the happy path > a repeated purchase of the same request replays, without a second payment 190ms
+ ✓ test/e2e.test.ts > the happy path > derives the same nonce for the same request, and a different one otherwise 1ms
+ ✓ test/e2e.test.ts > aborting before any money moves > refuses when the registry names a different origin 4ms
+ ✓ test/e2e.test.ts > aborting before any money moves > a gated seller never receives a funding transaction 12ms
+ ✓ test/e2e.test.ts > aborting before any money moves > refuses when the quote pays someone other than the agent the registry names 5ms
+ ✓ test/e2e.test.ts > aborting before any money moves > refuses a quote priced above the buyer's limit 5ms
+ ✓ test/e2e.test.ts > aborting before any money moves > refuses a quote in a token it did not ask for 5ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  12:30:09
+   Duration  20.48s (import 92%, tests 5%, transform 3%)
+

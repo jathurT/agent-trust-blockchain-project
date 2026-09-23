@@ -1,0 +1,24 @@
+{
+  "name": "@agenttrust/buyer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AgentTrust buyer: discover, quote, gate-check, fund, retry signed, verify (AGENT-002).",
+  "main": "src/buyer.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@agenttrust/core": "link:../../packages/core",
+    "viem": "2.56.8"
+  },
+  "devDependencies": {
+    "@agenttrust/seller": "link:../seller",
+    "@types/node": "26.6.2",
+    "express": "5.2.1",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  }
+}
