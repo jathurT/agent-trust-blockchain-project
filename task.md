@@ -777,14 +777,18 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-001 — Seller skeleton, deterministic fixtures, price table
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** An Express server whose paid routes are deterministic, so a validator can recompute them.
 - **Refs:** §11.2, §14.1 · FR-17, FR-23 · DF-08 · V-63(express), V-108
 - **Depends:** ENV-005, AGENT-001
 - **Steps:** 1) Express 5 with a raw-body capture middleware mounted **before** any JSON parser. 2) Paid routes `/v1/summarise` and `/v1/classify` at the **same price** (the equal-price sibling pair A3 needs), plus a free `/health` and `/.well-known/agent-card`. 3) Deterministic implementations (no randomness, no clock, no LLM): documented transforms over the request body. 4) Price table in configuration, in atomic units.
 - **Files:** `impl/agents/seller/src/{server.ts,routes/*.ts,pricing.ts}`
-- **Acceptance:** the same request body always produces byte-identical output; both siblings cost exactly the same; the raw body is available unparsed to the hashing layer.
-- **Verify:** `pnpm -C impl/agents/seller test -- fixtures` → `evidence/API-001/`
+- **Acceptance:** the same request body always produces byte-identical output ✔ (50 repeats, and again with `Date.now` and `Math.random` stubbed); both siblings cost exactly the same ✔; the raw body reaches the hashing layer unparsed ✔.
+- **Verify:** `npx vitest run` in `impl/agents/seller` → **24 tests** → `evidence/API-001/vitest.log`.
+- **Outcome:** `rawBody()` is mounted **before** any parser and `express.json()` is not used at all — there is exactly one place where bytes become an object, and it is always the bytes the hash covered. Express is configured `strict routing` + `case sensitive routing`, so `/v1/Summarise/` cannot quietly fold onto `/v1/summarise` and change what gets hashed. Responses are written as a pre-serialised buffer with sorted keys rather than through `res.json`, so the bytes the buyer receives are the bytes the validator will hash.
+  Scoring is **integer-only**: a float sentence score would make the ordering depend on platform rounding, and VAL-003's independent Python implementation would then have to reproduce that rounding exactly. The transforms are documented in prose in `routes/deterministic.ts` because the Python side is written from the description, not ported from the code — that independence is the point.
+  `createApp({gated: true})` **throws without a payment gate**, and `main.ts` requires `ALLOW_UNGATED=1` to start without one. An ungated seller gives the resource away, so it must not be reachable by omission — only deliberately, for handler tests and the labelled A2/A3 fixture (API-008).
+- **Note:** `npm install` silently installed nothing, because `link:` is pnpm syntax and the workspace is pnpm. Installed with `pnpm` instead; `@types/express-serve-static-core` is not hoisted under pnpm's strict layout, so `RawRequest` is an explicit exported type rather than a global module augmentation — which also makes it visible in a handler's signature whether it depends on the capture having run.
 
 ### API-002 — 402 emission in x402 v2 wire format
 

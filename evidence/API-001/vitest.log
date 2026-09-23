@@ -1,0 +1,33 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/seller
+
+ ✓ test/fixtures.test.ts > determinism > returns byte-identical output for the same input, every time 4ms
+ ✓ test/fixtures.test.ts > determinism > serialises with sorted keys, so object construction order cannot leak in 0ms
+ ✓ test/fixtures.test.ts > determinism > uses no clock, randomness or network 0ms
+ ✓ test/fixtures.test.ts > determinism > scores with integers, so no platform rounding can reorder sentences 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps terminators and trims 1ms
+ ✓ test/fixtures.test.ts > splitSentences > does not split a decimal or an abbreviation mid-token 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps a tail with no terminator 0ms
+ ✓ test/fixtures.test.ts > splitSentences > returns nothing for empty or whitespace input 0ms
+ ✓ test/fixtures.test.ts > tokenise > lowercases and drops punctuation 0ms
+ ✓ test/fixtures.test.ts > classify > picks the label with the most keyword hits 0ms
+ ✓ test/fixtures.test.ts > classify > breaks ties by label order, never by object key order 0ms
+ ✓ test/fixtures.test.ts > classify > rejects a bad request rather than guessing 1ms
+ ✓ test/fixtures.test.ts > pricing > prices both paid siblings identically 0ms
+ ✓ test/fixtures.test.ts > pricing > keeps the price a bigint in atomic units 0ms
+ ✓ test/fixtures.test.ts > HTTP surface > serves health and the agent card without payment 21ms
+ ✓ test/fixtures.test.ts > HTTP surface > states the interoperability position on the help route 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > sets no-store on every paid response 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > makes the raw bytes available unparsed 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > returns byte-identical responses to repeated identical requests 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects a malformed body with 400, not 500 4ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects an oversized body before buffering it 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > tells a GET on a paid route it needs POST 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > treats route case and trailing slashes as distinct 4ms
+ ✓ test/fixtures.test.ts > the gate cannot be forgotten > refuses to build a gated app without a gate 0ms
+
+ Test Files  1 passed (1)
+      Tests  24 passed (24)
+   Start at  08:59:58
+   Duration  10.67s (import 95%, transform 4%, tests 1%, worker 1%)
+
