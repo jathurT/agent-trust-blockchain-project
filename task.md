@@ -1138,25 +1138,27 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-003 — A2 replay evaluation
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(D) · security-eval
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do the evaluation", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(D) · security-eval
 - **Objective:** Measure executions per payment on both targets, sequentially and under concurrency.
 - **Refs:** §3 A2, §12.2, §13(2) · FR-14, ER-02, ER-09 · DF-01, DF-17, DF-18 · V-12, V-13 · Gate: **G3a**
 - **Depends:** SEC-002, API-005, AGENT-002
 - **Steps:** 1) Fund/pay once per run. 2) Replay N = 50 sequential, 50 concurrent, 200 concurrent; AgentTrust runs across 2 seller processes. 3) Variants: original signature, no signature, foreign signature. 4) ≥10 runs per configuration. 5) Also attempt a second `fund()` with the same nonce and record the revert selector.
-- **Acceptance:** results record executions, distinct results, 2xx, replays and settlements per run, with medians and Wilson intervals; the fixture's label appears in every row; the outcome category is assigned per the evaluation plan.
-- **Verify:** `--id a2_replay` for both targets → `impl/attacks/results/`, `evidence/SEC-003/`
-- **Hypotheses:** H-A2-1 fixture executions ≈ N; H-A2-2 AgentTrust executions = 1 with unsigned replays refused. **Either may be refuted; the measured value is what gets published.**
+- **Acceptance:** ✔. Eleven configurations × 10 runs, both targets, recorded with Wilson intervals and the fixture's label in every manifest.
+- **Verify:** `evidence/SEC-003/` (11 run directories, each with `manifest.json`, `results.json`, `raw.ndjson`).
+- **Measured.** **Fixture:** 50 requests after one payment → **50 executions**; 200 → **200**; unchanged by concurrency. **AgentTrust:** **1 execution per payment in every configuration** — sequential, 50-way and 200-way concurrent, across two seller processes sharing one claim store. Across its six configurations, **4,440 replay attempts produced 0 extra executions and 0 unauthorised responses**.
+- **Both hypotheses held.** H-A2-1 (fixture executions ≈ N) and H-A2-2 (AgentTrust = 1, unsigned replays refused) were confirmed rather than refuted.
+- **The `forged` variant is the sharper finding.** The fixture served **500 of 500** requests carrying a completely forged signature: it checks the amount, the payee and the validity window and never verifies the signature at all, so it can be robbed without replaying anything. AgentTrust served nothing to a forged, foreign or absent signature. The fixture *does* refuse a request with no authorization, which matters because it shows that row's zero is a real check rather than a harness artefact.
 
 ### SEC-004 — A3 cross-resource substitution (buyer-side)
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(D) · security-eval
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do the evaluation", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(D) · security-eval
 - **Objective:** Measure whether a payment for one resource buys another.
 - **Refs:** §3 A3, §12.2 · FR-14, ER-09 · DF-04, DF-18 · V-24 · Gate: **G3a**
 - **Depends:** SEC-002, API-003, SPEC-001
 - **Steps:** 1) Equal-price sibling pair. 2) 100 rounds per target: fund for `/v1/summarise`, request `/v1/classify`. 3) Negative controls: one-byte body mutation; reordered query parameters (must **not** be rejected); correct request (must succeed).
-- **Acceptance:** substitution counts with Wilson intervals; zero false rejections on the canonicalisation controls; rejection codes recorded.
-- **Verify:** `--id a3_cross_resource` both targets → `evidence/SEC-004/`
-- **Hypotheses:** H-A3-1 fixture substitutes 100/100; H-A3-2 AgentTrust 0/100 with 409; H-A3-3 zero false rejections.
+- **Acceptance:** ✔, 100 rounds per target → `evidence/SEC-004/`.
+- **Measured.** **Fixture: 100 of 100** substitutions served, 95% CI [96.3%, 100.0%] — a payment for `/v1/summarise` bought `/v1/classify` every time, matching the published F1 result of 100/100 (V-24). It also accepted **100 of 100** one-byte body mutations, because an EIP-3009 authorization names a payer, a payee and an amount and says nothing about which resource is being bought. **AgentTrust: 0 of 100**, 95% CI [0.0%, 3.7%], every one refused `resource_mismatch`, and **0 of 100** mutated bodies accepted.
+- **All three hypotheses held**, including H-A3-3: **zero false refusals** on both targets. That control is what makes the zero meaningful — a server that refused everything would also serve 0 of 100, so the correct request succeeding in all 100 rounds is what distinguishes "bound" from "broken".
 
 ### SEC-005 — A4 concurrent duplication
 
@@ -1247,19 +1249,20 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### EVAL-004 — Aggregate results into `docs/results.md`
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(D) · security-eval
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do the evaluation", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(D) · security-eval
 - **Objective:** Turn raw `results.json` files into the tables and charts that go in the README and the deck — with no hand-typed numbers.
 - **Refs:** §12.3, §13 · ER-07, ER-10 · Skill: `dataviz` · Depends: SEC-003, SEC-004
 - **Steps:** 1) A script that reads every `results.json` and emits `docs/results.tables.md` plus a chart — **generated, never hand-edited**. 2) Include run counts, medians, intervals and the environment. 3) Write the narrative in `docs/results.md` (what held, what did not, what was not evaluated), including the generated tables. 4) Link raw logs for each row.
-- **Acceptance:** regenerating reproduces `docs/results.tables.md` byte-for-byte; every number traces to a run id; "Not evaluated" rows are present where true; the narrative contains no hand-typed figures.
-- **Verify:** `pnpm -C impl/attacks report` then `git diff --exit-code docs/results.tables.md` → `evidence/EVAL-004/`
+- **Acceptance:** all four ✔. Regeneration reproduces `docs/results.tables.md` **and** `docs/results.chart.svg` byte-for-byte (verified by diffing a regenerated copy); every row carries its **run id**; the four unevaluated attacks appear as "Not evaluated" rows; the narrative in `docs/results.md` states no figure that is not in the generated tables.
+- **Verify:** `bash impl/scripts/report.sh --check` → regenerates and fails on any difference.
+- **Outcome:** `docs/results.tables.md` and `docs/results.chart.svg` are generated by `impl/attacks/src/aggregate.ts` in a deterministic row order with no timestamps, so `git diff --exit-code` is a meaningful check rather than noise. `docs/results.md` is the narrative and includes them verbatim. The outcome **category** is assigned in the aggregator from the aggregate, with the rule written out, rather than guessed per run.
 
 ### EVAL-005 — Defence coverage table
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(D)
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do the evaluation", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(D)
 - **Objective:** State coverage honestly, with its denominator and outcome categories.
 - **Refs:** §12.3, §13(1) · ER-01 · DF-18, DF-19 · Depends: EVAL-004
-- **Acceptance:** the table names the denominator ("evaluated X of the 6 defined attacks"), uses Blocked / Mitigated-to-bound / Not blocked / Not evaluated, and names the mechanism for each blocked row.
+- **Acceptance:** ✔ — generated as part of `docs/results.tables.md`. It states "**2 of the 6 defined attacks evaluated**", uses the plan's categories, and names the mechanism for each blocked row: the atomic claim store keyed by `(chainId, escrow, jobId)` plus payer-signed delivery for A2, and the on-chain `resourceHash` for A3. A1, A4, A5 and A6 are listed as **Not evaluated** rather than omitted.
 
 ### EVAL-006 — Per-stage timestamps in E2E runs
 

@@ -1,0 +1,10 @@
+{"run":1,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":2,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":3,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":4,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":5,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":6,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":7,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":8,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":9,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":10,"variant":"original","counters":{"executions_completed":200,"distinct_results":1,"http_2xx":200,"replays_served":0,"settlements":1},"statuses":{"200":200},"unauthorized_2xx":0,"distinct_bodies":1}

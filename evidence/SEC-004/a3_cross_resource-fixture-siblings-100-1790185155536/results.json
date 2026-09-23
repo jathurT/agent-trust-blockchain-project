@@ -1,0 +1,49 @@
+{
+  "runId": "a3_cross_resource-fixture-siblings-100-1790185155536",
+  "attackId": "a3_cross_resource",
+  "target": "fixture",
+  "targetLabel": "DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.",
+  "config": "siblings-100",
+  "metrics": {
+    "rounds": 100,
+    "substitutions_served": 100,
+    "substitution_rate": {
+      "metric": "payments for one resource that bought another",
+      "n": 100,
+      "successes": 100,
+      "proportion": 1,
+      "lower": 0.9630065017930143,
+      "upper": 1,
+      "method": "wilson-95"
+    },
+    "false_refusals": 0,
+    "false_refusal_rate": {
+      "metric": "correct requests wrongly refused",
+      "n": 100,
+      "successes": 0,
+      "proportion": 0,
+      "lower": 0,
+      "upper": 0.03699349820698568,
+      "method": "wilson-95"
+    },
+    "mutated_body_accepted": 100,
+    "mutated_body_rate": {
+      "metric": "one-byte body mutations accepted",
+      "n": 100,
+      "successes": 100,
+      "proportion": 1,
+      "lower": 0.9630065017930143,
+      "upper": 1,
+      "method": "wilson-95"
+    },
+    "rejection_codes": {
+      "http_200": 100
+    }
+  },
+  "outcome": null,
+  "hypothesis": "H-A3-1",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

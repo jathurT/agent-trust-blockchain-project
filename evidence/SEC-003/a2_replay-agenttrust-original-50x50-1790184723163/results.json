@@ -1,0 +1,65 @@
+{
+  "runId": "a2_replay-agenttrust-original-50x50-1790184723163",
+  "attackId": "a2_replay",
+  "target": "agenttrust",
+  "targetLabel": null,
+  "config": "original-50x50",
+  "metrics": {
+    "runs": 10,
+    "requests_per_run": 50,
+    "replays_per_run": 49,
+    "executions": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "distinct_results": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "settlements": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "extra_executions_total": 0,
+    "replay_success_rate": {
+      "metric": "replays that became a second execution",
+      "n": 490,
+      "successes": 0,
+      "proportion": 0,
+      "lower": 0,
+      "upper": 0.007778728885718963,
+      "method": "wilson-95"
+    },
+    "unauthorized_2xx_total": 0
+  },
+  "outcome": null,
+  "hypothesis": "H-A2-2",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

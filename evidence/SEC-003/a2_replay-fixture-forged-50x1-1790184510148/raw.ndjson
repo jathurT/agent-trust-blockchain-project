@@ -1,0 +1,10 @@
+{"run":1,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":2,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":3,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":4,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":5,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":6,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":7,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":8,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":9,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}
+{"run":10,"variant":"forged","counters":{"executions_completed":50,"distinct_results":1,"http_2xx":50,"replays_served":0,"settlements":0},"statuses":{"200":50},"unauthorized_2xx":50,"distinct_bodies":1}

@@ -1,0 +1,10 @@
+{"run":1,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":2,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":3,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":4,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":5,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":6,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":7,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":8,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":9,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}
+{"run":10,"variant":"foreign","counters":{"executions_completed":0,"distinct_results":0,"http_2xx":0,"replays_served":0,"settlements":1},"statuses":{"403":50},"unauthorized_2xx":0,"distinct_bodies":0}

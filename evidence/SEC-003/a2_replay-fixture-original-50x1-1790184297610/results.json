@@ -1,0 +1,65 @@
+{
+  "runId": "a2_replay-fixture-original-50x1-1790184297610",
+  "attackId": "a2_replay",
+  "target": "fixture",
+  "targetLabel": "DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.",
+  "config": "original-50x1",
+  "metrics": {
+    "runs": 10,
+    "requests_per_run": 50,
+    "replays_per_run": 49,
+    "executions": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "distinct_results": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "settlements": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "extra_executions_total": 490,
+    "replay_success_rate": {
+      "metric": "replays that became a second execution",
+      "n": 490,
+      "successes": 490,
+      "proportion": 1,
+      "lower": 0.9922212711142808,
+      "upper": 1,
+      "method": "wilson-95"
+    },
+    "unauthorized_2xx_total": 0
+  },
+  "outcome": null,
+  "hypothesis": "H-A2-1",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

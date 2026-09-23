@@ -1,0 +1,10 @@
+{"run":1,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":2,"replays_served":1,"settlements":1},"statuses":{"200":2,"409":198},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":2,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":2,"replays_served":1,"settlements":1},"statuses":{"200":2,"409":198},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":3,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":4,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":5,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":6,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":2,"replays_served":1,"settlements":1},"statuses":{"200":2,"409":198},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":7,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":8,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":9,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}
+{"run":10,"variant":"original","counters":{"executions_completed":1,"distinct_results":1,"http_2xx":1,"replays_served":0,"settlements":1},"statuses":{"200":1,"409":199},"unauthorized_2xx":0,"distinct_bodies":1}

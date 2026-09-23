@@ -1,0 +1,49 @@
+{
+  "runId": "a3_cross_resource-agenttrust-siblings-100-1790185220789",
+  "attackId": "a3_cross_resource",
+  "target": "agenttrust",
+  "targetLabel": null,
+  "config": "siblings-100",
+  "metrics": {
+    "rounds": 100,
+    "substitutions_served": 0,
+    "substitution_rate": {
+      "metric": "payments for one resource that bought another",
+      "n": 100,
+      "successes": 0,
+      "proportion": 0,
+      "lower": 0,
+      "upper": 0.03699349820698568,
+      "method": "wilson-95"
+    },
+    "false_refusals": 0,
+    "false_refusal_rate": {
+      "metric": "correct requests wrongly refused",
+      "n": 100,
+      "successes": 0,
+      "proportion": 0,
+      "lower": 0,
+      "upper": 0.03699349820698568,
+      "method": "wilson-95"
+    },
+    "mutated_body_accepted": 0,
+    "mutated_body_rate": {
+      "metric": "one-byte body mutations accepted",
+      "n": 100,
+      "successes": 0,
+      "proportion": 0,
+      "lower": 0,
+      "upper": 0.03699349820698568,
+      "method": "wilson-95"
+    },
+    "rejection_codes": {
+      "resource_mismatch": 100
+    }
+  },
+  "outcome": null,
+  "hypothesis": "H-A3-2",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}
