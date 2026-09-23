@@ -1,0 +1,455 @@
+G1 gate check — 2026-09-23T03:01:00Z
+commit: 85f36f7bffccc064680243b4cd363d2ed140508c
+forge:  forge Version: 1.8.3
+
+== 1. unit and boundary tests on the same-ABI mocks ==
+No files changed, compilation skipped
+
+Ran 3 tests for test/MockUSDC.t.sol:AdversarialTokenTest
+[PASS] test_FeeOnTransferDeliversLessThanRequested() (gas: 152104)
+[PASS] test_ReturnsFalseTokenIsCaughtBySafeERC20() (gas: 269124)
+[PASS] test_RevertingTokenBlocksPayouts() (gas: 99333)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 1.43ms (1.16ms CPU time)
+
+Ran 10 tests for test/BlueprintCorrected.t.sol:BlueprintCorrectedTest
+[PASS] test_A2_ReplayedNonceRejected() (gas: 341870)
+[PASS] test_A3_PriceSubstitutionProducesADifferentJob() (gas: 346940)
+[PASS] test_A3_ResourceHashMismatchIsNotReleasable() (gas: 1146737)
+[PASS] test_A6_AnHonestNewcomerIsRefusedForTheSameReason() (gas: 262759)
+[PASS] test_A6_SybilRingUnderTrustAnchoredGateIsRefused() (gas: 1081299)
+[PASS] test_AttestationTimelinessIsInclusiveOfTheDeadline() (gas: 1490185)
+[PASS] test_BoundaryMatrixAroundDeadlineAndGrace() (gas: 365885)
+[PASS] test_PaymentFollowsTheSnapshottedWalletNotTheCurrentOwner() (gas: 997058)
+[PASS] test_RefundBlockedByTimelyPass() (gas: 935561)
+[PASS] test_ReleaseAndRefundCannotBothSucceedInTheSameBlock() (gas: 931896)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 8.07ms (5.91ms CPU time)
+
+Ran 12 tests for test/Admin.t.sol:AdminTest
+[PASS] test_EverySetterIsOwnerOnly() (gas: 163972)
+[PASS] test_GateFloorsAreClamped() (gas: 109447)
+[PASS] test_GraceIsClamped() (gas: 74592)
+[PASS] test_MaxTrustedClientsIsClamped() (gas: 74299)
+[PASS] test_NoSetterCanTouchAFundedJob() (gas: 1118902)
+[PASS] test_OwnershipTransferNeedsAcceptance() (gas: 144262)
+[PASS] test_RenouncingOwnershipDoesNotStrandFunds() (gas: 841904)
+[PASS] test_ReputationReadGasIsClampedAtBothEnds() (gas: 105606)
+[PASS] test_RevokingATokenStillLetsExistingJobsRefund() (gas: 443640)
+[PASS] test_TheConstructorRejectsWhatTheSettersReject() (gas: 18430)
+[PASS] test_TheOwnerHasNoWayToWithdraw() (gas: 472836)
+[PASS] test_TtlBoundsAreClamped() (gas: 125005)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 4.28ms (2.17ms CPU time)
+
+Ran 19 tests for test/Settlement.t.sol:SettlementTest
+[PASS] test_AJobLeavesFundedExactlyOnce() (gas: 861217)
+[PASS] test_APassAtTheDeadlineStillReleasesAnHourLater() (gas: 847595)
+[PASS] test_ASquattedHashForcesANewSaltAndStillBinds() (gas: 1048876)
+[PASS] test_AnAttestationAfterTheDeadlineNeverReleases() (gas: 829152)
+[PASS] test_AnAttestationOnAnotherJobDoesNotRelease() (gas: 1274761)
+[PASS] test_AnOverwriteAfterTheSnapshotCannotUnRelease() (gas: 877707)
+[PASS] test_AnOverwriteBeforeTheSnapshotDoesLoseThePass() (gas: 840669)
+[PASS] test_BindingARequestWithTheWrongValidatorReverts() (gas: 551013)
+[PASS] test_BindingTiesOneRequestHashToTheJob() (gas: 605871)
+[PASS] test_BindingTwiceReverts() (gas: 770603)
+[PASS] test_BindingWithoutFilingTheRequestReverts() (gas: 361808)
+[PASS] test_ConfirmingBeforeBindingReverts() (gas: 324794)
+[PASS] test_ConfirmingSnapshotsAPassingAttestation() (gas: 784166)
+[PASS] test_ConfirmingWithoutAPassReverts() (gas: 806600)
+[PASS] test_OnlyThePayeeMayBind() (gas: 526657)
+[PASS] test_ReleaseIsImpossibleWithoutABoundHash() (gas: 330022)
+[PASS] test_ReleaseIsPermissionlessAndStillPaysThePayee() (gas: 817970)
+[PASS] test_ReleasePaysTheSnapshottedPayee() (gas: 862297)
+[PASS] test_SettlementCallsOnAnUnknownJobRevert() (gas: 108712)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 9.54ms (7.67ms CPU time)
+
+Ran 5 tests for test/MockUSDC.t.sol:MockUSDCTest
+[PASS] test_AuthorizationNonceCannotBeReused() (gas: 142882)
+[PASS] test_AuthorizationRespectsValidityWindow() (gas: 59607)
+[PASS] test_MatchesRealUsdcShape() (gas: 20984)
+[PASS] test_ReceiveWithAuthorization_OnlyPayeeMaySubmit() (gas: 153785)
+[PASS] test_WrongSignerIsRejected() (gas: 60680)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 2.13ms (1.29ms CPU time)
+
+Ran 7 tests for test/SecurityReview.t.sol:SecurityReviewTest
+[PASS] test_AGenuinelyUnknownRequestStillReadsAsNoValidation() (gas: 407677)
+[PASS] test_AMalformedReputationAnswerDoesNotBrickFunding() (gas: 3868743)
+[PASS] test_StarvingTheValidationReadCannotRefundAnAttestedJob() (gas: 22879023)
+[PASS] test_TheAgentOwnerStillCannotBeItsOwnValidator() (gas: 62262)
+[PASS] test_TheAgentsPayoutWalletCannotBeItsOwnValidator() (gas: 124383)
+[PASS] test_TheOwnerDistinctFloorIsEnforcedWhenItIsTheBindingConstraint() (gas: 333952)
+[PASS] test_TheSameJobStillReadsCorrectlyWithEnoughGas() (gas: 46433047)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 31.35ms (34.60ms CPU time)
+
+Ran 22 tests for test/Gate.t.sol:GateTest
+[PASS] test_ABuyerCannotAskForLessThanTheOwnerFloor() (gas: 980398)
+[PASS] test_ABuyerMayBeStricterThanTheFloor() (gas: 335654)
+[PASS] test_AHugeHistoryDoesNotPreventFunding() (gas: 42142505)
+[PASS] test_AgentWithTrustedFeedbackPasses() (gas: 728447)
+[PASS] test_AverageDimensionIsReported() (gas: 484984)
+[PASS] test_AverageIsWeightedByEntryCount() (gas: 1372923)
+[PASS] test_CountDimensionIsReported() (gas: 481807)
+[PASS] test_CrossEndorsingSybilsDoNotHelp() (gas: 1498175)
+[PASS] test_DeployingWithTooSmallAReadCeilingReverts() (gas: 18639)
+[PASS] test_DifferentValueDecimalsAreNormalised() (gas: 728416)
+[PASS] test_DuplicateTrustedClientReverts() (gas: 288231)
+[PASS] test_FeedbackUnderAnotherTagDoesNotCount() (gas: 471746)
+[PASS] test_GasAgainstHistoryLength() (gas: 11971076)
+[PASS] test_NegativeFeedbackCanFailTheGate() (gas: 485349)
+[PASS] test_OnlyTheOwnerSetsFloorsAndTheReadCeiling() (gas: 60738)
+[PASS] test_OverLongClientListReverts() (gas: 76175)
+[PASS] test_RevokedFeedbackDoesNotCount() (gas: 518862)
+[PASS] test_StarvingTheReadsOfGasRevertsInsteadOfSkippingTheGate() (gas: 436009)
+[PASS] test_TagMatchesTheContract() (gas: 9540)
+[PASS] test_TheOwnerCannotSetTheReadCeilingBelowTheFloor() (gas: 74783)
+[PASS] test_TheSameAgentFailsWhenTheFeedbackIsFromStrangers() (gas: 623572)
+[PASS] test_ZeroTrustedClientReverts() (gas: 70611)
+Suite result: ok. 22 passed; 0 failed; 0 skipped; finished in 49.10ms (69.14ms CPU time)
+
+Ran 16 tests for test/Refund.t.sol:RefundTest
+[PASS] testFuzz_EveryJobPaysExactlyOnePartyInFull(bool,uint64) (runs: 256, μ: 640460, ~: 833458)
+[PASS] test_ALargeGraceCannotFreezeAnExistingJob() (gas: 454053)
+[PASS] test_OnlyTheOwnerSetsGrace() (gas: 34890)
+[PASS] test_RefundAfterAFailingResponseSucceeds() (gas: 798478)
+[PASS] test_RefundAfterALatePassSucceeds() (gas: 891231)
+[PASS] test_RefundAfterAPendingOnlyRequestSucceeds() (gas: 712471)
+[PASS] test_RefundAfterAnUnderThresholdResponseSucceeds() (gas: 830832)
+[PASS] test_RefundBeforeDeadlinePlusGraceReverts() (gas: 453800)
+[PASS] test_RefundBlockedByASnapshotEvenAfterTheRegistryFlips() (gas: 951852)
+[PASS] test_RefundIsPermissionlessAndAlwaysPaysThePayer() (gas: 423837)
+[PASS] test_RefundReturnsTheMoneyToThePayerAfterGrace() (gas: 450164)
+[PASS] test_RefundWithARecordedPassReverts() (gas: 907637)
+[PASS] test_RefundWithAnUnrecordedButTimelyPassReverts() (gas: 819406)
+[PASS] test_RefundWithNoValidationAtAllSucceeds() (gas: 387482)
+[PASS] test_RefundingTwiceReverts() (gas: 410795)
+[PASS] test_ShorteningGraceDoesNotOpenTheValveOnAFundedJob() (gas: 734549)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 159.96ms (163.77ms CPU time)
+
+Ran 31 tests for test/Fund.t.sol:FundTest
+[PASS] testFuzz_TtlWithinBoundsIsAccepted(uint64) (runs: 256, μ: 323479, ~: 323668)
+[PASS] test_AFailedTransferLeavesTheNonceUnconsumed() (gas: 740325)
+[PASS] test_AReentrantTokenCannotOpenASecondJob() (gas: 871219)
+[PASS] test_AgentIdZeroIsFundable() (gas: 319856)
+[PASS] test_AnOverLongTrustedClientListReverts() (gas: 76223)
+[PASS] test_AnUnapprovedTransferLeavesTheNonceUnconsumed() (gas: 324610)
+[PASS] test_DerivationsMatchTheSharedVectors() (gas: 2185271)
+[PASS] test_FeeOnTransferTokenReverts() (gas: 490172)
+[PASS] test_FundEmitsTheJobItStored() (gas: 322987)
+[PASS] test_FundEscrowsTheAmountAndRecordsTheJob() (gas: 372003)
+[PASS] test_FundingAnUnknownAgentReverts() (gas: 62667)
+[PASS] test_JobsViewRevertsForAnUnknownJob() (gas: 38605)
+[PASS] test_OnlyTheOwnerConfigures() (gas: 88302)
+[PASS] test_OwnershipTransferNeedsAcceptance() (gas: 109071)
+[PASS] test_PayeeFallsBackToTheOwnerAfterATransfer() (gas: 400336)
+[PASS] test_PayeeIsTheAgentWalletWhenOneIsSet() (gas: 387638)
+[PASS] test_PreviewsAgreeWithWhatFundStores() (gas: 338583)
+[PASS] test_PriceIsPartOfTheResourceBinding() (gas: 17355)
+[PASS] test_RemovingATokenDoesNotAffectExistingJobs() (gas: 358741)
+[PASS] test_ReplayingANonceReverts() (gas: 337964)
+[PASS] test_TheSameNonceIsUsableByADifferentPayer() (gas: 681526)
+[PASS] test_TokenNotOnTheAllowlistReverts() (gas: 118921)
+[PASS] test_TransferringTheAgentAfterFundingDoesNotMoveThePayee() (gas: 388537)
+[PASS] test_TtlAboveTheMaximumReverts() (gas: 54235)
+[PASS] test_TtlBelowTheMinimumReverts() (gas: 54129)
+[PASS] test_TtlBoundsMustBeSane() (gas: 88356)
+[PASS] test_ValidatorCannotBeAnOperatorOfTheAgent() (gas: 121894)
+[PASS] test_ValidatorCannotBeTheAgentOwner() (gas: 62276)
+[PASS] test_ValidatorCannotBeThePayer() (gas: 60294)
+[PASS] test_ValidatorCannotBeZero() (gas: 59712)
+[PASS] test_ZeroAmountReverts() (gas: 48843)
+Suite result: ok. 31 passed; 0 failed; 0 skipped; finished in 149.73ms (194.54ms CPU time)
+
+Ran 25 tests for test/MockRegistries.t.sol:MockRegistriesTest
+[PASS] test_agentWalletIsRegistrantThenClearedOnTransfer() (gas: 288746)
+[PASS] test_agentWalletKeyIsReserved() (gas: 229785)
+[PASS] test_bindsToTheErc8004Interface() (gas: 274122)
+[PASS] test_countIsEntriesNotDistinctClients() (gas: 632614)
+[PASS] test_crossEndorsingSybilsPassGateV1AndFailTheTrustAnchoredGate() (gas: 1122564)
+[PASS] test_firstRegisteredAgentHasIdZero() (gas: 353087)
+[PASS] test_getSummaryRefusesAnEmptyClientList() (gas: 207341)
+[PASS] test_isAuthorizedOrOwnerRevertsForUnknownAgent() (gas: 13321)
+[PASS] test_onlyTheAgentOwnerOrOperatorMayFileARequest() (gas: 247539)
+[PASS] test_onlyTheNamedValidatorMayRespond() (gas: 414537)
+[PASS] test_operatorCannotRateTheAgentItOperates() (gas: 288700)
+[PASS] test_ownerCannotRateItsOwnAgent() (gas: 237089)
+[PASS] test_pendingIsIndistinguishableFromAFailingResponse() (gas: 653825)
+[PASS] test_reputationBindsToTheErc8004Interface() (gas: 461752)
+[PASS] test_requestHashCanBeSquattedByAnyone() (gas: 606404)
+[PASS] test_responseIsCappedAt100() (gas: 412502)
+[PASS] test_revokedAndMistaggedFeedbackIsExcluded() (gas: 672377)
+[PASS] test_setAgentWalletRejectsFarFutureDeadline() (gas: 231827)
+[PASS] test_setAgentWalletRejectsSignatureFromSomeoneElse() (gas: 240948)
+[PASS] test_setAgentWalletRequiresSignatureFromTheNewWallet() (gas: 248705)
+[PASS] test_summaryDistinguishesPendingFromAFailingResponse() (gas: 661140)
+[PASS] test_summaryScalesToTheMostCommonDecimals() (gas: 632634)
+[PASS] test_unknownRequestHashReverts() (gas: 26527)
+[PASS] test_validationBindsToTheErc8004Interface() (gas: 566253)
+[PASS] test_validatorCanOverwriteAnEarlierVerdict() (gas: 584026)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 160.70ms (7.20ms CPU time)
+
+Ran 4 tests for test/CanonicalHash.t.sol:CanonicalHashTest
+[PASS] testFuzz_JobIdIsDomainSeparated(bytes32,bytes32,address,address) (runs: 256, μ: 1374, ~: 1374)
+[PASS] test_AllHashingVectors() (gas: 37182425)
+[PASS] test_BindingProperties() (gas: 3984939)
+[PASS] test_TypeHashesMatchVectors() (gas: 3478841)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 224.09ms (213.10ms CPU time)
+
+Ran 11 test suites in 230.61ms (800.38ms CPU time): 154 tests passed, 0 failed, 0 skipped (154 total tests)
+UNIT_EXIT=0
+
+== 2. REG-008 mock conformance vs the pinned ERC-8004 ABI ==
+Identity: 25 shared functions identical, 8 omitted, 0 added
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+Reputation: 8 shared functions identical, 10 omitted, 1 added
+    added   distinctClientsUnfiltered(uint256) — SEC-007 gate-v1 comparison model; cannot be computed on the real ABI (DF-09)
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+Validation: 8 shared functions identical, 7 omitted, 0 added
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+
+PASS: mocks match the pinned ERC-8004 ABI on every shared member
+REG008_EXIT=0
+
+== 3. REG-001 pinned ABI vs the deployed Base Sepolia registries ==
+chain block: 47182089
+Identity 0x8004A818BFB912233c491871b3d84c89A494BD9e impl=0x7274e874ca62410a93bd8bf61c69d8045e399c02 version="2.0.0"  32/32 selectors present
+Reputation 0x8004B663056A597Dffe9eCcC1965A193B7388713 impl=0x16e0fa7f7c56b9a767e34b192b51f921be31da34 version="2.0.0"  18/18 selectors present
+Validation 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 impl=0xdb31f5d9167f8ebc8b30fbbf814c4d297c2d7f99 version="2.0.0"  15/15 selectors present
+PASS: pinned ABI matches the deployed registries
+ABI_EXIT=0
+
+== 4. SPEC-001 vectors in TypeScript ==
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/packages/core
+
+
+ Test Files  2 passed (2)
+      Tests  45 passed (45)
+   Start at  08:31:19
+   Duration  5.75s (import 94%, transform 3%, worker 2%, tests 1%)
+
+TS_EXIT=0
+
+== 5. secret-scan hook self-test ==
+must block:
+  ok    block  .env
+  ok    block  secrets/id.pem
+  ok    block  deploy.sh
+  ok    block  notes.md
+  ok    block  run.sh
+  ok    block  evidence/RUN/log.txt
+  ok    block  src/a.ts
+must allow:
+  ok    allow  .env.example
+  ok    allow  impl/vectors/canonical-v1.json
+  ok    allow  impl/contracts/abi/x.abi.json
+  ok    allow  impl/scripts/s.sh
+  ok    allow  src/b.sol
+  ok    allow  docs/notes.md
+  ok    allow  evidence/DEPLOY-001/run.log
+  ok    allow  deployments/84532.json
+must block even in an exempt path:
+  ok    block  evidence/DEPLOY-001/run.log
+  ok    block  evidence/DEPLOY-001/run.log
+  ok    block  impl/vectors/canonical-v1.json
+
+18 passed, 0 failed
+HOOK_EXIT=0
+
+Ran 1 test for test/Invariant.t.sol:InvariantTest
+[PASS]
+InvariantTest invariants:
+[PASS] invariant_A_EscrowHoldsExactlyTheFundedJobs
+[PASS] invariant_B_NoJobSettlesTwice
+[PASS] invariant_C_ConfigurationNeverTouchesTheBalance
+[PASS] invariant_E_ReleasedMoneyReachedThePayee
+[PASS] invariant_F_EachBuyersBalanceIsFullyExplained
+[PASS] invariant_G_NoThirdPartyHoldsEscrowedFunds
+ InvariantTest invariants (runs: 256, calls: 128000, reverts: 0)
+
+╭---------------+---------------------+-------+---------+----------╮
+| Contract      | Selector            | Calls | Reverts | Discards |
++==================================================================+
+| EscrowHandler | attest              | 14279 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | bind                | 14293 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | confirm             | 14296 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | fund                | 14176 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | reconfigure         | 14131 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | refund              | 14213 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | release             | 14238 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | warp                | 14158 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | warpPastRefundPoint | 14216 | 0       | 0        |
+╰---------------+---------------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 211.82s (211.82s CPU time)
+
+Ran 12 test suites in 211.85s (212.62s CPU time): 155 tests passed, 0 failed, 0 skipped (155 total tests)
+FORGE=0
+
+== 2. REG-008 mock conformance vs the pinned ERC-8004 ABI ==
+Identity: 25 shared functions identical, 8 omitted, 0 added
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+Reputation: 8 shared functions identical, 10 omitted, 1 added
+    added   distinctClientsUnfiltered(uint256) — SEC-007 gate-v1 comparison model; cannot be computed on the real ABI (DF-09)
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+Validation: 8 shared functions identical, 7 omitted, 0 added
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+
+PASS: mocks match the pinned ERC-8004 ABI on every shared member
+REG008=0
+
+== 3. REG-001 pinned ABI vs the deployed Base Sepolia registries ==
+chain block: 47182101
+Identity 0x8004A818BFB912233c491871b3d84c89A494BD9e impl=0x7274e874ca62410a93bd8bf61c69d8045e399c02 version="2.0.0"  32/32 selectors present
+
+== 6. invariants, 256 runs x depth 500 ==
+Reputation 0x8004B663056A597Dffe9eCcC1965A193B7388713 impl=0x16e0fa7f7c56b9a767e34b192b51f921be31da34 version="2.0.0"  18/18 selectors present
+No files changed, compilation skipped
+Validation 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 impl=0xdb31f5d9167f8ebc8b30fbbf814c4d297c2d7f99 version="2.0.0"  15/15 selectors present
+PASS: pinned ABI matches the deployed registries
+ABI=0
+
+== 4. SPEC-001 vectors in TypeScript ==
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/packages/core
+
+
+ Test Files  2 passed (2)
+      Tests  45 passed (45)
+   Start at  08:31:47
+   Duration  6.23s (import 94%, transform 4%, worker 1%, tests 1%)
+
+
+== 5. local deployment + smoke check ==
+No files changed, compilation skipped
+Warning: Detected artifacts built from source files that no longer exist. Run `forge clean` to make sure builds are in sync with project files.
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper64.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper57.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper73.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper75.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper74.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper66.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper58.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper68.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper70.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper46.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper67.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper71.sol
+Script ran successfully.
+
+== Return ==
+escrow: contract AgentTrustEscrow 0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf
+cfg: struct Deploy.Config Config({ identityRegistry: 0x70e0bA845a1A0F2DA3359C97E0285013525FFC49, reputationRegistry: 0x4826533B4897376654Bb4d4AD88B7faFD0C98528, validationRegistry: 0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf, token: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF, minTtl: 600, maxTtl: 86400 [8.64e4], grace: 900, maxTrustedClients: 10, reputationReadGas: 250000 [2.5e5], minDistinctFloor: 1, minCountFloor: 1, minAvgValueFloor: 0, deployedMocks: true })
+
+== Logs ==
+  escrow      0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf
+  registries  0x70e0bA845a1A0F2DA3359C97E0285013525FFC49 (mocks: true)
+  written     deployments/31337.json
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 31337
+
+Estimated max fee per gas: 1.542464115 gwei
+Estimated base fee per gas: 0.771232057 gwei
+Estimated max priority fee per gas: 0.000000001 gwei
+
+Estimated total gas used for script: 11788223
+
+Estimated amount required: 0.018182910957117645 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /mnt/d/8th Sem/Blockchain_Project/impl/contracts/broadcast/Deploy.s.sol/31337/run-latest.json
+
+Sensitive values saved to: /mnt/d/8th Sem/Blockchain_Project/impl/contracts/cache/Deploy.s.sol/31337/run-latest.json
+
+
+deployments/31337.json:
+{
+  "block": 8,
+  "chainId": 31337,
+  "commit": "85f36f7bffccc064680243b4cd363d2ed140508c",
+  "escrow": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf",
+  "graceSeconds": 900,
+  "identityRegistry": "0x70e0bA845a1A0F2DA3359C97E0285013525FFC49",
+  "maxTrustedClients": 10,
+  "maxTtlSeconds": 86400,
+  "minAvgValueFloor": 0,
+  "minCountFloor": 1,
+  "minDistinctFloor": 1,
+  "minTtlSeconds": 600,
+  "mockRegistries": true,
+  "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "reputationReadGas": 250000,
+  "reputationRegistry": "0x4826533B4897376654Bb4d4AD88B7faFD0C98528",
+  "token": "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
+  "validationRegistry": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
+  "deployTx": "0xf223f038416317104ecba65375a8cde72e80db7c6cf3e0ba36c4069a3b37f1c0",
+  "deployer": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "deployedAt": "2026-09-23T03:02:00Z"
+}
+
+smoke check:
+  owner             0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+  minTtl/maxTtl     600 / 86400 [8.64e4]
+  grace             900
+  passThreshold     100
+  token allowed     true
+  identityRegistry  0x70e0bA845a1A0F2DA3359C97E0285013525FFC49
+  gate floors       distinct>=1 count>=1 avg>=0
+90 entries  AgentTrustEscrow
+42 entries  MockUSDC
+63 entries  IdentityRegistry (pinned upstream, REG-001)
+35 entries  ReputationRegistry (pinned upstream, REG-001)
+31 entries  ValidationRegistry (pinned upstream, REG-001)
+exported to impl/packages/core/abi/
+DEPLOY=0
+
+Ran 1 test for test/Invariant.t.sol:InvariantTest
+[PASS]
+InvariantTest invariants:
+[PASS] invariant_A_EscrowHoldsExactlyTheFundedJobs
+[PASS] invariant_B_NoJobSettlesTwice
+[PASS] invariant_C_ConfigurationNeverTouchesTheBalance
+[PASS] invariant_E_ReleasedMoneyReachedThePayee
+[PASS] invariant_F_EachBuyersBalanceIsFullyExplained
+[PASS] invariant_G_NoThirdPartyHoldsEscrowedFunds
+ InvariantTest invariants (runs: 256, calls: 128000, reverts: 0)
+
+╭---------------+---------------------+-------+---------+----------╮
+| Contract      | Selector            | Calls | Reverts | Discards |
++==================================================================+
+| EscrowHandler | attest              | 14138 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | bind                | 14029 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | confirm             | 14355 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | fund                | 14230 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | reconfigure         | 14201 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | refund              | 14299 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | release             | 14163 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | warp                | 14135 | 0       | 0        |
+|---------------+---------------------+-------+---------+----------|
+| EscrowHandler | warpPastRefundPoint | 14450 | 0       | 0        |
+╰---------------+---------------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 211.81s (211.81s CPU time)
+
+Ran 1 test suite in 211.82s (211.81s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+INVARIANT_EXIT=0

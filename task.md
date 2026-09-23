@@ -34,9 +34,15 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 07:30):** implementation under way on the G1 critical path. **21 of 134 tasks DONE** — planning (PLAN-001…006, 008), foundation (ENV-001…005, ENV-013), specs (SPEC-001), contracts (CONTRACT-001/002) and the registry layer (REG-001…004, REG-008). Local suite: **37 Solidity tests, 45 TypeScript tests, all green**; conformance against the live Base Sepolia registries passes (65/65 selectors, block 47,179,723).
+**Status (2026-09-23, 08:30):** **gate G1 reached a day early.** **29 of 134 tasks DONE** — planning (PLAN-001…006, 008), foundation (ENV-001…005, ENV-013), specs (SPEC-001), the ERC-8004 registry layer (REG-001…004, REG-008) and the **complete escrow** (CONTRACT-001/002/004/005/007/008/010/011/013/017).
 
-**Nothing is deployed and nothing has been measured.** No transaction has been sent, no wallet funded, no attack run; every number above is a local test count, not a result. Next on the critical path is CONTRACT-004 (the escrow `fund()`), for gate **G1 on Thu 24 Sep 18:00**.
+Local suite: **154 Solidity tests + 45 TypeScript tests**, all green; 6 invariants at 256 runs × depth 500; **97.55% line coverage** on `AgentTrustEscrow.sol`; the pinned ABI matches the deployed Base Sepolia registries (65/65 selectors).
+
+**Nothing is deployed to a public chain and nothing has been measured.** No transaction has been sent to Base Sepolia, no wallet funded, no attack run. Every number above is a local test or a read-only chain query. The escrow deploys and smoke-checks on a local Anvil (`impl/scripts/deploy.sh local`).
+
+The §6 security review of the payment path found a **HIGH** — `refund()` was fail-open on a validation read that ran out of gas, and a job holding a genuine passing attestation could be refunded to the buyer. It was reproduced, fixed and pinned by tests, along with eight further findings (§14).
+
+Next on the critical path is the seller service: **API-001…005** and **AGENT-001**, toward gate **G2 on Fri 25 Sep 23:59**.
 
 Still blocking: **PLAN-007** sign-off on D1–D6 (defaults apply meanwhile), and **ENV-006/007** wallets and faucet ETH — the seller and validator need ETH as well as the deployer, or DEPLOY-001…003 cannot run.
 
@@ -1668,12 +1674,24 @@ Eight further findings were fixed in the same change, three of them worth naming
 
 ## 16. Next task
 
-**CONTRACT-004 — the escrow state machine and `fund()`.** Everything it depends on is DONE: SPEC-001 (canonical hash + vectors), CONTRACT-001/002 (Foundry config, MockUSDC and the adversarial tokens) and REG-001…004/008 (the registry interfaces and same-ABI mocks it reads through).
+**Gate G1 is met, a day early — this is a default stopping point (CLAUDE.md §13).**
 
-Then, in order, for gate **G1 on Thu 24 Sep 18:00**: **CONTRACT-005** (trust-anchored gate) → **CONTRACT-007** (`bindValidation`, snapshot, `release()`) → **CONTRACT-008** (`refund()` after deadline + grace) → **CONTRACT-010** (bounded floors, TTL bounds, `Ownable2Step`) → **CONTRACT-011** (unit and boundary tests, including the corrected §9.4 set) → **CONTRACT-013** (funds-conservation invariant) → **CONTRACT-017** (deploy script and ABI export).
+| G1 criterion | Status |
+|---|---|
+| `forge test` green: fund, gate, bind/snapshot/release, refund, deadline/grace/TTL boundaries, on same-ABI mocks | ✔ 154 tests, plus 6 invariants at 256 × 500 |
+| REG-008 mock conformance passes | ✔ 41 shared functions identical, only declared differences |
+| SPEC-001 vectors pass in Solidity **and** TypeScript | ✔ 4 Solidity + 45 TypeScript |
+| (beyond the gate) escrow deploys and smoke-checks locally | ✔ `impl/scripts/deploy.sh local` |
 
-Two facts from REG-001/004 that CONTRACT-004 has to respect: **agentId 0 is a real agent** (V-141), so it cannot double as an "unset" sentinel; and the escrow must not call `ValidationRegistry.getSummary`, which is an unbounded loop (V-99a).
+**Next, toward G2 (Fri 25 Sep 23:59): the seller service.**
 
-Still open, and not blocking this task:
-1. **Sign-off on D1–D6** (§2). Defaults from `design-findings.md` are being applied meanwhile, and D3/D4/D5 are the ones CONTRACT-004/005/007/008 bake in — a later change to those is rework, not a tweak.
-2. **ENV-006/007** — wallets and faucet ETH. DEPLOY-001…003 needs funds by Thursday evening, and the **seller and validator need ETH too**, not just the deployer.
+**API-001** (Express + deterministic fixtures + price table) → **API-002** (402 in x402 v2 shape with the `agenttrust-escrow` scheme) → **API-003** (raw-body hashing and the funded-job checks) → **API-004** (payer-signature auth) → **API-005** (the claim store — one execution per funded job) → **API-008** (the labelled A2/A3 vulnerable fixture). In parallel: **AGENT-001** (the TypeScript core the buyer and seller share) and **SPEC-002**, which API-002/003/004 all depend on.
+
+Two things carry forward from the contract work:
+
+- **SPEC-002 must specify the seller's `bindValidation` retry budget.** The security review established that the salt does not bound `requestHash` squatting — it is public from the moment the seller broadcasts `validationRequest`, so a mempool-watching adversary can squat every retry (DF-06, corrected). The seller needs a budget and a `minDeadlineMargin` that accounts for it.
+- **The validator must call `release()` immediately after attesting**, and VAL-004 should treat that as load-bearing rather than an optimisation: the seller cannot snapshot its own pass, so until someone calls `confirmValidation` or `release`, a validator that flips its verdict erases it (DF-05, sharpened).
+
+Still open, and not blocking:
+1. **Sign-off on D1–D6** (§2). Defaults are being applied; D3/D4/D5 are now baked into a tested contract, so changing them is rework rather than a tweak.
+2. **ENV-006/007** — wallets and faucet ETH. DEPLOY-001…003 needs funds by Thursday evening, and the **seller and validator need ETH too**, not just the deployer. This is the only thing that can still make the testnet deployment slip.
