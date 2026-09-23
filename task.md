@@ -185,8 +185,8 @@ wrong on the wire.
 - **402** carries `PAYMENT-REQUIRED` = base64 **PaymentRequired**: `{x402Version: 2, error, resource, accepts: [PaymentRequirements], extensions}`. The PaymentRequirements inside it is `scheme: "agenttrust-escrow"`, `network: "eip155:84532"`, `asset`, `amount` (atomic, decimal string), `payTo` (registry-resolved), `maxTimeoutSeconds`, `extra: {paymentFlow: "escrow", escrow, sellerAgentId, acceptedValidators[], minDeadlineMargin, canonicalVersion, quoteId, expiry}`.
 - **Retry** carries `PAYMENT-SIGNATURE` = base64 **PaymentPayload**: `{x402Version: 2, resource, accepted, payload, extensions}`, where `payload = {jobId, fundTxHash, deliveryRequest: {expiry, clientNonce}, signature}`. Only those two message fields travel: `resourceHash` and `sellerOrigin` are **re-derived by the seller** and fed into recovery, so a buyer that lies about either recovers to the wrong address.
 - **Success** returns the resource plus `PAYMENT-RESPONSE` = base64 **SettlementResponse**: `{success, network, transaction, extra: {scheme, jobId, disposition: "executed"|"replayed", responseHash, evidenceId, confirmations}}`, with `Cache-Control: no-store` on **every** paid-route response, 402 included.
-- **Errors:** 402 missing/invalid payment · 403 `signature_invalid` / `signature_expired` / `wrong_origin` · 409 `resource_mismatch` / `validator_not_accepted` / `signature_replayed` / `claim_in_progress` / `already_delivered` · 410 `deadline_margin` · 425 `insufficient_confirmations` · 500 `execution_failed` · 503 `chain_unavailable` (fail closed).
-- **Check order** (normative, claim taken last): decode → scheme/network → re-derive hash → recover signer → nonce → read `jobs(jobId)` → validator accepted → deadline margin → confirmations → **claim** → execute.
+- **Errors:** 402 missing/invalid payment · 403 `signature_invalid` / `signature_expired` · 409 `resource_mismatch` / `validator_not_accepted` / `signature_replayed` / `claim_in_progress` / `already_delivered` · 410 `deadline_margin` · 425 `insufficient_confirmations` · 500 `execution_failed` · 503 `chain_unavailable` (fail closed).
+- **Check order** (normative, claim taken last): decode → scheme/network → re-derive hash → origin and expiry → **recover** signer → nonce → read `jobs(jobId)` → `signer == job.payer` → `expiry ≤ deadline` → validator accepted → deadline margin → confirmations → **claim** → execute. Everything decidable locally is decided before the chain is touched; the two comparisons that need a job field are split out after the read, which is a correction made while implementing API-003/004 (the first draft put `signer == job.payer` before the job existed).
 
 ### 6.6 Claim store (API-005)
 
@@ -806,25 +806,27 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-003 — Raw-body canonical hash and funded-job verification
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.75 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.75 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Serve only when the chain says this exact request is funded, to this seller, at this price, with an acceptable validator and enough time left.
 - **Refs:** §5.1(5), §11.2 · FR-05, SR-11, FR-03 · DF-04, DF-22, DF-23
 - **Skill:** `test-driven-development`, `spec-to-code-compliance`
 - **Depends:** SPEC-001, SPEC-002, AGENT-001, CONTRACT-004
 - **Steps:** 1) Re-derive `resourceHash` from the raw bytes, the **configured origin** and the price table. 2) Read `jobs(jobId)`; check state Funded, `resourceHash` match, `payee == my wallet`, `payeeAgentId == mine`, token and amount, validator ∈ accepted set, `deadline − now ≥ minDeadlineMargin`. 3) Confirmations: require `CONFIRMATIONS` blocks (poll; no WebSocket), fail closed with 425 or 503. 4) Map every failure to the SPEC-002 error code.
-- **Acceptance:** (a) a job funded for `/v1/classify` presented at `/v1/summarise` → 409 `resource_mismatch`; (b) a body mutated by one byte → 409; (c) a job with too little time left → 410; (d) RPC down → 503, never a grant; (e) reordered query parameters still match (SPEC-001 canonicalisation).
-- **Verify:** `pnpm -C impl/agents/seller test -- verify` (against a local Anvil) → `evidence/API-003/`
-- **Risks:** hash mismatches between buyer and seller → vectors are authoritative; debug with `previewResourceHash`.
+- **Acceptance:** all five ✔, each against a real job funded on a local Anvil — (a) a job funded for `/v1/classify` presented at `/v1/summarise` → 409 `resource_mismatch`, which is the whole point of the equal-price sibling pair since nothing but the hash can tell them apart; (b) a one-byte body mutation → 409, and so does a body differing only in **whitespace**; (c) too little time left → 410; (d) RPC down → 503 with no grant; (e) reordered query parameters still match.
+- **Verify:** `npx vitest run test/verify.test.ts` → **13 tests** → `evidence/API-003/vitest.log`.
+- **Outcome:** `deriveRequestHash` uses only what the seller can see for itself — the raw bytes, its **own** configured origin and its **own** price table. Nothing the buyer sent is an input. Extra coverage beyond the criteria: a non-existent job, a job for another agent, a validator outside the accepted set, and a check-order test proving an **offline** seller still refuses a malformed header with 403 rather than 503, which is what makes "decide locally first" observable rather than just asserted.
 
 ### API-004 — Payer-signature authentication of retries
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Stop anyone who merely read `jobId` from the chain from consuming the grant.
 - **Refs:** §11.2 · FR-20, SR-05 · DF-02
 - **Depends:** SPEC-001, SPEC-002, API-003
 - **Steps:** 1) Parse `PAYMENT-SIGNATURE`; recover the EIP-712 `DeliveryRequest` signer. 2) Require `signer == job.payer`, `sellerOrigin == my configured origin`, `expiry` in the future and ≤ deadline, `clientNonce` unused. 3) Record the nonce; reject reuse with a distinct code.
-- **Acceptance:** (a) a request with no signature → 403; (b) a signature from a non-payer → 403; (c) a replayed `clientNonce` → 409; (d) an expired signature → 403; (e) a signature for another seller's origin → 403.
-- **Verify:** `pnpm -C impl/agents/seller test -- auth` → `evidence/API-004/`
+- **Acceptance:** (b)–(e) ✔. **(a) was wrong and is corrected:** a request with no signature gets **402 with a quote**, not 403. That is the case 402 exists for — a buyer that has never paid should be told how to pay, not that it is forbidden. The criterion was written before SPEC-002 existed.
+  **(e) resolves differently than written, for a good reason:** a signature for another seller's origin is refused as `signature_invalid`, not a distinct `wrong_origin`. `sellerOrigin` never travels (SPEC-002 §4), so the seller rebuilds the message with its own origin and a foreign signature simply recovers to the wrong address. A distinct code would confirm to a prober which seller a captured signature was meant for. `wrong_origin` has been **removed from the spec and the error table** as unreachable.
+- **Verify:** `npx vitest run test/auth.test.ts` → **8 tests** → `evidence/API-004/vitest.log`.
+- **Outcome:** the strongest test is the one that matters for DF-02: `jobId` is public in the `JobFunded` event, so the suite has a thief who knows everything on-chain and signs correctly *as itself* — refused — and then replays the payer's **own captured header verbatim**, which succeeds once for the genuine payer and is worthless afterwards because the nonce is spent. Also pinned: a signature outliving the job deadline is refused, so a captured header cannot be used after the buyer has refunded.
 - **Risks:** in-transit capture is still possible → TLS assumption, documented (DF-02).
 
 ### API-005 — Atomic delivery claim store
@@ -1623,6 +1625,27 @@ Eight further findings were fixed in the same change, three of them worth naming
 **Two process notes, neither flattering.** Invariant D was written as an `invariant_` function asserting "at least one job has been funded" — but Foundry checks those after **every** call including the first, so it failed immediately and every time, and I went looking for a contract bug that was not there before moving it to `afterInvariant`. And the first round of mutation results was **contaminated by Foundry's invariant failure cache**, which replays the last failing sequence: runs finishing in 62ms rather than 1s gave it away, and the whole round had to be redone with `cache/invariant` cleared between mutations. Separately, the reviewer observed a mutation live in the working tree while reading the file — mutation testing writes to source, so it must not run while a review is in flight (CLAUDE.md §6, one writer per area).
 
 **`vm.prank` consumption bit three times**, each time producing a confusing failure: an external call placed inside a pranked statement — `escrow.previewRequestHash(...)` in an `expectRevert` argument, `escrow.FEEDBACK_TAG()` as a call argument, `escrow.MAX_GRACE()` in an error selector — consumes the prank, so the call under test runs as the test contract. The fixture now holds `FEEDBACK_TAG` as a constant and the affected tests hoist the read above the prank.
+
+### Implementation evidence — specs and the seller (2026-09-23)
+
+| Task | Result | Evidence |
+|---|---|---|
+| SPEC-002 | `docs/specs/http-protocol.md` — the wire format, one-grant rule, check order, 12 error codes, confirmations and fail-closed behaviour | — |
+| AGENT-001 | `amounts`, `abi`, `chain`, `x402` in `@agenttrust/core`; **87 tests**, the chain ones against a live node | `evidence/AGENT-001/` |
+| API-001 | Seller skeleton: raw-body capture before any parser, two equal-priced deterministic routes, strict routing | `evidence/API-001/` |
+| API-002 | 402 quote in v2 shape, `payTo` resolved from the registry on every quote | `evidence/API-002/` |
+| API-003 | Funded-job verification against a live Anvil, 13 tests | `evidence/API-003/` |
+| API-004 | Payer-signature authentication, 8 tests | `evidence/API-004/` |
+
+**Three corrections to the wire format and the protocol, all found by implementing them.**
+
+- **V-142 — two of the three x402 v2 envelopes were wrong in task.md §6.5.** `PAYMENT-REQUIRED` carries a `PaymentRequired` *around* the PaymentRequirements, and `PAYMENT-SIGNATURE` carries a `PaymentPayload` whose `payload` field is what §6.5 described as the whole thing. An implementation written from that table would have been wrong on the wire. Re-checked against the specification with Context7, exactly as API-002's risk note required.
+- **SPEC-002's own check order was impossible.** The first draft put `signer == job.payer` at step 4, before the job was read at step 6. Recovery is local, but the *comparison* needs a job field, so it is now split out as steps 8 and 9 — everything decidable locally still happens before the chain is touched, and a test proves it by showing an **offline** seller still refuses a malformed header with 403 rather than 503.
+- **`wrong_origin` was an unreachable error code, and is removed.** `sellerOrigin` never travels: the seller rebuilds the signed message with its *own* origin, so a foreign signature recovers to the wrong address and is `signature_invalid`. A distinct code would confirm to a prober which seller a captured signature was meant for. API-004's acceptance criterion (a) was also wrong — a request with no signature gets **402 with a quote**, not 403.
+
+**V-143 sharpens the novelty claim.** The official `auth-capture` scheme already defines an x402 escrow with `captureDeadline` and `refundDeadline`. So the claim is the **reputation gate plus validator-attested release**, not "escrow for x402" — DF-19 narrows again.
+
+**Two implementation notes.** `npm install` silently installed nothing in the seller package, because `link:` is pnpm syntax; installed with pnpm instead. And the seller's chain-backed suites had to be made **serial** (`fileParallelism: false`): run in parallel they send transactions from the same accounts and collide on nonces, which fails as "transaction creation failed" — a collision between tests, not a defect in the code.
 
 ### Review outcomes (PLAN-006)
 

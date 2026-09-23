@@ -10,7 +10,10 @@ import type { Response } from "express";
 export const ERRORS = {
   signature_invalid: { status: 403, message: "payment signature missing, malformed, or not from the payer" },
   signature_expired: { status: 403, message: "payment signature has expired or outlives the job deadline" },
-  wrong_origin: { status: 403, message: "payment signature is for a different seller origin" },
+  // No `wrong_origin`: `sellerOrigin` never travels, so a signature made over another
+  // seller's origin simply recovers to the wrong address and is `signature_invalid`.
+  // A distinct code would confirm to a prober which seller a captured signature was for
+  // (SPEC-002 §8).
   resource_mismatch: { status: 409, message: "the funded job does not match this request" },
   validator_not_accepted: { status: 409, message: "the job names a validator this seller does not accept" },
   signature_replayed: { status: 409, message: "this client nonce has already been used for this job" },

@@ -1,45 +1,66 @@
 
  RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/seller
 
- ✓ test/fixtures.test.ts > determinism > returns byte-identical output for the same input, every time 4ms
+ ✓ test/verify.test.ts > a genuinely funded request is served > delivers the deterministic result 169ms
+ ✓ test/verify.test.ts > resource binding > refuses a job funded for the sibling route 128ms
+ ✓ test/verify.test.ts > resource binding > refuses a body mutated by one byte 128ms
+ ✓ test/verify.test.ts > resource binding > refuses a body that only differs in whitespace 136ms
+ ✓ test/verify.test.ts > resource binding > accepts reordered query parameters, because canonicalisation sorts them 127ms
+ ✓ test/verify.test.ts > deadline margin > refuses a job with too little time left 124ms
+ ✓ test/verify.test.ts > failing closed > returns 503 when the chain cannot be read, and never a grant 592ms
+ ✓ test/verify.test.ts > failing closed > refuses a job that does not exist 9ms
+ ✓ test/verify.test.ts > failing closed > refuses a job whose validator this seller will not work with 130ms
+ ✓ test/verify.test.ts > failing closed > refuses a job that pays a different agent 132ms
+ ✓ test/verify.test.ts > confirmations > refuses with 425 until the funding has enough confirmations 127ms
+ ✓ test/verify.test.ts > confirmations > serves once the requirement is met 132ms
+ ✓ test/verify.test.ts > check order > decides everything it can locally before touching the chain 2ms
+ ✓ test/auth.test.ts > no signature > quotes rather than forbidding 15ms
+ ✓ test/auth.test.ts > a signature from someone who is not the payer > is refused, even though the jobId is public 153ms
+ ✓ test/auth.test.ts > a signature from someone who is not the payer > is still refused when the thief replays the payer's own signature verbatim 136ms
+ ✓ test/auth.test.ts > expiry > refuses a signature that has already expired 123ms
+ ✓ test/auth.test.ts > expiry > refuses a signature that outlives the job deadline 126ms
+ ✓ test/auth.test.ts > a signature for a different seller > is refused, and is indistinguishable from a forged one 126ms
+ ✓ test/auth.test.ts > a signature over a different resource > is refused, because the seller signs over what it derived itself 125ms
+ ✓ test/auth.test.ts > malformed signatures > refuses garbage without reaching the chain 9ms
+ ✓ test/quote.test.ts > 402 quote > answers an unpaid request with a decodable v2 PaymentRequired 21ms
+ ✓ test/quote.test.ts > 402 quote > offers the project scheme on the configured chain, in atomic units 6ms
+ ✓ test/quote.test.ts > 402 quote > a buyer's selector accepts the offer 5ms
+ ✓ test/quote.test.ts > 402 quote > quotes both paid siblings at the same price 9ms
+ ✓ test/quote.test.ts > 402 quote > uses the configured origin in the resource url, never the Host header 4ms
+ ✓ test/quote.test.ts > 402 quote > sets no-store on the 402 as well as the 200 4ms
+ ✓ test/quote.test.ts > 402 quote > does not serve the resource with the 402 3ms
+ ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > equals previewPayee, which is what the escrow will snapshot 6ms
+ ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > follows the agent when the NFT is transferred, because agentWallet is cleared 239ms
+ ✓ test/quote.test.ts > no settlement is reachable from the request path > presents a payment and is refused, not served, until API-003..005 exist 3ms
+ ✓ test/quote.test.ts > no settlement is reachable from the request path > carries no x402 settlement dependency at all 3ms
+ ✓ test/quote.test.ts > quote identifier > differs between the two paid routes, and over time 0ms
+ ✓ test/fixtures.test.ts > determinism > returns byte-identical output for the same input, every time 15ms
  ✓ test/fixtures.test.ts > determinism > serialises with sorted keys, so object construction order cannot leak in 0ms
  ✓ test/fixtures.test.ts > determinism > uses no clock, randomness or network 0ms
  ✓ test/fixtures.test.ts > determinism > scores with integers, so no platform rounding can reorder sentences 0ms
  ✓ test/fixtures.test.ts > splitSentences > keeps terminators and trims 1ms
  ✓ test/fixtures.test.ts > splitSentences > does not split a decimal or an abbreviation mid-token 0ms
- ✓ test/fixtures.test.ts > splitSentences > keeps a tail with no terminator 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps a tail with no terminator 1ms
  ✓ test/fixtures.test.ts > splitSentences > returns nothing for empty or whitespace input 0ms
- ✓ test/fixtures.test.ts > tokenise > lowercases and drops punctuation 1ms
- ✓ test/fixtures.test.ts > classify > picks the label with the most keyword hits 0ms
+ ✓ test/fixtures.test.ts > tokenise > lowercases and drops punctuation 0ms
+ ✓ test/fixtures.test.ts > classify > picks the label with the most keyword hits 1ms
  ✓ test/fixtures.test.ts > classify > breaks ties by label order, never by object key order 0ms
  ✓ test/fixtures.test.ts > classify > rejects a bad request rather than guessing 1ms
  ✓ test/fixtures.test.ts > pricing > prices both paid siblings identically 0ms
  ✓ test/fixtures.test.ts > pricing > keeps the price a bigint in atomic units 0ms
- ✓ test/fixtures.test.ts > HTTP surface > serves health and the agent card without payment 23ms
- ✓ test/fixtures.test.ts > HTTP surface > states the interoperability position on the help route 4ms
- ✓ test/fixtures.test.ts > HTTP surface > sets no-store on every paid response 4ms
- ✓ test/fixtures.test.ts > HTTP surface > makes the raw bytes available unparsed 3ms
- ✓ test/fixtures.test.ts > HTTP surface > returns byte-identical responses to repeated identical requests 5ms
- ✓ test/fixtures.test.ts > HTTP surface > rejects a malformed body with 400, not 500 2ms
- ✓ test/fixtures.test.ts > HTTP surface > rejects an oversized body before buffering it 4ms
- ✓ test/fixtures.test.ts > HTTP surface > tells a GET on a paid route it needs POST 3ms
- ✓ test/fixtures.test.ts > HTTP surface > treats route case and trailing slashes as distinct 5ms
+ ✓ test/fixtures.test.ts > HTTP surface > serves health and the agent card without payment 17ms
+ ✓ test/fixtures.test.ts > HTTP surface > states the interoperability position on the help route 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > sets no-store on every paid response 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > makes the raw bytes available unparsed 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > returns byte-identical responses to repeated identical requests 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects a malformed body with 400, not 500 4ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects an oversized body before buffering it 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > tells a GET on a paid route it needs POST 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > treats route case and trailing slashes as distinct 3ms
  ✓ test/fixtures.test.ts > the gate cannot be forgotten > refuses to build a gated app without a gate 0ms
- ✓ test/quote.test.ts > 402 quote > answers an unpaid request with a decodable v2 PaymentRequired 23ms
- ✓ test/quote.test.ts > 402 quote > offers the project scheme on the configured chain, in atomic units 7ms
- ✓ test/quote.test.ts > 402 quote > a buyer's selector accepts the offer 5ms
- ✓ test/quote.test.ts > 402 quote > quotes both paid siblings at the same price 9ms
- ✓ test/quote.test.ts > 402 quote > uses the configured origin in the resource url, never the Host header 4ms
- ✓ test/quote.test.ts > 402 quote > sets no-store on the 402 as well as the 200 4ms
- ✓ test/quote.test.ts > 402 quote > does not serve the resource with the 402 4ms
- ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > equals previewPayee, which is what the escrow will snapshot 6ms
- ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > follows the agent when the NFT is transferred, because agentWallet is cleared 234ms
- ✓ test/quote.test.ts > no settlement is reachable from the request path > presents a payment and is refused, not served, until API-003..005 exist 3ms
- ✓ test/quote.test.ts > no settlement is reachable from the request path > carries no x402 settlement dependency at all 3ms
- ✓ test/quote.test.ts > quote identifier > differs between the two paid routes, and over time 0ms
 
- Test Files  2 passed (2)
-      Tests  36 passed (36)
-   Start at  09:03:13
-   Duration  13.32s (import 95%, transform 2%, tests 2%)
+ Test Files  4 passed (4)
+      Tests  57 passed (57)
+   Start at  09:12:51
+   Duration  55.53s (import 92%, tests 7%, transform 1%)
 

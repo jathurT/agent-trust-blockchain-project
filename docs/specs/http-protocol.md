@@ -292,23 +292,33 @@ processes. `http_2xx > 1` is expected under `idempotent` and is not a failure.
 Strictly in this order. Each step names the error it raises; §8 defines them. The order
 is normative because it decides what an attacker learns and what state is touched.
 
-| # | Check | Failure |
-|---|---|---|
-| 1 | `PAYMENT-SIGNATURE` present and decodable | `402` (re-quote) |
-| 2 | `accepted.scheme == "agenttrust-escrow"` and `accepted.network` matches the configured chain | `402` |
-| 3 | Re-derive `resourceHash` from the **raw body**, the **configured origin** and the **price table** | — |
-| 4 | Recover the `DeliveryRequest` signer; require `signer == job.payer`, `sellerOrigin == my origin`, `0 < expiry ≤ job.deadline`, `expiry > now` | `403` |
-| 5 | `clientNonce` unused for this job | `409 signature_replayed` |
-| 6 | Read `jobs(jobId)`: state `Funded`; `resourceHash` equal; `payee == my wallet`; `payeeAgentId == mine`; `token` and `amount` equal | `409 resource_mismatch` |
-| 7 | `validator ∈ ACCEPTED_VALIDATORS` | `409 validator_not_accepted` |
-| 8 | `job.deadline − now ≥ minDeadlineMargin` | `410 deadline_margin` |
-| 9 | Funding transaction has ≥ `CONFIRMATIONS` blocks | `425 insufficient_confirmations` |
-| 10 | **Take the claim** | `409 claim_in_progress` / `409 already_delivered` |
-| 11 | Execute, persist, send | `500` (claim → `FAILED`) |
+| # | Check | Local or chain | Failure |
+|---|---|---|---|
+| 1 | `PAYMENT-SIGNATURE` present and decodable | local | `402` (re-quote) |
+| 2 | `accepted.scheme == "agenttrust-escrow"` and `accepted.network` matches the configured chain | local | `402` |
+| 3 | Re-derive `resourceHash` from the **raw body**, the **configured origin** and the **price table** | local | — |
+| 4 | `expiry > now` | local | `403 signature_expired` |
+| 5 | Recover the `DeliveryRequest` signer from `(jobId, resourceHash, sellerOrigin, expiry, clientNonce)` | local | `403 signature_invalid` |
+| 6 | `clientNonce` unused for this job | local | `409 signature_replayed` |
+| 7 | Read `jobs(jobId)`: state `Funded`; `resourceHash` equal; `payee == my wallet`; `payeeAgentId == mine`; `token` and `amount` equal | chain | `409 resource_mismatch` |
+| 8 | `signer == job.payer` | — | `403 signature_invalid` |
+| 9 | `expiry ≤ job.deadline` | — | `403 signature_expired` |
+| 10 | `validator ∈ ACCEPTED_VALIDATORS` | — | `409 validator_not_accepted` |
+| 11 | `job.deadline − now ≥ minDeadlineMargin` | — | `410 deadline_margin` |
+| 12 | Funding transaction has ≥ `CONFIRMATIONS` blocks | chain | `425 insufficient_confirmations` |
+| 13 | **Take the claim** | local | `409 claim_in_progress` / `409 already_delivered` |
+| 14 | Execute, persist, send | local | `500` (claim → `FAILED`) |
 
-Step 4 runs before step 6 deliberately: signature recovery is local and cheap, the chain
-read is neither, and an unauthenticated caller should not be able to make the seller spend
-RPC budget by guessing job identifiers.
+**Everything that can be decided locally is decided before the chain is touched.** An
+unauthenticated caller should not be able to make the seller spend RPC budget by
+guessing job identifiers, and steps 1–6 need no network at all.
+
+The two checks that *sound* local but are not — `signer == job.payer` and
+`expiry ≤ job.deadline` — are split out as steps 8 and 9, because both need a field of
+the job. Recovery itself (step 5) is local: it produces an address from the message and
+the signature, and only the comparison waits. An earlier draft of this table folded the
+comparison into step 5 and put the whole thing before the chain read, which was simply
+impossible to implement in that order; it was corrected while writing API-003/004.
 
 Step 3 uses the **configured origin, never the `Host` header**. A `Host` an attacker
 controls would let it steer the hash (DF-04).
@@ -365,7 +375,6 @@ is misbehaving.
 | 402 | — | no/undecodable `PAYMENT-SIGNATURE`, wrong scheme or network | read `PAYMENT-REQUIRED`, fund, retry |
 | 403 | `signature_invalid` | signature missing, malformed, or not from `job.payer` | stop; this is a bug or a theft attempt |
 | 403 | `signature_expired` | `expiry` passed, or `expiry > job.deadline` | re-sign with a valid expiry and retry |
-| 403 | `wrong_origin` | `sellerOrigin` is not this seller's configured origin | stop; the buyer is talking to the wrong seller |
 | 409 | `resource_mismatch` | the job's `resourceHash`, payee, agent, token or amount does not match this request | stop; **do not** retry — fund the right resource |
 | 409 | `validator_not_accepted` | `job.validator` is outside `ACCEPTED_VALIDATORS` | stop; refund after the deadline |
 | 409 | `signature_replayed` | `clientNonce` already used for this job | retry once with a fresh nonce |
@@ -382,6 +391,18 @@ not authenticated against.
 
 `409 resource_mismatch` is deliberately one code for several causes. Splitting it would
 tell an unauthenticated prober which part of its guess was wrong.
+
+**There is no `wrong_origin` code, and an earlier draft of this table was wrong to list
+one.** `sellerOrigin` never travels (§4): the seller rebuilds the signed message with its
+*own* origin, so a signature made over a different seller's origin recovers to some other
+address and is refused as `signature_invalid`. That is not a gap — a distinct answer would
+confirm to a prober which seller a captured signature was meant for. The same argument
+applies to a signature over a different `resourceHash`. Found while implementing API-004.
+
+**A request with no `PAYMENT-SIGNATURE` at all is answered `402` with a quote, never
+`403`.** That is the case 402 exists for; a buyer that has never paid should be told how
+to pay, not that it is forbidden. API-004's original acceptance criterion said `403` and
+was written before this document existed.
 
 ---
 

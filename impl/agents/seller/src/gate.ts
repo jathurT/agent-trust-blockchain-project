@@ -11,12 +11,20 @@ import { encodeHeader, HEADER_REQUIRED, type ChainClient } from "@agenttrust/cor
 import type { RawRequest } from "./rawBody.js";
 import { buildPaymentRequired, resolvePayee, QuoteError, type QuoteConfig } from "./quote.js";
 import { SellerError, sendError } from "./errors.js";
+import { verifyRequest, type NonceStore, type VerifiedRequest, type VerifyConfig } from "./verify.js";
 
 export interface GateDeps {
   chain: ChainClient;
   config: QuoteConfig;
+  /** Present once API-003/004 are wired; absent leaves the gate quote-only. */
+  verify?: { config: VerifyConfig; nonces: NonceStore };
   /** Injected so tests can pin time; defaults to the wall clock. */
   now?: () => number;
+}
+
+/** Attached to the request once verification passes, for the handler and API-005. */
+export interface GatedRequest extends RawRequest {
+  verified?: VerifiedRequest;
 }
 
 /**
@@ -50,12 +58,25 @@ export function createPaymentGate(deps: GateDeps) {
       return;
     }
 
-    // API-003/004/005 land here. Until they do, a presented payment is refused rather
-    // than honoured: serving on an unverified header would be the whole attack.
-    sendError(
-      res,
-      new SellerError("chain_unavailable", "payment verification is not implemented yet (API-003..005)"),
-    );
-    next; // referenced so the signature stays honest about being middleware
+    if (!deps.verify) {
+      // Quote-only build. A presented payment is refused rather than honoured: serving
+      // on an unverified header would be the whole attack.
+      sendError(res, new SellerError("chain_unavailable", "payment verification is not configured"));
+      return;
+    }
+
+    const verifyDeps = { chain: deps.chain, config: deps.verify.config, nonces: deps.verify.nonces, now: deps.now };
+    verifyRequest(verifyDeps, req)
+      .then(async (verified) => {
+        // The nonce is spent once the request is known to be genuine and payable. The
+        // delivery claim itself is API-005 and comes after this.
+        await deps.verify!.nonces.remember(verified.jobId, verified.clientNonce);
+        (req as GatedRequest).verified = verified;
+        next();
+      })
+      .catch((error: unknown) => {
+        if (error instanceof SellerError) return sendError(res, error);
+        return sendError(res, new SellerError("execution_failed", (error as Error)?.message));
+      });
   };
 }
