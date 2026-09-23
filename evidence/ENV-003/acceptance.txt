@@ -1,0 +1,36 @@
+ENV-003 evidence — 2026-09-23T06:22:29+05:30
+
+$ forge --version
+forge Version: 1.8.3
+Commit SHA: cae51ad458f6abb64852b7709eb784352429825d
+Build Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)
+Build Profile: dist
+
+$ cast --version
+cast Version: 1.8.3
+
+Dependencies (vendored as plain files, not submodules):
+  openzeppelin-contracts v5.7.0  commit cab19933c33c2ad1d4c7a84864a3601dddfd16f3
+  forge-std              v1.16.2 commit bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
+  OZ self-reported version: 5.7.0
+
+$ forge build --use 0.8.37 --evm-version cancun   (probe importing SafeERC20/ReentrancyGuard/Ownable2Step)
+Compiling 1 files with Solc 0.8.37
+Solc 0.8.37 finished in 16.10ms
+Compiler run successful!
+
+$ bash impl/scripts/install-deps.sh   (from an empty lib/)
+  ok: OZ 5.7.0, forge-std v1.16.2
+
+Deviation from the planned step, and why
+---------------------------------------
+Planned: "forge install OpenZeppelin/openzeppelin-contracts@v5.7.0" as a git submodule.
+What happened: forge registered the submodule in the ROOT .gitmodules with the path
+"lib/openzeppelin-contracts" (relative to impl/contracts, not to the repo root), so git
+created .git/modules/lib/... but never checked any files out. The install reported success
+while the directory did not exist.
+Resolution: dependencies are now vendored as plain files via `forge install --no-git`,
+impl/contracts/lib/ is git-ignored, and impl/scripts/install-deps.sh re-creates them from
+the pinned tags (verified by re-running it from an empty lib/). This also removes submodule
+init as a step in the clean-clone check (DOC-006).
+Cost of the alternative: committing the vendored tree would have added 15 MB / 1041 files.

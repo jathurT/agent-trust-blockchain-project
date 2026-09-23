@@ -344,14 +344,14 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### ENV-003 — Install Foundry and OpenZeppelin (pinned)
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Make `forge`, `anvil` and `cast` available at the pinned version, with OZ vendored as a pinned submodule.
 - **Refs:** §14.2 · IR-07 · V-101, V-109
 - **Depends:** ENV-001, ENV-002
-- **Steps:** 1) `curl -L https://foundry.paradigm.xyz | bash` then `foundryup --install v1.8.3`. 2) `forge init impl/contracts --no-git` (project lives under `impl/`, not the repo root). 3) `forge install OpenZeppelin/openzeppelin-contracts@v5.7.0`. 4) Record `forge --version` and the submodule commit.
-- **Acceptance:** `forge --version` shows v1.8.3; the OZ submodule is at the v5.7.0 tag; `forge build` succeeds on the empty project.
-- **Verify:** `forge --version && git -C impl/contracts/lib/openzeppelin-contracts describe --tags` → `evidence/ENV-003/`
-- **Risks:** the installer changes location (the Book now shows `getfoundry.sh/install`) → try both, record which worked.
+- **Steps:** 1) `curl -L https://foundry.paradigm.xyz | bash` then `foundryup --install v1.8.3`. 2) `forge init impl/contracts --no-git` (project lives under `impl/`, not the repo root); delete the `Counter.*` template files. 3) Install dependencies **vendored, not as submodules** — `bash impl/scripts/install-deps.sh` (pinned OZ v5.7.0, forge-std v1.16.2). 4) Record `forge --version` and the dependency commits. *Refinement during execution:* the submodule route registered a path relative to `impl/contracts` in the root `.gitmodules` and checked nothing out, so `lib/` is git-ignored and re-created by the script.
+- **Acceptance:** `forge --version` shows v1.8.3; OZ reports 5.7.0 in its own `package.json`; a probe importing `SafeERC20`, `ReentrancyGuard` and `Ownable2Step` compiles under solc 0.8.37 + `evm_version=cancun`; the install script re-creates `lib/` from empty.
+- **Verify:** `forge --version`; `grep version impl/contracts/lib/openzeppelin-contracts/package.json`; `forge build --use 0.8.37 --evm-version cancun` → `evidence/ENV-003/acceptance.txt`
+- **Risks:** the installer may move (the Book now shows `getfoundry.sh/install`); `foundry.paradigm.xyz` worked on 2026-09-23. Vendored deps are git-ignored, so a clean clone needs the install script — DOC-006 checks exactly that.
 
 ### ENV-004 — Local Anvil environment (mode A) and deterministic accounts
 

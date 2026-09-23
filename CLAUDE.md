@@ -115,6 +115,7 @@ deployments/     evidence/<TASK-ID>/     .github/workflows/
 - Pin exact versions in `docs/specs/versions.md` (ENV-001) and in lockfiles. **No floating tags, no `@latest`.**
 - Current pins: Foundry **v1.8.3**, OpenZeppelin **v5.7.0**, solc **0.8.37**, `evm_version = cancun`, `@x402/*` **2.26.0** (baseline only), viem 2.56.8, express 5.2.1 (V-100…V-103, V-63, V-108).
 - The ERC-8004 ABI is pinned to `erc-8004/erc-8004-contracts@b9e466c`, with the ABI JSON committed (REG-001). The live registries are upgradeable by a single key (V-97), so mocks implementing the **same ABI** are the default test substrate and REG-008 checks conformance.
+- Solidity dependencies are **vendored as plain files, not git submodules**: `impl/contracts/lib/` is git-ignored and re-created by `bash impl/scripts/install-deps.sh` from the pinned tags (ENV-003).
 - Record any version change in `docs/specs/versions.md` and re-run the affected acceptance checks.
 
 ## 10. Engineering standards

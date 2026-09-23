@@ -35,3 +35,6 @@ __pycache__/
 *.sqlite-shm
 impl/attacks/results/**/raw/
 .DS_Store
+
+# vendored Solidity dependencies (re-install with impl/scripts/install-deps.sh)
+impl/contracts/lib/

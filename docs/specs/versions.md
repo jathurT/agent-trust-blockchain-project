@@ -14,7 +14,8 @@
 | Foundry | **v1.8.3** | V-101 | Install: `curl -L https://foundry.paradigm.xyz \| bash` then `foundryup --install v1.8.3`. The Book also serves `https://getfoundry.sh/install` |
 | solc | **0.8.37** | V-102 | Set in `foundry.toml`, not via system solc |
 | `evm_version` | **cancun** | V-103 | Portable to Amoy, and avoids Foundry issue #16960 (`forge script` vs Base rejecting the Osaka `CLZ` opcode; fixed after v1.8.3). Base Sepolia supports Cancun, Prague and Osaka (V-87) |
-| OpenZeppelin Contracts | **v5.7.0** | V-100 | `forge install OpenZeppelin/openzeppelin-contracts@v5.7.0`. `SafeERC20`, `utils/ReentrancyGuard`, `Ownable2Step` all present; pragma ^0.8.20 |
+| OpenZeppelin Contracts | **v5.7.0** (`cab19933c33c2ad1d4c7a84864a3601dddfd16f3`) | V-100 | Vendored as plain files, **not a submodule**: `bash impl/scripts/install-deps.sh`. `impl/contracts/lib/` is git-ignored, so a clean clone runs that script. `SafeERC20`, `utils/ReentrancyGuard`, `Ownable2Step` verified present; pragma ^0.8.20 |
+| forge-std | **v1.16.2** (`bf647bd6046f2f7da30d0c2bf435e5c76a780c1b`) | ENV-003 | Same install script |
 | Solidity pragma | `^0.8.24` in sources | — | Compiled with 0.8.37; the floor keeps OZ and transient-storage options open |
 | Slither | 0.11.6 ⏱ | V-106 | Optional (CONTRACT-016, E1): `uv tool install slither-analyzer` |
 | Aderyn | v0.6.8 ⏱ | V-106 | Optional (CONTRACT-016, E1) |
