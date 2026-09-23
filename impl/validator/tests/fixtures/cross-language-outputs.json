@@ -1,0 +1,55 @@
+[
+  {
+    "path": "/v1/summarise",
+    "body": {
+      "text": "One. Two. Three."
+    },
+    "bodyBytes": "{\"text\":\"One. Two. Three.\"}",
+    "output": "{\"sentences\":3,\"summary\":\"One. Two.\",\"tokens\":3}"
+  },
+  {
+    "path": "/v1/summarise",
+    "body": {
+      "text": "Agents pay each other. Payment without escrow is risky. An attack can replay a payment.",
+      "sentences": 2
+    },
+    "bodyBytes": "{\"text\":\"Agents pay each other. Payment without escrow is risky. An attack can replay a payment.\",\"sentences\":2}",
+    "output": "{\"sentences\":3,\"summary\":\"Payment without escrow is risky. An attack can replay a payment.\",\"tokens\":15}"
+  },
+  {
+    "path": "/v1/classify",
+    "body": {
+      "text": "replay attack signature"
+    },
+    "bodyBytes": "{\"text\":\"replay attack signature\"}",
+    "output": "{\"label\":\"security\",\"scores\":{\"agents\":0,\"other\":0,\"payments\":0,\"security\":3},\"tokens\":3}"
+  },
+  {
+    "path": "/v1/classify",
+    "body": {
+      "text": "escrow settlement invoice usdc",
+      "labels": [
+        "payments",
+        "security"
+      ]
+    },
+    "bodyBytes": "{\"text\":\"escrow settlement invoice usdc\",\"labels\":[\"payments\",\"security\"]}",
+    "output": "{\"label\":\"payments\",\"scores\":{\"payments\":4,\"security\":0},\"tokens\":4}"
+  },
+  {
+    "path": "/v1/summarise",
+    "body": {
+      "text": "Unicode: café naïve 日本. Second one here."
+    },
+    "bodyBytes": "{\"text\":\"Unicode: café naïve 日本. Second one here.\"}",
+    "output": "{\"sentences\":2,\"summary\":\"Unicode: café naïve 日本. Second one here.\",\"tokens\":7}"
+  },
+  {
+    "path": "/v1/classify",
+    "body": {
+      "text": ""
+    },
+    "bodyBytes": "{\"text\":\"\"}",
+    "output": "{\"label\":\"payments\",\"scores\":{\"agents\":0,\"other\":0,\"payments\":0,\"security\":0},\"tokens\":0}"
+  }
+]

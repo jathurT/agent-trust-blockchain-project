@@ -1,0 +1,81 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /mnt/d/8th Sem/Blockchain_Project/impl/validator/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/d/8th Sem/Blockchain_Project/impl/validator
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.15.1
+collecting ... collected 64 items
+
+tests/test_decide.py::TestDecide::test_passes_when_the_recomputed_output_matches PASSED [  1%]
+tests/test_decide.py::TestDecide::test_fails_when_a_single_byte_of_the_response_is_tampered PASSED [  3%]
+tests/test_decide.py::TestDecide::test_fails_when_the_seller_answers_a_different_request PASSED [  4%]
+tests/test_decide.py::TestDecide::test_fails_when_the_job_names_another_validator PASSED [  6%]
+tests/test_decide.py::TestAttest::test_a_pass_is_followed_by_a_release_in_the_same_run PASSED [  7%]
+tests/test_decide.py::TestAttest::test_exactly_one_response_even_if_the_intake_is_retried PASSED [  9%]
+tests/test_decide.py::TestAttest::test_a_fail_posts_a_response_and_no_release PASSED [ 10%]
+tests/test_decide.py::TestAttest::test_no_response_is_sent_after_the_deadline PASSED [ 12%]
+tests/test_decide.py::TestAttest::test_evidence_whose_binding_never_appears_times_out_without_responding PASSED [ 14%]
+tests/test_evidence.py::test_accepts_a_receipt_signed_by_the_payee PASSED [ 15%]
+tests/test_evidence.py::test_rejects_a_receipt_signed_by_anyone_but_the_payee PASSED [ 17%]
+tests/test_evidence.py::test_rejects_response_bytes_that_do_not_hash_to_the_receipt PASSED [ 18%]
+tests/test_evidence.py::test_rejects_a_receipt_naming_a_different_resource_or_agent PASSED [ 20%]
+tests/test_evidence.py::test_rejects_an_unknown_job PASSED               [ 21%]
+tests/test_evidence.py::test_stores_the_bytes_and_their_hash PASSED      [ 23%]
+tests/test_health.py::test_refuses_to_start_without_a_complete_configuration PASSED [ 25%]
+tests/test_health.py::test_refuses_a_malformed_address_or_key PASSED     [ 26%]
+tests/test_health.py::test_the_key_never_appears_in_any_representation PASSED [ 28%]
+tests/test_health.py::test_health_reports_the_expected_chain_and_never_the_key PASSED [ 29%]
+tests/test_health.py::test_health_degrades_rather_than_lying_when_the_chain_is_unreachable PASSED [ 31%]
+tests/test_recompute.py::test_python_matches_the_typescript_seller[/v1/summarise:{"text":"One. Two. Three."}] PASSED [ 32%]
+tests/test_recompute.py::test_python_matches_the_typescript_seller[/v1/summarise:{"text":"Agents pay each other. Payment ] PASSED [ 34%]
+tests/test_recompute.py::test_python_matches_the_typescript_seller[/v1/classify:{"text":"replay attack signature"}] PASSED [ 35%]
+tests/test_recompute.py::test_python_matches_the_typescript_seller[/v1/classify:{"text":"escrow settlement invoice usdc"] PASSED [ 37%]
+tests/test_recompute.py::test_python_matches_the_typescript_seller[/v1/summarise:{"text":"Unicode: caf\xe9 na\xefve \u65e5\u672c. Second ] PASSED [ 39%]
+tests/test_recompute.py::test_python_matches_the_typescript_seller[/v1/classify:{"text":""}] PASSED [ 40%]
+tests/test_recompute.py::test_the_fixture_is_not_empty PASSED            [ 42%]
+tests/test_recompute.py::test_serialisation_sorts_keys_at_every_level_and_uses_compact_separators PASSED [ 43%]
+tests/test_recompute.py::test_a_tampered_byte_changes_the_hash PASSED    [ 45%]
+tests/test_recompute.py::test_an_unknown_route_or_malformed_body_refuses_rather_than_guessing PASSED [ 46%]
+tests/test_vectors.py::test_vector_file_is_the_expected_version PASSED   [ 48%]
+tests/test_vectors.py::test_type_strings_and_hashes_match PASSED         [ 50%]
+tests/test_vectors.py::test_canonicalisation[simple_get] PASSED          [ 51%]
+tests/test_vectors.py::test_canonicalisation[post_json_body] PASSED      [ 53%]
+tests/test_vectors.py::test_canonicalisation[empty_body] PASSED          [ 54%]
+tests/test_vectors.py::test_canonicalisation[binary_body] PASSED         [ 56%]
+tests/test_vectors.py::test_canonicalisation[unicode_path] PASSED        [ 57%]
+tests/test_vectors.py::test_canonicalisation[percent_case_normalised] PASSED [ 59%]
+tests/test_vectors.py::test_canonicalisation[unreserved_decoded] PASSED  [ 60%]
+tests/test_vectors.py::test_canonicalisation[query_sorted_distinct_keys] PASSED [ 62%]
+tests/test_vectors.py::test_canonicalisation[query_sorted_distinct_keys_other_order] PASSED [ 64%]
+tests/test_vectors.py::test_canonicalisation[query_duplicate_keys] PASSED [ 65%]
+tests/test_vectors.py::test_canonicalisation[query_duplicate_keys_other_order] PASSED [ 67%]
+tests/test_vectors.py::test_canonicalisation[query_plus_is_literal] PASSED [ 68%]
+tests/test_vectors.py::test_canonicalisation[query_empty_value] PASSED   [ 70%]
+tests/test_vectors.py::test_canonicalisation[explicit_non_default_port] PASSED [ 71%]
+tests/test_vectors.py::test_canonicalisation[default_http_port_omitted] PASSED [ 73%]
+tests/test_vectors.py::test_canonicalisation[trailing_slash_is_significant] PASSED [ 75%]
+tests/test_vectors.py::test_canonicalisation[dot_segments_resolved] PASSED [ 76%]
+tests/test_vectors.py::test_canonicalisation[empty_path_becomes_root] PASSED [ 78%]
+tests/test_vectors.py::test_canonicalisation[fragment_stripped] PASSED   [ 79%]
+tests/test_vectors.py::test_canonicalisation[large_body] PASSED          [ 81%]
+tests/test_vectors.py::test_canonicalisation[sibling_resource_classify] PASSED [ 82%]
+tests/test_vectors.py::test_hashing[post_json_body__amount250000__chain84532_0] PASSED [ 84%]
+tests/test_vectors.py::test_hashing[sibling_resource_classify__amount250000__chain84532] PASSED [ 85%]
+tests/test_vectors.py::test_hashing[post_json_body__amount250001__chain84532] PASSED [ 87%]
+tests/test_vectors.py::test_hashing[post_json_body__amount250000__chain84532_1] PASSED [ 89%]
+tests/test_vectors.py::test_hashing[post_json_body__amount250000__chain31337] PASSED [ 90%]
+tests/test_vectors.py::test_hashing[empty_body__amount1__chain31337] PASSED [ 92%]
+tests/test_vectors.py::test_hashing[simple_get__amount250000__chain84532] PASSED [ 93%]
+tests/test_vectors.py::test_hashing[query_duplicate_keys__amount250000__chain84532] PASSED [ 95%]
+tests/test_vectors.py::test_hashing[large_body__amount999999999999__chain84532] PASSED [ 96%]
+tests/test_vectors.py::test_every_vector_ran PASSED                      [ 98%]
+tests/test_vectors.py::test_empty_body_hash_matches_the_spec PASSED      [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /mnt/d/8th Sem/Blockchain_Project/impl/validator/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 64 passed, 1 warning in 6.79s =========================

@@ -958,44 +958,51 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### VAL-001 — FastAPI skeleton, configuration, key handling
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(B) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(B) · agents-backend
 - **Objective:** An independent process with its own key, able to read the chain and send two transactions.
 - **Refs:** §8.1, §14.1 · FR-27, SR-13 · U3
 - **Depends:** ENV-005, CONTRACT-017
 - **Steps:** 1) `uv` project, FastAPI, web3.py, pydantic settings. 2) Load the validator key from a keystore or env; never log it. 3) `/health` reporting chain connectivity and the configured escrow and registry addresses.
-- **Acceptance:** starts only with a complete configuration; `/health` shows the expected chain id; the key never appears in logs.
-- **Verify:** `uv run pytest impl/validator -k health` → `evidence/VAL-001/`
+- **Acceptance:** all three ✔. Starts only with a complete configuration (pydantic-settings reports every missing field at once, and refuses a malformed address or a key that is not 32 bytes — **without echoing the value**); `/health` reports the configured chain id, the escrow, the registries and the block number; the key never appears in logs.
+- **Verify:** `uv run pytest -k health` in `impl/validator` → **5 tests** → `evidence/VAL-001/pytest.log`.
+- **Outcome:** the key is guarded in three places at once, because one is not enough: `__repr__` and `__str__` are overridden to print `<redacted>`, `public_view()` is built field by field so the key cannot be in it by construction, and a test asserts the key appears in **neither** `repr`, `str`, nor the `/health` JSON — with and without the `0x` prefix. `/health` reports `status: "degraded"` when the chain is unreachable rather than `ok`: a validator that claimed to be healthy with no chain would be worse than one that is plainly down.
+- **Note on web3 8.0.0:** versions.md flagged the major bump for verification. Checked via Context7 — `build_transaction` → `w3.eth.account.sign_transaction` → `send_raw_transaction(signed.raw_transaction)` is the v8 shape, and `process_receipt` now requires an enum (`web3.logs.DISCARD`) rather than an integer for its `errors` argument, which the first test run caught.
 
 ### VAL-002 — Evidence intake
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(B) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(B) · agents-backend
 - **Objective:** Accept and authenticate the seller's delivery evidence before any attestation exists.
 - **Refs:** §5.1(6) · FR-25 · DF-08 · Depends: VAL-001, SPEC-001
 - **Steps:** 1) `POST /evidence` with the seller-signed `DeliveryReceipt` (jobId, resourceHash, responseHash, sellerAgentId, servedAt, **salt**) plus response bytes. 2) Verify the signature against the on-chain payee wallet for `job.payeeAgentId`. 3) Derive and store the expected `requestHash` from the salt. 4) Store content-addressed by `responseHash`; return `evidenceId`. 5) Reject evidence for unknown or non-Funded jobs, or when the derived `resourceHash` does not match the job.
-- **Acceptance:** a receipt signed by anyone other than the payee is rejected; a stored bundle is retrievable by `jobId` internally; the stored hash equals the hash of the bytes.
-- **Verify:** `uv run pytest impl/validator -k evidence` → `evidence/VAL-002/`
+- **Acceptance:** all three ✔, against real funded jobs on a local Anvil → **6 tests** → `evidence/VAL-002/pytest.log`.
+- **Outcome:** the receipt must be signed by the wallet the **escrow snapshotted as the payee** — recovered by the validator's own EIP-712 encoding, so a receipt from anyone else is refused even if every other field is right. Also refused: response bytes that do not hash to the receipt's `responseHash`, a receipt naming a different resource or a different agent than the job, and any job that is not `Funded`.
+  The `requestHash` is **derived by the validator** from the salt in the receipt, never supplied — which is the DF-06 fix: the validator knows which hash to watch for without being told, so a seller cannot point it at a hash it controls.
+- **Verify:** `uv run pytest -k evidence` in `impl/validator`.
 
 ### VAL-003 — Independent checks: Python canonical hash and deterministic recompute
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(B) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(B) · agents-backend
 - **Objective:** Re-derive everything independently — this is why the validator is a separate language.
 - **Refs:** §5.1(6) · FR-03, FR-06, IR-05 · DF-08 · Gate: **G3b**
 - **Skill:** `test-driven-development`, `spec-to-code-compliance`
 - **Depends:** SPEC-001, VAL-002
 - **Steps:** 1) Implement the canonicalisation and the three hashes in Python **from the spec, not by porting the TypeScript**. 2) Run the shared vectors in pytest. 3) Check the job on-chain (state, resourceHash, payee, validator, deadline). 4) Recompute the deterministic fixture output from the request body and compare hashes. 5) Decide pass (100) or fail (0) with a reason.
-- **Acceptance:** 100% of `canonical-v1.json` passes in Python; a tampered response byte yields a fail decision; a job whose `resourceHash` does not match the evidence yields a fail.
-- **Verify:** `uv run pytest impl/validator -k vectors` and `-k decide` → `evidence/VAL-003/`
-- **Risks:** a vector mismatch between languages is a **spec** defect first — fix SPEC-001, then both implementations (R-05).
+- **Acceptance:** all three ✔. **100% of `canonical-v1.json` passes in Python — on the first run**, all 21 canonicalisation cases, 9 hashing cases and the three type hashes. A tampered response byte fails; a response that is a valid output *for a different input* fails; a job naming another validator fails.
+- **Verify:** `uv run pytest -k vectors` and `-k decide` in `impl/validator` → **34 + 9 tests** → `evidence/VAL-003/pytest.log`, `evidence/VAL-003/three-way-agreement.md`.
+- **Outcome — and this is the reason the validator is a different language.** `canonical.py` was written **from `docs/specs/canonical-hash.md`**, not ported from the TypeScript. Four independent implementations now agree on the same vectors: `cast` (Rust) generated them, and Solidity, TypeScript and Python each reproduce them. Two implementations written independently from one specification agreeing is evidence the specification is unambiguous; a port agreeing would only show that copying works.
+  The **deterministic recompute** matters as much as the hashes, and was likewise written from the seller's prose rather than its code — an attestation produced by running the seller's own implementation would attest to nothing (DF-08). `tests/test_recompute.py` checks the Python output **byte for byte** against a fixture emitted by the TypeScript seller, Unicode included. Two things had to match exactly: compact JSON separators with recursive key sorting, and **integer-only scoring** — a float sentence score would make the ordering depend on each platform's rounding, and the two languages would then have to reproduce the rounding rather than the rule.
+- **Risks:** a vector mismatch between languages is a **spec** defect first (R-05). None arose.
 
 ### VAL-004 — Read-before-write `validationResponse` and immediate release
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(B) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do it", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(B) · agents-backend
 - **Objective:** Post exactly one attestation, never after the deadline, and settle immediately so a late release cannot strand the seller.
 - **Refs:** §5.1(6)(7) · FR-06, FR-22 · DF-05, DF-15 · V-94
 - **Depends:** VAL-003, CONTRACT-007
 - **Steps:** 1) Poll `jobs(jobId).requestHash` until it equals the hash derived from the evidence salt (bounded wait, stop at `deadline`) — this proves the seller both filed and bound the request. 2) Read `getValidationStatus(requestHash)` (revert-safe); if a response already exists, do nothing. 3) Refuse to respond when `now > deadline`. 4) Send `validationResponse(requestHash, 100|0, responseURI, responseHash, "agenttrust")`. 5) On a pass, immediately call `release(jobId)` and record both transaction hashes. 6) If the binding never appears, log `binding_timeout` and exit without responding.
-- **Acceptance:** (a) exactly one response per job even if the intake is retried; (b) no response is sent after the deadline; (c) a pass is followed by a successful release in the same run; (d) a fail posts a response and no release; (e) evidence whose binding never appears yields `binding_timeout`, no response, and a successful refund after grace.
-- **Verify:** `uv run pytest impl/validator -k respond` (Anvil) → `evidence/VAL-004/`
+- **Acceptance:** all five ✔, against the deployed escrow on a local Anvil. (a) a retried intake reads the existing response and posts nothing; (b) past the deadline nothing is posted; (c) **a pass releases in the same run and the payee's USDC balance rises by exactly the escrowed amount**; (d) a fail posts a response, does not release, and leaves the job `Funded` so the buyer can still refund; (e) evidence whose binding never appears yields `binding_timeout` with no response and the job still `Funded`.
+- **Verify:** `uv run pytest -k Attest` in `impl/validator` → **5 tests** → `evidence/VAL-004/pytest.log`.
+- **Outcome:** the validator **waits for `jobs(jobId).requestHash` to equal the hash it derived** before attesting. Without that it could attest to a hash the escrow is not watching, and the seller would go unpaid while the registry showed a pass (DF-06). It then **reads before writing**, so a retried intake cannot produce a second attestation, and it **releases immediately** on a pass — which the CONTRACT-007 security review established is load-bearing rather than an optimisation: the seller cannot snapshot its own pass, and `confirmValidation` is an extra transaction it would have to race, so until someone calls one of them a validator that changed its mind would erase the pass (DF-05, DF-15).
 
 ### VAL-005 — Downtime and recovery drills
 
