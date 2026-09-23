@@ -1,0 +1,14 @@
+CONTRACT-001 evidence — 2026-09-23T06:59:19+05:30
+
+impl/contracts/foundry.toml, pinned per docs/specs/versions.md:
+  evm_version = "cancun"
+  solc = "0.8.37"
+  optimizer = true
+  optimizer_runs = 200
+  via_ir = false
+  bytecode_hash = "none"
+  fuzz.runs=256, invariant.runs=256 depth=500 fail_on_revert=false (V-104 stated explicitly)
+  ci profile raises fuzz to 1024 and invariant to 512
+  fs_permissions: read ../vectors (so tests can load the SPEC-001 vectors)
+  bytecode_hash=none for reproducible verification (DEPLOY-002)
+remappings.txt pins: forge-std/ and @openzeppelin/contracts/

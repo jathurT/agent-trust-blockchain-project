@@ -1,0 +1,23 @@
+CONTRACT-002 evidence — 2026-09-23T06:59:19+05:30
+
+src/mocks/MockUSDC.sol — matches the properties the system depends on (V-81):
+  decimals 6; EIP-712 domain name "USDC" version "2" (asserted against the formula)
+  EIP-3009: transferWithAuthorization, receiveWithAuthorization, cancelAuthorization, authorizationState
+  receiveWithAuthorization enforces to == msg.sender, so a third party cannot settle
+  someone else's authorization (the shape of attack I-B, V-16)
+  Type hashes are compile-time keccak256() expressions; the literals I first wrote from
+  memory were checked against cast and matched, but expressions remove the risk entirely.
+
+src/mocks/AdversarialTokens.sol — each one verified to actually misbehave:
+  FeeOnTransferToken  1% fee: 1000000 sent -> 990000 received
+  ReturnsFalseToken   returns false; SafeERC20 turns it into SafeERC20FailedOperation
+  ReentrantToken      calls back into a target during _update
+  RevertingToken      always reverts (blacklisted/paused payee, DF-16)
+
+$ forge test --match-path test/MockUSDC.t.sol  -> 8 passed, 0 failed
+
+Debugging note: test_ReturnsFalseTokenIsCaughtBySafeERC20 first failed. Reading the
+installed SafeERC20 showed the library was correct and the TEST was wrong: safeTransfer
+is an internal library call, so vm.expectRevert matched the inner token call (which
+succeeds by returning false) rather than the library's own revert. Fixed by making the
+call across an external contract boundary.

@@ -1,0 +1,12 @@
+ENV-004 evidence — 2026-09-23T06:59:19+05:30
+
+impl/scripts/devnet.sh: deterministic local chain from the public test mnemonic.
+  chain id 31337, 15 accounts, block time configurable (0 instant, 2s to mimic Base)
+  roles: deployer, buyer, seller, validator, trustedClient1-5, sybilOwner1-5, honestNewcomer
+  role table written to deployments/local-accounts.json (addresses only)
+
+Determinism: two --accounts-only runs produced byte-identical files (diff -q clean).
+Liveness: anvil started on port 8546 -> chain id 31337, 15 accounts, deployer 10000 ETH.
+
+Scope note: this is the chain-up half. The seeding half (deploy mocks + escrow, write
+deployments/local.json) waits on CONTRACT-017 and REG-002..004, per the split recorded in task.md §7.

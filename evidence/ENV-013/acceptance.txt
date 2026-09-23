@@ -1,0 +1,15 @@
+ENV-013 evidence — 2026-09-23T06:59:19+05:30
+
+Base Sepolia liveness, checked today against https://sepolia.base.org:
+  chain id     : 84532          (re-verifies V-80)
+  block number : 47178984
+  USDC name()  : "USDC"         (re-verifies V-81)
+  USDC version : "2"
+  USDC decimals: 6
+ERC-8004 registries still answering (re-verifies V-97, satisfies the V-139 re-check):
+  Identity  0x8004A818BFB912233c491871b3d84c89A494BD9e  getVersion="2.0.0"
+  Reputation 0x8004B663056A597Dffe9eCcC1965A193B7388713 getVersion="2.0.0"
+  Validation 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 getVersion="2.0.0"
+
+Verifier choice: Blockscout first (no API key); Etherscan V2 as the alternative (V-85).
+Events are polled, never subscribed: the public RPC is HTTP-only (V-83).

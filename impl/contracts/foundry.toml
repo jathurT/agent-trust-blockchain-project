@@ -1,10 +1,39 @@
-# Minimal configuration for SPEC-001 vector conformance.
-# CONTRACT-001 extends this (fuzz/invariant settings, profiles, formatter).
+# CONTRACT-001 — pinned, reproducible contract build and test configuration.
+# Versions come from docs/specs/versions.md (ENV-001).
+
 [profile.default]
 src = "src"
 out = "out"
+test = "test"
+script = "script"
 libs = ["lib"]
-solc = "0.8.37"          # pinned, docs/specs/versions.md (V-102)
-evm_version = "cancun"   # portable; avoids Foundry #16960 (V-103)
-bytecode_hash = "none"
+solc = "0.8.37"            # pinned (V-102)
+evm_version = "cancun"     # portable; avoids Foundry #16960 on Base (V-103)
+optimizer = true
+optimizer_runs = 200
+bytecode_hash = "none"     # reproducible bytecode for verification (DEPLOY-002)
+via_ir = false
 fs_permissions = [{ access = "read", path = "../vectors" }]
+gas_reports = ["AgentTrustEscrow", "MockUSDC"]
+
+[profile.default.fuzz]
+runs = 256
+max_test_rejects = 100000
+
+[profile.default.invariant]
+runs = 256
+depth = 500
+fail_on_revert = false
+
+# Heavier settings for CI and for the pre-gate run (ENV-008).
+[profile.ci.fuzz]
+runs = 1024
+[profile.ci.invariant]
+runs = 512
+depth = 500
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"

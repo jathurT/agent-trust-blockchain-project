@@ -1,0 +1,12 @@
+ENV-005 evidence — 2026-09-23T06:59:19+05:30
+
+.env.example: 23 variables, names only, no values.
+impl/packages/core/src/config.ts: fail-fast loader.
+  - reports EVERY problem at once instead of the first
+  - validates address / address list / uint / origin / url / enum
+  - refuses any value shaped like a private key: 'use a keystore name instead'
+  - warns (does not fail) when CLAIMS_DB_PATH is under /mnt/ (DF-20, measured ~38x slower)
+  - REPLAY_POLICY defaults to idempotent, the policy measurements use (DF-17)
+
+Tests: 7 config cases inside the 45-test TypeScript suite; typecheck exit 0.
+Secret scan: the only 64-hex match in the repo is the documented keccak256("") constant in the spec.

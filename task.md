@@ -355,7 +355,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### ENV-004 — Local Anvil environment (mode A) and deterministic accounts
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** One command brings up a deterministic local chain with roles, MockUSDC and mock registries.
 - **Refs:** §14.2, §19 · OR-05/09 · DF-20, DF-23
 - **Depends:** ENV-002 (chain-up half); CONTRACT-002, CONTRACT-017, REG-002…004 (seeding half)
@@ -367,7 +367,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### ENV-005 — Configuration and secrets
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** One configuration scheme for all three languages, with no secret ever in the repository.
 - **Refs:** §14.2 · SR-13 · CLAUDE.md §11
 - **Depends:** ENV-002
@@ -428,7 +428,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### ENV-013 — RPC, verifier and LLM keys; network liveness
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(C)
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(C)
 - **Objective:** Confirm the chain is reachable and decide which verifier path to use.
 - **Refs:** §14.2 · OR-03, IR-03 · V-80, V-83, V-85
 - **Steps:** 1) `cast block-number --rpc-url https://sepolia.base.org` and `cast chain-id`. 2) Decide Blockscout (no key) vs Etherscan V2 (key needed); store any key in `.env`. 3) Note that events are polled (no WebSocket).
@@ -588,7 +588,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-001 — Foundry project configuration
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** A reproducible compile and test setup pinned to the chosen compiler and EVM version.
 - **Refs:** §14.1 · IR-07 · V-102, V-103, V-104
 - **Depends:** ENV-003
@@ -599,7 +599,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-002 — MockUSDC and adversarial token mocks
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE · **Authorized:** yes (2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** A token that behaves like Base Sepolia USDC, plus tokens that misbehave in the ways the escrow must survive.
 - **Refs:** §9.2, §11.3 · SR-09, FR-24 · DF-12 · V-81
 - **Skill:** `token-integration-analyzer`
@@ -1517,6 +1517,22 @@ Each gate is a **default stopping point**: Claude stops and reports for review.
 | Ambiguities closed | configured origin rather than `Host`; query sorted by (key,value) with duplicate order not preserved; `+` is a literal plus; raw wire bytes for the body with `Content-Encoding` rejected; amount/token/chainId inside `resourceHash` |
 | Python | Deliberately deferred to VAL-003, written from the spec rather than ported, so its agreement is evidence |
 | Honesty note | A typecheck first reported clean because it was piped into `tail`; re-run with the exit code checked, it failed with 3 real type errors, which were fixed rather than silenced |
+
+### Implementation evidence — foundation and first contracts (2026-09-23)
+
+| Task | Result | Evidence |
+|---|---|---|
+| ENV-004 | `impl/scripts/devnet.sh`: chain 31337, 15 named roles (deployer, buyer, seller, validator, 5 trusted clients, 5 Sybil owners, honest newcomer) from the public test mnemonic. Two runs produced byte-identical role files; anvil verified serving 15 funded accounts. **Chain-up half only** — seeding waits on CONTRACT-017/REG-002…004 | `evidence/ENV-004/` |
+| ENV-005 | `.env.example` (23 names, no values) and a fail-fast loader that reports every problem at once, refuses values shaped like private keys, and warns when `CLAIMS_DB_PATH` sits under `/mnt/`. `REPLAY_POLICY` defaults to `idempotent` | `evidence/ENV-005/` |
+| ENV-013 | Live re-check: chain 84532 at block 47,178,984; USDC `"USDC"`/`"2"`/6; all three ERC-8004 registries answering `getVersion()="2.0.0"` — satisfies the V-139 re-check. Verifier: Blockscout first, Etherscan V2 alternative | `evidence/ENV-013/` |
+| CONTRACT-001 | `foundry.toml` pinned to solc 0.8.37, `evm_version=cancun`, optimizer 200, `bytecode_hash=none`, fuzz 256, invariant 256×500, CI profile 1024/512, `fs_permissions` for the vectors; `remappings.txt` pinned | `evidence/CONTRACT-001/` |
+| CONTRACT-002 | MockUSDC with 6 decimals, EIP-712 domain `"USDC"`/`"2"` asserted against the formula, and EIP-3009 including `receiveWithAuthorization`'s `to == msg.sender` restriction. Four adversarial tokens, each verified to actually misbehave. **8 tests pass** | `evidence/CONTRACT-002/` |
+
+Suite totals after this batch: **12 Solidity tests** and **45 TypeScript tests**, all green.
+
+A test I got wrong, and what it taught: `test_ReturnsFalseTokenIsCaughtBySafeERC20` failed at first. Reading the installed `SafeERC20` showed the library was right and the **test** was wrong — `safeTransfer` is an internal library call, so `vm.expectRevert` matched the inner token call (which succeeds by returning `false`) instead of the library's revert. Fixed by crossing an external call boundary. Worth remembering for every future `expectRevert` on library code.
+
+### Review outcomes (PLAN-006)
 
 ### Review outcomes (PLAN-006)
 
