@@ -1728,24 +1728,22 @@ Eight further findings were fixed in the same change, three of them worth naming
 
 ## 16. Next task
 
-**Gate G1 is met, a day early — this is a default stopping point (CLAUDE.md §13).**
+**Gates G1 and G2 are both met — this is a default stopping point (CLAUDE.md §13).**
 
-| G1 criterion | Status |
-|---|---|
-| `forge test` green: fund, gate, bind/snapshot/release, refund, deadline/grace/TTL boundaries, on same-ABI mocks | ✔ 154 tests, plus 6 invariants at 256 × 500 |
-| REG-008 mock conformance passes | ✔ 41 shared functions identical, only declared differences |
-| SPEC-001 vectors pass in Solidity **and** TypeScript | ✔ 4 Solidity + 45 TypeScript |
-| (beyond the gate) escrow deploys and smoke-checks locally | ✔ `impl/scripts/deploy.sh local` |
+| Gate | Criterion | Status |
+|---|---|---|
+| G1 | contracts green on same-ABI mocks; REG-008; SPEC-001 vectors in Solidity + TS | ✔ (Tue, a day early) |
+| G2 | one execution per job on Anvil; A2/A3 fixture live; buyer E2E to delivery | ✔ (Tue, two days early) |
 
-**Next, toward G2 (Fri 25 Sep 23:59): the seller service.**
+**Next, toward G3b (Sat 26 Sep 23:59): the validator, and `release()` end to end.**
 
-**API-001** (Express + deterministic fixtures + price table) → **API-002** (402 in x402 v2 shape with the `agenttrust-escrow` scheme) → **API-003** (raw-body hashing and the funded-job checks) → **API-004** (payer-signature auth) → **API-005** (the claim store — one execution per funded job) → **API-008** (the labelled A2/A3 vulnerable fixture). In parallel: **AGENT-001** (the TypeScript core the buyer and seller share) and **SPEC-002**, which API-002/003/004 all depend on.
+**VAL-001** (FastAPI skeleton + key) → **VAL-003** (the canonical hash **in Python, written from `docs/specs/canonical-hash.md` rather than ported** — that independence is the point, and it is what makes three-way agreement evidence) → **VAL-002** (evidence intake) → **VAL-004** (read-before-write response, then `release()` immediately) → **API-006** (the seller deposits the receipt, files `validationRequest`, binds) → **INT-001/002** (happy and refund paths end to end).
 
-Two things carry forward from the contract work:
+Two things the contract work already settled that VAL-004 must honour:
 
-- **SPEC-002 must specify the seller's `bindValidation` retry budget.** The security review established that the salt does not bound `requestHash` squatting — it is public from the moment the seller broadcasts `validationRequest`, so a mempool-watching adversary can squat every retry (DF-06, corrected). The seller needs a budget and a `minDeadlineMargin` that accounts for it.
-- **The validator must call `release()` immediately after attesting**, and VAL-004 should treat that as load-bearing rather than an optimisation: the seller cannot snapshot its own pass, so until someone calls `confirmValidation` or `release`, a validator that flips its verdict erases it (DF-05, sharpened).
+- **The validator calls `release()` immediately after attesting.** Not an optimisation: the seller cannot snapshot its own pass, and `confirmValidation` is an extra transaction it would have to race, so until someone calls one of them a validator that flips its verdict erases it (DF-05, sharpened by the security review).
+- **The seller needs a `bindValidation` retry budget**, folded into `minDeadlineMargin`. `requestHash` squatting is unbounded against a mempool-watching adversary, because the salt is public from the moment the seller broadcasts (DF-06, corrected). SPEC-002 §7.1 has the formula.
 
-Still open, and not blocking:
-1. **Sign-off on D1–D6** (§2). Defaults are being applied; D3/D4/D5 are now baked into a tested contract, so changing them is rework rather than a tweak.
-2. **ENV-006/007** — wallets and faucet ETH. DEPLOY-001…003 needs funds by Thursday evening, and the **seller and validator need ETH too**, not just the deployer. This is the only thing that can still make the testnet deployment slip.
+Still open, and now genuinely blocking:
+1. **ENV-006/007 — wallets and faucet ETH.** This is the only thing standing between the project and a Base Sepolia deployment; everything else on the critical path is built. The **seller and validator need ETH too**, not just the deployer.
+2. **Sign-off on D1–D6** (§2). Defaults are applied and are now baked into a tested contract *and* a tested service pair, so changing D3/D4/D5 is rework rather than a tweak.
