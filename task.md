@@ -792,14 +792,17 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-002 — 402 emission in x402 v2 wire format
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Answer unpaid requests with a quote that carries everything the buyer needs, in the v2 shape, without stock settlement.
 - **Refs:** §11.2, §11.3 · FR-17, IR-04 · DF-03 · V-62, V-64, V-69
 - **Depends:** SPEC-002, API-001
 - **Steps:** 1) Build PaymentRequirements per §6.5 with `scheme: "agenttrust-escrow"`, `network: "eip155:84532"`, atomic `amount`, `payTo` = the seller's on-chain payee wallet, and `extra` (escrow, sellerAgentId, acceptedValidators, minDeadlineMargin, quoteId, expiry, canonicalVersion). 2) Base64-encode into `PAYMENT-REQUIRED`; keep a JSON body for humans. 3) **Do not** mount `paymentMiddleware` on these routes. 4) Emit the honest interoperability note in the server's `/` help text and README.
-- **Acceptance:** the header decodes to valid v2 PaymentRequirements; `payTo` equals the registry-resolved wallet; no settlement is attempted anywhere in the path.
-- **Verify:** `pnpm -C impl/agents/seller test -- quote` → `evidence/API-002/`
-- **Risks:** drift from the v2 field names → re-check with Context7 at implementation time.
+- **Acceptance:** the header decodes to a valid v2 `PaymentRequired` ✔ (decoded by the *buyer's* decoder in `@agenttrust/core`, and the header and the human-readable body are asserted equal); `payTo` equals the registry-resolved wallet ✔; no settlement is attempted anywhere in the path ✔.
+- **Verify:** `npx vitest run` in `impl/agents/seller` → **36 tests**, 12 of them quote tests against the deployed escrow on a local Anvil → `evidence/API-002/vitest.log`.
+- **Outcome:** `payTo` is read from `previewPayee(agentId)` on **every quote**, not cached and not configured — it runs the same `getAgentWallet` → `ownerOf` fallback the escrow uses at funding time, so a quote can never advertise an address the escrow would not pay. A test transfers the agent NFT and shows the quote follows it, which is exactly the case DF-12 exists for and the case a configured `payTo` would get wrong.
+  The `resource.url` uses the **configured origin**; a test sends `Host: evil.example` and asserts it does not appear (DF-04). `Cache-Control: no-store` is on the 402 as well as the 200. Presenting a payment before API-003…005 exist is **refused (503), not served** — serving on an unverified header would be the whole attack — and a test asserts the seller has no `@x402/*` dependency at all, since the stock middleware settles on its own and would charge the buyer twice (DF-03).
+  `quoteId` is generated but documented in code as authenticating **nothing**: the seller does not sign it, so anyone can mint one. The binding that matters is the on-chain `resourceHash`. The signed quote that would make it meaningful is E1.
+- **Risk closed:** the v2 field names were re-checked with Context7 at SPEC-002 time, which is what caught the two wrong envelopes (V-142).
 
 ### API-003 — Raw-body canonical hash and funded-job verification
 

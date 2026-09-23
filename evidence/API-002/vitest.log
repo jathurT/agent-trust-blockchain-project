@@ -1,0 +1,45 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/seller
+
+ ✓ test/fixtures.test.ts > determinism > returns byte-identical output for the same input, every time 4ms
+ ✓ test/fixtures.test.ts > determinism > serialises with sorted keys, so object construction order cannot leak in 0ms
+ ✓ test/fixtures.test.ts > determinism > uses no clock, randomness or network 0ms
+ ✓ test/fixtures.test.ts > determinism > scores with integers, so no platform rounding can reorder sentences 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps terminators and trims 1ms
+ ✓ test/fixtures.test.ts > splitSentences > does not split a decimal or an abbreviation mid-token 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps a tail with no terminator 0ms
+ ✓ test/fixtures.test.ts > splitSentences > returns nothing for empty or whitespace input 0ms
+ ✓ test/fixtures.test.ts > tokenise > lowercases and drops punctuation 1ms
+ ✓ test/fixtures.test.ts > classify > picks the label with the most keyword hits 0ms
+ ✓ test/fixtures.test.ts > classify > breaks ties by label order, never by object key order 0ms
+ ✓ test/fixtures.test.ts > classify > rejects a bad request rather than guessing 1ms
+ ✓ test/fixtures.test.ts > pricing > prices both paid siblings identically 0ms
+ ✓ test/fixtures.test.ts > pricing > keeps the price a bigint in atomic units 0ms
+ ✓ test/fixtures.test.ts > HTTP surface > serves health and the agent card without payment 23ms
+ ✓ test/fixtures.test.ts > HTTP surface > states the interoperability position on the help route 4ms
+ ✓ test/fixtures.test.ts > HTTP surface > sets no-store on every paid response 4ms
+ ✓ test/fixtures.test.ts > HTTP surface > makes the raw bytes available unparsed 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > returns byte-identical responses to repeated identical requests 5ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects a malformed body with 400, not 500 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects an oversized body before buffering it 4ms
+ ✓ test/fixtures.test.ts > HTTP surface > tells a GET on a paid route it needs POST 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > treats route case and trailing slashes as distinct 5ms
+ ✓ test/fixtures.test.ts > the gate cannot be forgotten > refuses to build a gated app without a gate 0ms
+ ✓ test/quote.test.ts > 402 quote > answers an unpaid request with a decodable v2 PaymentRequired 23ms
+ ✓ test/quote.test.ts > 402 quote > offers the project scheme on the configured chain, in atomic units 7ms
+ ✓ test/quote.test.ts > 402 quote > a buyer's selector accepts the offer 5ms
+ ✓ test/quote.test.ts > 402 quote > quotes both paid siblings at the same price 9ms
+ ✓ test/quote.test.ts > 402 quote > uses the configured origin in the resource url, never the Host header 4ms
+ ✓ test/quote.test.ts > 402 quote > sets no-store on the 402 as well as the 200 4ms
+ ✓ test/quote.test.ts > 402 quote > does not serve the resource with the 402 4ms
+ ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > equals previewPayee, which is what the escrow will snapshot 6ms
+ ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > follows the agent when the NFT is transferred, because agentWallet is cleared 234ms
+ ✓ test/quote.test.ts > no settlement is reachable from the request path > presents a payment and is refused, not served, until API-003..005 exist 3ms
+ ✓ test/quote.test.ts > no settlement is reachable from the request path > carries no x402 settlement dependency at all 3ms
+ ✓ test/quote.test.ts > quote identifier > differs between the two paid routes, and over time 0ms
+
+ Test Files  2 passed (2)
+      Tests  36 passed (36)
+   Start at  09:03:13
+   Duration  13.32s (import 95%, transform 2%, tests 2%)
+
