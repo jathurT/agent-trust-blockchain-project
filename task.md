@@ -1497,6 +1497,14 @@ Each gate is a **default stopping point**: Claude stops and reports for review.
 | PLAN-006 | Review outcomes below |
 | PLAN-008 | Consistency check output recorded below |
 
+### Implementation evidence
+
+| Task | Date | Outcome | Evidence |
+|---|---|---|---|
+| ENV-001 | 2026-09-23 | `docs/specs/versions.md` written: 54 pinned rows across toolchain, ERC-8004, chain/token, Node, Python, extended scope and skills. Library versions re-confirmed the same day; **web3.py is on 8.x and TypeScript on 7.x**, both flagged as major bumps to re-check at VAL-001/AGENT-001 | `evidence/ENV-001/acceptance.txt` |
+| ENV-002 | 2026-09-23 | Private repo on `main`; first commit `6295e71` with 51 files. `.gitignore`, layout skeleton, and a pre-commit hook that refuses private keys, PEM keys and `.env` files while allowing the public Anvil test mnemonic (verified: exit 1 on a staged fake key). **DF-20 measured, not assumed:** SQLite WAL locking works on `/mnt/d` (second writer blocked), but small-file writes are ~38× slower than ext4 — repo stays put, `CLAIMS_DB_PATH` defaults to ext4, and the planned hard refusal became a warning | `evidence/ENV-002/acceptance.txt` |
+| ENV-003 | 2026-09-23 | Foundry **v1.8.3** installed (build 2026-09-15, matching the pin) and added to `~/.bashrc`; OpenZeppelin **5.7.0** (`cab19933`) and forge-std **1.16.2** (`bf647bd6`) installed. A probe importing `SafeERC20`/`ReentrancyGuard`/`Ownable2Step` compiles under solc 0.8.37 + `evm_version=cancun`. **Deviation:** the submodule route wrote a path relative to `impl/contracts` into the root `.gitmodules` and checked nothing out, so dependencies are vendored through `impl/scripts/install-deps.sh` with `lib/` git-ignored (re-run from an empty `lib/` verified) | `evidence/ENV-003/acceptance.txt` |
+
 ### Review outcomes (PLAN-006)
 
 | # | Source | Finding | Resolution |
@@ -1539,6 +1547,7 @@ Each gate is a **default stopping point**: Claude stops and reports for review.
 |---|---|---|---|
 | 2026-09-22 | Planning package only; skills installation | user | Plan approved in plan mode; implementation explicitly withheld |
 | 2026-09-22 | Project-scope skill installation (6 plugins + 7 vendored skills) | user | Executed and verified; see PLAN-003 |
+| 2026-09-23 | Implementation start — ENV-001, then ENV-002/003, then SPEC-001 ("do that") | user | ENV-001/002/003 DONE; SPEC-001 is next |
 
 ---
 
