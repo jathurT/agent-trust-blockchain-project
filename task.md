@@ -34,22 +34,30 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 17:00):** **G1, G2 and G3b all met — G3b three days early.** **45 of 134 tasks DONE**, including the whole local payment path end to end.
+**Status (2026-09-23, 22:30):** **G1, G2, G3a and G3b all met.** **50 of 134 tasks DONE** — the local system is complete and **the A2 and A3 evaluation is measured**.
 
-**399 tests across six packages**, all green: 154 Solidity + 6 invariants (256 × 500), 87 core, 76 seller, 8 buyer, 10 fixture, **64 Python validator**. Escrow line coverage 97.55%.
+**413 tests across six packages**, all green. Escrow line coverage 97.55%.
 
-Two measurements worth stating precisely:
+### The measured result
 
-- **One funded job, one execution.** 50 authenticated retries across two seller processes sharing one claim store → 1 execution, 1 distinct result, 49 replays, no 5xx (`evidence/API-005/multiproc.log`).
-- **The full path settles.** INT-001 runs discovery → quote → gate → fund → deliver → deposit → bind → attest → release with every service real, including the **Python validator in its own process**: buyer −250000, payee +250000, attestation 100, one execution. INT-002 covers both refund routes and the case where a refund must be refused.
+| | fixture (labelled vulnerable baseline) | AgentTrust |
+|---|---|---|
+| **A2** — executions per payment | 50 requests → **50**; 200 → **200** | **1**, in every configuration |
+| A2 — replay attempts producing an extra execution | 3,460 of 3,950 | **0 of 4,440** |
+| A2 — responses served on a **forged** signature | **500 of 500** | 0 |
+| **A3** — substitutions served | **100 of 100** | **0 of 100** |
+| A3 — one-byte body mutations accepted | 100 of 100 | 0 of 100 |
+| A3 — **false refusals** (the control) | 0 | **0** |
 
-**canonical-v1 now has four independent implementations** — `cast` (Rust) generated the vectors; Solidity, TypeScript and **Python** each reproduce them, the Python one written from the spec rather than ported. That is what makes the agreement evidence.
+Thirteen runs, one commit, none with a dirty tree. Every figure is generated from a recorded run into `docs/results.tables.md`, which reproduces byte-for-byte. Full narrative and limits: `docs/results.md`.
 
-**Nothing is deployed to a public chain and no attack has been run.** No transaction has been sent to Base Sepolia, no wallet funded. Every number above is a local test.
+**Coverage: 2 of the 6 defined attacks.** A1, A4, A5 and A6 are EXTENDED-E2 and are reported as **Not evaluated**, not omitted.
 
-Next: **SEC-002/003/004** — the A2 and A3 evaluation, which is **G3a** and the actual headline result.
+**The baseline is a fixture written for this evaluation — not upstream x402, not the `@x402/*` packages.** Anything about upstream needs API-009, which was not run.
 
-Still blocking: **PLAN-007** sign-off on D1–D6 (defaults apply meanwhile), and **ENV-006/007** wallets and faucet ETH — without them nothing reaches Base Sepolia at all.
+**Nothing is deployed to a public chain.** Every measurement is on a local Anvil; latency, gas and confirmation behaviour do not transfer to Base Sepolia.
+
+Still blocking: **PLAN-007** sign-off on D1–D6, and **ENV-006/007** wallets and faucet ETH — without them nothing reaches Base Sepolia at all.
 
 **Decisions the user already made**
 
