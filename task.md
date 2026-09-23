@@ -620,8 +620,9 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-004 — Escrow state machine and `fund()`
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [ ] **Status:** IN_PROGRESS — implementation and tests complete, **held for the CLAUDE.md §6 security review**, which runs once `release()`/`refund()` exist so the whole money path is reviewed at once · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** The core state machine with on-chain resource binding, payer nonce, payee snapshot and TTL bounds.
+- **Progress (2026-09-23):** `impl/contracts/src/AgentTrustEscrow.sol` + `test/Fund.t.sol`, **31 tests passing** (`evidence/CONTRACT-004/forge-test.log`). All six acceptance criteria are covered: replayed nonce reverts; a failed transfer leaves the nonce unconsumed *and* the buyer can then reuse it; a 1% fee-on-transfer token reverts `TransferAmountMismatch`; TTL bounds are enforced both ways plus a 256-run fuzz inside them; the derivations are checked against **every** shared hashing vector, with the contract deployed at the vector's escrow address on the vector's chain so the job id is comparable too; and the payee is the agent wallet when set, the owner after a transfer, and stays snapshotted if the agent moves mid-job. Extra coverage beyond the criteria: nonces are payer-scoped, the validator may not be the payer, zero, the agent's owner or its **operator**, funding an unknown agent reverts, and a re-entrant token's callback is asserted with `vm.expectCall` before showing the guard stopped it.
 - **Refs:** §5.1(4), §5.2, §9.2, §9.3 · FR-03, FR-04, FR-09, FR-11, SR-01, SR-02, SR-04, SR-09, SR-12 · DF-04, DF-12, DF-22
 - **Skill:** `solidity@solskill`, `building-secure-contracts`
 - **Depends:** SPEC-001, SPEC-003, CONTRACT-001/002, REG-001…004

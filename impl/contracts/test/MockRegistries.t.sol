@@ -363,7 +363,7 @@ contract MockRegistriesTest is Test {
         (,, uint8 pass,,,) = validation.getValidationStatus(h);
         assertEq(pass, 100);
 
-        vm.warp(block.timestamp + 1 days);
+        vm.warp(vm.getBlockTimestamp() + 1 days);
         vm.prank(validator);
         validation.validationResponse(h, 0, "", bytes32(0), TAG);
         (,, uint8 revoked,,, uint256 lastUpdate) = validation.getValidationStatus(h);
