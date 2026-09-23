@@ -1762,25 +1762,42 @@ Eight further findings were fixed in the same change, three of them worth naming
 
 ## 16. Next task
 
-**G1, G2 and G3b are met — this is a default stopping point (CLAUDE.md §13).**
+**G1, G2, G3a and G3b are all met — this is a default stopping point (CLAUDE.md §13).**
 
 | Gate | Criterion | Status |
 |---|---|---|
 | G1 (Thu 24) | contracts green on same-ABI mocks; REG-008; SPEC-001 vectors | ✔ a day early |
 | G2 (Fri 25) | one execution per job; A2/A3 fixture live; buyer E2E to delivery | ✔ two days early |
-| G3b (Sat 26) | validator path; release + refund E2E locally; Python vectors | ✔ **three days early** |
-| **G3a (Sat 26 16:00)** | **A2 + A3 on both targets, ≥10 runs each, results.json** | **not started — this is next** |
+| **G3a (Sat 26 16:00)** | **A2 + A3 on both targets, ≥10 runs each, results.json** | ✔ **three days early** |
+| G3b (Sat 26 23:59) | validator path; release + refund E2E; Python vectors | ✔ three days early |
+| G4 (Sun 27 12:00) | ≤2 extended items or "not evaluated"; demo recorded; results frozen | next |
+| G5 (Mon 28 18:00) | freeze; clean-clone reproduction; references; rehearsal ≤ 3:00 | |
 
-**Next: SEC-002 → SEC-003 → SEC-004, the actual evaluation.**
+**The headline result is measured and the local system is complete.** What remains is
+delivery, and one thing that is genuinely blocked.
 
-**SEC-002** builds the harness and the `results.json` + run-manifest schema (commit, tool versions, chain and block, configuration, seeds, run count, raw log paths). **SEC-003** runs A2 (replay) against the labelled vulnerable fixture **and** against AgentTrust, ≥10 runs each. **SEC-004** runs A3 (cross-resource substitution) the same way, buyer-side.
+**Blocked on you — ENV-006/007, wallets and faucet ETH.** Every task left on the testnet
+path waits on this: DEPLOY-001/002/003 (deploy and verify on Base Sepolia), INT-003 (full
+testnet E2E), REG-007 (live registration). The seller sends **two** transactions per job
+and the validator **two**, so all three roles need ETH, not just the deployer. If funds do
+not arrive, the honest fallback is to present the local result and say plainly that the
+testnet deployment was not done — which is a cut the gate list already anticipates.
 
-Three things the build already settled that the evaluation must respect:
+**Not blocked, and next in order:**
 
-- **The A2 defence is not the escrow nonce.** It is the claim store, and the number that matters is `executions_completed` and `distinct_results`, not HTTP 2xx — replays are expected under `idempotent` (SPEC-002 §6.3, DF-01).
-- **The fixture is labelled, and the label must reach `results.json`.** `fixtureBanner()` is the single source; SEC-012 audits it. Nothing may be described as upstream x402 without an API-009 run, which is EXTENDED.
-- **Outcomes are reported with their denominator**: attacks *evaluated* out of the six defined, each Blocked / Mitigated-to-bound / Not blocked / Not evaluated. A2 and A3 are P0; A4, A6, A5 and A1 are E2 and will most likely be "Not evaluated", which is a result to state plainly, not to hide.
+1. **DOC-001** — the README, opening with the problem statement and the reproduction
+   commands. The repository has no README at all yet.
+2. **DOC-004** — limitations. There is a lot to say and it is all already recorded: the
+   ~8,589 gas per feedback entry and the ~26-entry ceiling; unbounded `requestHash`
+   squatting against a mempool watcher; the DF-05 window where an unsnapshotted pass can
+   be erased; the blacklisted-payee trap (DF-16); coverage being 2 of 6.
+3. **PRES-003** — the 45-second demo recording. `e2e-happy.sh` already produces a clean
+   run in about 7 seconds, so the material exists.
+4. **SEC-012** (P1) — the claims audit. Everything measured is now in `docs/results.md`;
+   this checks that no document, slide or README sentence claims more than the runs show.
+   The two phrasings to watch are "not upstream x402" and the qualified "indistinguishable"
+   from V-99a.
 
-Still open:
-1. **ENV-006/007 — wallets and faucet ETH.** Still the only thing between the project and Base Sepolia. The **seller and validator need ETH too**; the seller now sends two transactions per job (`validationRequest` and `bindValidation`) and the validator sends two (`validationResponse` and `release`).
-2. **Sign-off on D1–D6** (§2). Now baked into a tested contract, a tested service pair and a working end-to-end path.
+**Still open:** **PLAN-007** sign-off on D1–D6. The defaults are now baked into a tested
+contract, a tested service pair, a working end-to-end path **and a published measurement**
+— changing D3/D4/D5 now would invalidate the results, not just the code.
