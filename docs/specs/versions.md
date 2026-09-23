@@ -70,6 +70,8 @@ Same-ABI mocks are the default substrate (DF-14); REG-008 checks conformance, an
 | viem | **2.56.8** | Chain access; polling watchers only (V-83) |
 | express | **5.2.1** | Express 5 — raw-body capture must be mounted before any parser (API-001) |
 | vitest | **5.0.1** | Tests |
+| tsx | **4.23.15** | Runs the cross-process claim driver (API-005). Node's `--experimental-strip-types` does not rewrite `.js` specifiers to `.ts`, so plain Node cannot run the workspace's own import style |
+| `node:sqlite` | built in, Node **22.17.0** | Claim store (API-005). Flagged experimental by Node; chosen over a native binding so a fresh clone needs no compile step |
 | supertest | **7.3.0** | HTTP assertions |
 | better-sqlite3 | **13.0.3** | Claim store; fall back to `node:sqlite` if the native build fails on WSL (API-005) |
 | dotenv | **18.0.3** | Config loading |

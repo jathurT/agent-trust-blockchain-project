@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { createWalletClient, http, parseAbi, type Address, type Hex } from "viem";
+import { createWalletClient, http, parseAbi, parseEventLogs, type Address, type Hex } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import { createChainClient, ChainUnavailable, getJobFundedLogs, type ChainClient } from "../src/chain.js";
 import { escrowAbi, identityRegistryAbi, reputationRegistryAbi, JobState } from "../src/abi.js";
@@ -88,9 +88,18 @@ beforeAll(async () => {
     functionName: "register",
     args: [`${ORIGIN}/.well-known/agent-card`],
   });
-  await chain.client.waitForTransactionReceipt({ hash: registerTx });
-  // The first agent registered on a fresh registry is id 0 (V-141).
-  sellerAgentId = 0n;
+  const registerReceipt = await chain.client.waitForTransactionReceipt({ hash: registerTx });
+  // Decode by signature: `register()` emits ERC-721 `Transfer` first, whose topics[1]
+  // is `from` = address(0), so reading the first log's second topic silently yields 0
+  // for every registration. (The first agent on a fresh registry genuinely is id 0 --
+  // V-141 -- which is exactly why that bug hid.)
+  const registered = parseEventLogs({
+    abi: parseAbi(["event Registered(uint256 indexed agentId, string agentURI, address indexed owner)"]),
+    logs: registerReceipt.logs,
+  });
+  const decoded = registered[0]?.args.agentId;
+  if (decoded === undefined) throw new Error("register() emitted no Registered event");
+  sellerAgentId = decoded;
 
   // The deployment sets minDistinctFloor = 1 and minCountFloor = 1, so an empty policy
   // is refused — that is the gate working, and it is what the security review's

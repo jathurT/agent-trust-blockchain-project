@@ -12,12 +12,17 @@ import type { RawRequest } from "./rawBody.js";
 import { buildPaymentRequired, resolvePayee, QuoteError, type QuoteConfig } from "./quote.js";
 import { SellerError, sendError } from "./errors.js";
 import { verifyRequest, type NonceStore, type VerifiedRequest, type VerifyConfig } from "./verify.js";
+import type { ClaimStore } from "./claims.js";
 
 export interface GateDeps {
   chain: ChainClient;
   config: QuoteConfig;
   /** Present once API-003/004 are wired; absent leaves the gate quote-only. */
   verify?: { config: VerifyConfig; nonces: NonceStore };
+  /** API-005. Absent means one execution is not enforced, so the gate refuses to run. */
+  claims?: ClaimStore;
+  /** SPEC-002 §6.2. `idempotent` re-serves stored bytes to the payer; `strict` refuses. */
+  replayPolicy?: "idempotent" | "strict";
   /** Injected so tests can pin time; defaults to the wall clock. */
   now?: () => number;
 }
@@ -68,8 +73,7 @@ export function createPaymentGate(deps: GateDeps) {
     const verifyDeps = { chain: deps.chain, config: deps.verify.config, nonces: deps.verify.nonces, now: deps.now };
     verifyRequest(verifyDeps, req)
       .then(async (verified) => {
-        // The nonce is spent once the request is known to be genuine and payable. The
-        // delivery claim itself is API-005 and comes after this.
+        // The nonce is spent once the request is known to be genuine and payable.
         await deps.verify!.nonces.remember(verified.jobId, verified.clientNonce);
         (req as GatedRequest).verified = verified;
         next();

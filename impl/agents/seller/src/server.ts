@@ -15,6 +15,7 @@ import { SellerError, sendError } from "./errors.js";
 import { PayloadTooLarge, parseJsonBody, rawBody, type RawRequest } from "./rawBody.js";
 import { PAID_ROUTES, TOKEN_DECIMALS, routeFor } from "./pricing.js";
 import { BadRequest, classify, serialise, summarise } from "./routes/deterministic.js";
+import type { RequestHandler } from "express";
 import { formatAtomic } from "@agenttrust/core";
 
 export interface SellerAppOptions {
@@ -31,6 +32,12 @@ export interface SellerAppOptions {
   gated: boolean;
   /** Installed by API-002..005. Runs before any paid handler. */
   paymentGate?: (req: RawRequest, res: Response, next: NextFunction) => void;
+  /**
+   * API-005's delivery handler. When present it replaces the ungated handlers, so the
+   * claim store is the only path to the resource and "one execution per job" cannot be
+   * bypassed by a route that forgot to use it.
+   */
+  deliver?: RequestHandler;
 }
 
 export const INTEROPERABILITY_NOTE =
@@ -94,21 +101,26 @@ export function createApp(options: SellerAppOptions): Express {
     for (const route of PAID_ROUTES) app.post(route.path, options.paymentGate);
   }
 
-  app.post("/v1/summarise", (req: Request, res: Response, next: NextFunction) => {
-    try {
-      sendDeterministic(res, summarise(parseJsonBody(req as RawRequest)));
-    } catch (error) {
-      next(error);
-    }
-  });
+  if (options.deliver) {
+    // One path to the resource, and it goes through the claim store.
+    for (const route of PAID_ROUTES) app.post(route.path, options.deliver);
+  } else {
+    app.post("/v1/summarise", (req: Request, res: Response, next: NextFunction) => {
+      try {
+        sendDeterministic(res, summarise(parseJsonBody(req as RawRequest)));
+      } catch (error) {
+        next(error);
+      }
+    });
 
-  app.post("/v1/classify", (req: Request, res: Response, next: NextFunction) => {
-    try {
-      sendDeterministic(res, classify(parseJsonBody(req as RawRequest)));
-    } catch (error) {
-      next(error);
-    }
-  });
+    app.post("/v1/classify", (req: Request, res: Response, next: NextFunction) => {
+      try {
+        sendDeterministic(res, classify(parseJsonBody(req as RawRequest)));
+      } catch (error) {
+        next(error);
+      }
+    });
+  }
 
   // --------------------------------------------------------------------- fallback
 

@@ -1,0 +1,82 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/seller
+
+ ✓ test/verify.test.ts > a genuinely funded request is served > delivers the deterministic result 169ms
+ ✓ test/verify.test.ts > resource binding > refuses a job funded for the sibling route 127ms
+ ✓ test/verify.test.ts > resource binding > refuses a body mutated by one byte 128ms
+ ✓ test/verify.test.ts > resource binding > refuses a body that only differs in whitespace 122ms
+ ✓ test/verify.test.ts > resource binding > accepts reordered query parameters, because canonicalisation sorts them 38ms
+ ✓ test/verify.test.ts > deadline margin > refuses a job with too little time left 121ms
+ ✓ test/verify.test.ts > failing closed > returns 503 when the chain cannot be read, and never a grant 594ms
+ ✓ test/verify.test.ts > failing closed > refuses a job that does not exist 9ms
+ ✓ test/verify.test.ts > failing closed > refuses a job whose validator this seller will not work with 135ms
+ ✓ test/verify.test.ts > failing closed > refuses a job that pays a different agent 127ms
+ ✓ test/verify.test.ts > confirmations > refuses with 425 until the funding has enough confirmations 123ms
+ ✓ test/verify.test.ts > confirmations > serves once the requirement is met 132ms
+ ✓ test/verify.test.ts > check order > decides everything it can locally before touching the chain 3ms
+(node:220974) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ test/claim.test.ts > the store itself > grants exactly one claim and then reports busy 19ms
+ ✓ test/claim.test.ts > the store itself > serves a replay once a result exists, forever 14ms
+ ✓ test/claim.test.ts > the store itself > allows a retry after a failure, up to the limit, then gives up 11ms
+ ✓ test/claim.test.ts > the store itself > lets another process take over an expired lease, but only with no result 11ms
+ ✓ test/claim.test.ts > the store itself > refuses a duplicate client nonce through the UNIQUE constraint 10ms
+ ✓ test/claim.test.ts > the store itself > warns about a /mnt/ path and still runs 11ms
+ ✓ test/claim.test.ts > persistence across a restart > a result stored before a crash is replayed, never re-executed 12ms
+ ✓ test/claim.test.ts > persistence across a restart > a claim with no result is retried, and only one result ever lands 18ms
+ ✓ test/claim.test.ts > end to end over HTTP > executes once and replays afterwards, with the disposition saying which 194ms
+ ✓ test/claim.test.ts > end to end over HTTP > refuses the replay under the strict policy 161ms
+ ✓ test/claim.test.ts > end to end over HTTP > serves 50 concurrent authenticated retries with exactly one execution 362ms
+ ✓ test/auth.test.ts > no signature > quotes rather than forbidding 18ms
+ ✓ test/auth.test.ts > a signature from someone who is not the payer > is refused, even though the jobId is public 171ms
+ ✓ test/auth.test.ts > a signature from someone who is not the payer > is still refused when the thief replays the payer's own signature verbatim 134ms
+ ✓ test/auth.test.ts > expiry > refuses a signature that has already expired 124ms
+ ✓ test/auth.test.ts > expiry > refuses a signature that outlives the job deadline 124ms
+ ✓ test/auth.test.ts > a signature for a different seller > is refused, and is indistinguishable from a forged one 130ms
+ ✓ test/auth.test.ts > a signature over a different resource > is refused, because the seller signs over what it derived itself 128ms
+ ✓ test/auth.test.ts > malformed signatures > refuses garbage without reaching the chain 12ms
+ ✓ test/quote.test.ts > 402 quote > answers an unpaid request with a decodable v2 PaymentRequired 25ms
+ ✓ test/quote.test.ts > 402 quote > offers the project scheme on the configured chain, in atomic units 7ms
+ ✓ test/quote.test.ts > 402 quote > a buyer's selector accepts the offer 5ms
+ ✓ test/quote.test.ts > 402 quote > quotes both paid siblings at the same price 9ms
+ ✓ test/quote.test.ts > 402 quote > uses the configured origin in the resource url, never the Host header 4ms
+ ✓ test/quote.test.ts > 402 quote > sets no-store on the 402 as well as the 200 4ms
+ ✓ test/quote.test.ts > 402 quote > does not serve the resource with the 402 3ms
+ ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > equals previewPayee, which is what the escrow will snapshot 6ms
+ ✓ test/quote.test.ts > payTo comes from the registry, not from configuration > follows the agent when the NFT is transferred, because agentWallet is cleared 238ms
+ ✓ test/quote.test.ts > no settlement is reachable from the request path > presents a payment and is refused, not served, until API-003..005 exist 3ms
+ ✓ test/quote.test.ts > no settlement is reachable from the request path > carries no x402 settlement dependency at all 3ms
+ ✓ test/quote.test.ts > quote identifier > differs between the two paid routes, and over time 0ms
+ ✓ test/fixtures.test.ts > determinism > returns byte-identical output for the same input, every time 4ms
+ ✓ test/fixtures.test.ts > determinism > serialises with sorted keys, so object construction order cannot leak in 0ms
+ ✓ test/fixtures.test.ts > determinism > uses no clock, randomness or network 0ms
+ ✓ test/fixtures.test.ts > determinism > scores with integers, so no platform rounding can reorder sentences 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps terminators and trims 1ms
+ ✓ test/fixtures.test.ts > splitSentences > does not split a decimal or an abbreviation mid-token 0ms
+ ✓ test/fixtures.test.ts > splitSentences > keeps a tail with no terminator 0ms
+ ✓ test/fixtures.test.ts > splitSentences > returns nothing for empty or whitespace input 0ms
+ ✓ test/fixtures.test.ts > tokenise > lowercases and drops punctuation 0ms
+ ✓ test/fixtures.test.ts > classify > picks the label with the most keyword hits 0ms
+ ✓ test/fixtures.test.ts > classify > breaks ties by label order, never by object key order 0ms
+ ✓ test/fixtures.test.ts > classify > rejects a bad request rather than guessing 1ms
+ ✓ test/fixtures.test.ts > pricing > prices both paid siblings identically 0ms
+ ✓ test/fixtures.test.ts > pricing > keeps the price a bigint in atomic units 0ms
+ ✓ test/fixtures.test.ts > HTTP surface > serves health and the agent card without payment 18ms
+ ✓ test/fixtures.test.ts > HTTP surface > states the interoperability position on the help route 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > sets no-store on every paid response 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > makes the raw bytes available unparsed 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > returns byte-identical responses to repeated identical requests 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects a malformed body with 400, not 500 4ms
+ ✓ test/fixtures.test.ts > HTTP surface > rejects an oversized body before buffering it 3ms
+ ✓ test/fixtures.test.ts > HTTP surface > tells a GET on a paid route it needs POST 2ms
+ ✓ test/fixtures.test.ts > HTTP surface > treats route case and trailing slashes as distinct 3ms
+ ✓ test/fixtures.test.ts > the gate cannot be forgotten > refuses to build a gated app without a gate 0ms
+
+ Test Files  5 passed (5)
+      Tests  68 passed (68)
+   Start at  12:22:06
+   Duration  70.88s (import 92%, tests 7%, transform 1%)
+
+    Isolate  5 workers spawned · ~898ms startup each (spawn + environment, per file)
+             at least ~3.59s faster with isolate: false — reuses workers across files instead of one per file
+

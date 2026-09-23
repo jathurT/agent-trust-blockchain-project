@@ -6,7 +6,7 @@
  *   bash impl/scripts/deploy.sh local
  */
 import { readFileSync } from "node:fs";
-import { createWalletClient, http, keccak256, parseAbi, toHex, type Address, type Hex } from "viem";
+import { createWalletClient, http, keccak256, parseAbi, parseEventLogs, toHex, type Address, type Hex } from "viem";
 import { mnemonicToAccount, type HDAccount } from "viem/accounts";
 import {
   canonicalUri,
@@ -84,8 +84,16 @@ export async function buildWorld(): Promise<World> {
     args: [`${ORIGIN}/.well-known/agent-card`],
   });
   const receipt = await chain.client.waitForTransactionReceipt({ hash: registerTx });
-  const registered = receipt.logs.find((l) => l.topics.length >= 2);
-  const agentId = BigInt(registered?.topics[1] ?? "0x0");
+  // Decode by event signature, not by log position. `register()` emits ERC-721
+  // `Transfer` first, and its topics[1] is `from` = address(0) -- so picking the first
+  // log with two topics silently yields agentId 0 for every registration. Every suite
+  // was doing that and passing, because they all endorsed agent 0 as well.
+  const registeredLogs = parseEventLogs({
+    abi: parseAbi(["event Registered(uint256 indexed agentId, string agentURI, address indexed owner)"]),
+    logs: receipt.logs,
+  });
+  const agentId = registeredLogs[0]?.args.agentId;
+  if (agentId === undefined) throw new Error("register() emitted no Registered event");
 
   // The deployment pins minDistinctFloor = 1, so the agent needs one endorsement from
   // an address the buyer trusts before anything can be funded for it.
