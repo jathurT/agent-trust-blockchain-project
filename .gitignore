@@ -38,3 +38,6 @@ impl/attacks/results/**/raw/
 
 # vendored Solidity dependencies (re-install with impl/scripts/install-deps.sh)
 impl/contracts/lib/
+
+# local devnet deployment: regenerated on every anvil start
+deployments/31337.json

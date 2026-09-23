@@ -1,0 +1,85 @@
+No files changed, compilation skipped
+Warning: Detected artifacts built from source files that no longer exist. Run `forge clean` to make sure builds are in sync with project files.
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper46.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper65.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper67.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper64.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper58.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper57.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper73.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper66.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper68.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper75.sol
+ - /mnt/d/8th Sem/Blockchain_Project/impl/contracts/foundry-pp/DeployHelper63.sol
+Script ran successfully.
+
+== Return ==
+escrow: contract AgentTrustEscrow 0x610178dA211FEF7D417bC0e6FeD39F05609AD788
+cfg: struct Deploy.Config Config({ identityRegistry: 0x0165878A594ca255338adfa4d48449f69242Eb8F, reputationRegistry: 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853, validationRegistry: 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6, token: 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318, minTtl: 600, maxTtl: 86400 [8.64e4], grace: 900, maxTrustedClients: 10, reputationReadGas: 250000 [2.5e5], deployedMocks: true })
+
+== Logs ==
+  escrow      0x610178dA211FEF7D417bC0e6FeD39F05609AD788
+  registries  0x0165878A594ca255338adfa4d48449f69242Eb8F (mocks: true)
+  written     deployments/31337.json
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 31337
+
+Estimated max fee per gas: 2.000000001 gwei
+Estimated base fee per gas: 1 gwei
+Estimated max priority fee per gas: 0.000000001 gwei
+
+Estimated total gas used for script: 11485071
+
+Estimated amount required: 0.022970142011485071 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /mnt/d/8th Sem/Blockchain_Project/impl/contracts/broadcast/Deploy.s.sol/31337/run-latest.json
+
+Sensitive values saved to: /mnt/d/8th Sem/Blockchain_Project/impl/contracts/cache/Deploy.s.sol/31337/run-latest.json
+
+
+deployments/31337.json:
+{
+  "block": 2,
+  "chainId": 31337,
+  "commit": "beb321420c2e8bc159b8dbdbad049f871c773cb9",
+  "escrow": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+  "graceSeconds": 900,
+  "identityRegistry": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+  "maxTrustedClients": 10,
+  "maxTtlSeconds": 86400,
+  "minTtlSeconds": 600,
+  "mockRegistries": true,
+  "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "reputationReadGas": 250000,
+  "reputationRegistry": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+  "token": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+  "validationRegistry": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+  "deployTx": "0x7d3410d921076274608f4d1984e4f9e17b0ddcaf5dbb4f68bfa2c8db927977a8",
+  "deployer": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+  "deployedAt": "2026-09-23T02:21:36Z"
+}
+
+smoke check:
+  owner             0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+  minTtl/maxTtl     600 / 86400 [8.64e4]
+  grace             900
+  passThreshold     100
+  token allowed     true
+  identityRegistry  0x0165878A594ca255338adfa4d48449f69242Eb8F
+81 entries  AgentTrustEscrow
+42 entries  MockUSDC
+63 entries  IdentityRegistry (pinned upstream, REG-001)
+35 entries  ReputationRegistry (pinned upstream, REG-001)
+31 entries  ValidationRegistry (pinned upstream, REG-001)
+exported to impl/packages/core/abi/

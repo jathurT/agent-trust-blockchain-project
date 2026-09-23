@@ -739,12 +739,16 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-017 — Deploy script and ABI export
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.75 h · **Actual:** ~0.6 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** One script that deploys locally and to testnet, writes addresses, and exports ABIs for the TypeScript and Python clients.
 - **Refs:** App. B, §16 · IR-06, OR-07 · Depends: CONTRACT-010, REG-002…004
 - **Steps:** 1) `script/Deploy.s.sol` deploying mocks (or wiring live registry addresses) plus the escrow with constructor parameters from env. 2) Write `deployments/<network>.json` (addresses, block, commit, constructor args). 3) Export ABIs to `impl/packages/core/abi/`. 4) Keystore-based signing; never a raw key on the command line.
-- **Acceptance:** a local run produces a working deployment file consumed by the seller, buyer and validator; re-running is idempotent or clearly versioned.
-- **Verify:** `forge script script/Deploy.s.sol --rpc-url $LOCAL` then start the services against it → `evidence/CONTRACT-017/`
+- **Acceptance:** a local run produces a working deployment file ✔ (`evidence/CONTRACT-017/local-deploy.log`: escrow at block 2, tx recorded, smoke check reads owner / TTL bounds / grace / PASS_THRESHOLD / token allowlist / registry back off the chain). "Consumed by the services" is **not yet demonstrable** — the seller, buyer and validator do not exist until API-001/AGENT-001/VAL-001, and INT-001 is where that is actually proved.
+- **Verify:** `impl/scripts/deploy.sh local` → `evidence/CONTRACT-017/local-deploy.log`
+- **Outcome:** `script/Deploy.s.sol` deploys the three mocks plus a mock token when no registry addresses are set, and wires the live ones when they are — refusing a mixture, since a deployment that paired a live registry with a mock would be a trap. Parameters come from the environment with the §6.8 defaults. Signing is by keystore account or Anvil's unlocked accounts; **no private key is ever a command-line argument**.
+  `impl/scripts/deploy.sh` wraps it because `forge script` records the block it *simulated* against, not the block the broadcast landed in — on a fresh chain that is block 0. The wrapper patches in the real block, transaction hash, deployer and timestamp from the broadcast receipt, runs the smoke check, and re-exports the ABIs.
+  `impl/scripts/export-abi.sh` writes `impl/packages/core/abi/`: the escrow and token from the compiled artifacts, and the three ERC-8004 ABIs copied from the **pinned upstream** files (REG-001) rather than from the mocks, so the same client code drives mocks and live registries.
+  `deployments/31337.json` is git-ignored (regenerated on every devnet start); real network files are tracked. `mockRegistries` is recorded in every file and must never be `true` in anything presented as a testnet result.
 
 ### CONTRACT-018 — Additional invariants
 

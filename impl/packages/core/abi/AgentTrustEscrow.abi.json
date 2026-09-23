@@ -1,0 +1,1503 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "identityRegistry_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "reputationRegistry_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "validationRegistry_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint64",
+        "name": "minTtl_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "maxTtl_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "grace_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint16",
+        "name": "maxTrustedClients_",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint64",
+        "name": "reputationReadGas_",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "FEEDBACK_TAG",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MIN_REPUTATION_READ_GAS",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PASS_THRESHOLD",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "acceptOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "salt",
+        "type": "bytes32"
+      }
+    ],
+    "name": "bindValidation",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "requestHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "confirmValidation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "consumedNonce",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "payeeAgentId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "methodHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "uriHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "bodyHash",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct AgentTrustEscrow.ResourceRef",
+        "name": "resource",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "nonce",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "ttlSeconds",
+        "type": "uint64"
+      },
+      {
+        "internalType": "address",
+        "name": "validator",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address[]",
+            "name": "trustedClients",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint16",
+            "name": "minDistinct",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint64",
+            "name": "minCount",
+            "type": "uint64"
+          },
+          {
+            "internalType": "int128",
+            "name": "minAvgValue",
+            "type": "int128"
+          }
+        ],
+        "internalType": "struct AgentTrustEscrow.GatePolicy",
+        "name": "gate",
+        "type": "tuple"
+      }
+    ],
+    "name": "fund",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "grace",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "identityRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IIdentityRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isRefundable",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isReleasable",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "jobState",
+    "outputs": [
+      {
+        "internalType": "enum AgentTrustEscrow.State",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "jobs",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "payer",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "payee",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "payeeAgentId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "validator",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "resourceHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "requestHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "fundedAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "deadline",
+            "type": "uint64"
+          },
+          {
+            "internalType": "enum AgentTrustEscrow.State",
+            "name": "state",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "validationRecorded",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct AgentTrustEscrow.Job",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxTrustedClients",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxTtl",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minAvgValueFloor",
+    "outputs": [
+      {
+        "internalType": "int128",
+        "name": "",
+        "type": "int128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minCountFloor",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minDistinctFloor",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minTtl",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pendingOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "payee",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "resourceHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "nonce",
+        "type": "bytes32"
+      }
+    ],
+    "name": "previewJobId",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "agentId",
+        "type": "uint256"
+      }
+    ],
+    "name": "previewPayee",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "salt",
+        "type": "bytes32"
+      }
+    ],
+    "name": "previewRequestHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "methodHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "uriHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "bodyHash",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct AgentTrustEscrow.ResourceRef",
+        "name": "resource",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "previewResourceHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "refund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "release",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reputationReadGas",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reputationRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IReputationRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "minDistinct_",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint64",
+        "name": "minCount_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "int128",
+        "name": "minAvgValue_",
+        "type": "int128"
+      }
+    ],
+    "name": "setGateFloors",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "grace_",
+        "type": "uint64"
+      }
+    ],
+    "name": "setGrace",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "maxTrustedClients_",
+        "type": "uint16"
+      }
+    ],
+    "name": "setMaxTrustedClients",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "reputationReadGas_",
+        "type": "uint64"
+      }
+    ],
+    "name": "setReputationReadGas",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "setTokenAllowed",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "minTtl_",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "maxTtl_",
+        "type": "uint64"
+      }
+    ],
+    "name": "setTtlBounds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "tokenAllowed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "validationRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IValidationRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "minDistinct",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "minCount",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "int128",
+        "name": "minAvgValue",
+        "type": "int128"
+      }
+    ],
+    "name": "GateFloorsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "grace",
+        "type": "uint64"
+      }
+    ],
+    "name": "GraceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payee",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "payeeAgentId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "validator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "resourceHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "deadline",
+        "type": "uint64"
+      }
+    ],
+    "name": "JobFunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "JobRefunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payee",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "JobReleased",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "maxTrustedClients",
+        "type": "uint16"
+      }
+    ],
+    "name": "MaxTrustedClientsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferStarted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "reputationReadGas",
+        "type": "uint64"
+      }
+    ],
+    "name": "ReputationReadGasUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "name": "TokenAllowed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "minTtl",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "maxTtl",
+        "type": "uint64"
+      }
+    ],
+    "name": "TtlBoundsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "requestHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "payee",
+        "type": "address"
+      }
+    ],
+    "name": "ValidationBound",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "requestHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "response",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lastUpdate",
+        "type": "uint256"
+      }
+    ],
+    "name": "ValidationRecorded",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "requestHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "AlreadyBound",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "enum AgentTrustEscrow.State",
+        "name": "state",
+        "type": "uint8"
+      }
+    ],
+    "name": "BadState",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "nowTs",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "refundableAt",
+        "type": "uint64"
+      }
+    ],
+    "name": "DeadlineNotReached",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "client",
+        "type": "address"
+      }
+    ],
+    "name": "DuplicateTrustedClient",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "available",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "required",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientGasForReputationRead",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTtlBounds",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "validator",
+        "type": "address"
+      }
+    ],
+    "name": "InvalidValidator",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "JobAlreadyExists",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "NotBound",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "payee",
+        "type": "address"
+      }
+    ],
+    "name": "NotPayee",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "NotValidated",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "nonce",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ReplayedNonce",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "given",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "min",
+        "type": "uint64"
+      }
+    ],
+    "name": "ReputationReadGasTooLow",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum AgentTrustEscrow.GateDimension",
+        "name": "dimension",
+        "type": "uint8"
+      },
+      {
+        "internalType": "int256",
+        "name": "observed",
+        "type": "int256"
+      },
+      {
+        "internalType": "int256",
+        "name": "required",
+        "type": "int256"
+      }
+    ],
+    "name": "ReputationTooLow",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "requestHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "RequestMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "TokenNotAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "given",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "max",
+        "type": "uint16"
+      }
+    ],
+    "name": "TooManyTrustedClients",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expected",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "received",
+        "type": "uint256"
+      }
+    ],
+    "name": "TransferAmountMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "ttlSeconds",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "minTtl",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "maxTtl",
+        "type": "uint64"
+      }
+    ],
+    "name": "TtlOutOfBounds",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "UnknownJob",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ValidationExists",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroTrustedClient",
+    "type": "error"
+  }
+]

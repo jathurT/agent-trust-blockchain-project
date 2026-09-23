@@ -51,6 +51,13 @@ check allow "impl/contracts/abi/x.abi.json"   "[{\"h\":\"$HASH\"}]"
 check allow "impl/scripts/s.sh"               "SLOT=$SLOT"
 check allow "src/b.sol"                       "bytes32 constant T = keccak256(\"Foo(uint256 a)\");"
 check allow "docs/notes.md"                   "the anvil mnemonic is test test test test test test test test test test test junk"
+check allow "evidence/DEPLOY-001/run.log"     "deployTx $HASH"
+check allow "deployments/84532.json"          "{\"deployTx\": \"$HASH\"}"
+
+echo "must block even in an exempt path:"
+check block "evidence/DEPLOY-001/run.log"     "PRIVATE_KEY=$KEY"
+check block "evidence/DEPLOY-001/run.log"     "forge script --private-key $KEY"
+check block "impl/vectors/canonical-v1.json"  "$PEM"
 
 echo
 echo "$pass passed, $failn failed"

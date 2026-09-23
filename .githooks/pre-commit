@@ -16,13 +16,24 @@ staged=$(git diff --cached --name-only --diff-filter=ACM)
 [ -z "$staged" ] && exit 0
 fail=0
 
-# Generated artifacts whose whole purpose is to carry hashes. Each is produced by a
-# committed script from public inputs, so a secret cannot legitimately arrive here.
+# Paths where 32-byte hex values are the normal content, so the broad scan below is
+# skipped for them. The targeted rules (PEM blocks, key-shaped assignments, literal
+# --private-key arguments) still apply everywhere, including here.
+#
+# The residual risk is a bare 64-hex private key pasted into one of these with no
+# surrounding context. It is accepted knowingly: a transaction hash, a block hash and
+# a private key are structurally identical, evidence logs and vector files are full of
+# the first two, and a rule that fires on all of them gets bypassed with --no-verify —
+# which is how the SPEC-001 commit got through. DOC-009 runs a proper entropy-based
+# scanner over the whole history before anything is published; that is the deep check,
+# this hook is the accident-catcher.
 is_hash_artifact() {
   case "$1" in
     impl/vectors/*.json) return 0;;
     impl/contracts/abi/*) return 0;;
+    impl/packages/core/abi/*) return 0;;
     deployments/*.json) return 0;;
+    evidence/*.log|evidence/*/*.log|evidence/*/*/*.log) return 0;;
     *) return 1;;
   esac
 }
