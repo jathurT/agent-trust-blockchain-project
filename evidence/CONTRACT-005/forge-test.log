@@ -1,0 +1,34 @@
+No files changed, compilation skipped
+
+Ran 21 tests for test/Gate.t.sol:GateTest
+[PASS] test_ABuyerCannotAskForLessThanTheOwnerFloor() (gas: 1029475)
+[PASS] test_ABuyerMayBeStricterThanTheFloor() (gas: 363514)
+[PASS] test_AHugeHistoryDoesNotPreventFunding() (gas: 48904776)
+[PASS] test_AgentWithTrustedFeedbackPasses() (gas: 750402)
+[PASS] test_AverageDimensionIsReported() (gas: 507417)
+[PASS] test_AverageIsWeightedByEntryCount() (gas: 1530389)
+[PASS] test_CountDimensionIsReported() (gas: 506290)
+[PASS] test_CrossEndorsingSybilsDoNotHelp() (gas: 1581639)
+[PASS] test_DeployingWithTooSmallAReadCeilingReverts() (gas: 16332)
+[PASS] test_DifferentValueDecimalsAreNormalised() (gas: 750381)
+[PASS] test_DuplicateTrustedClientReverts() (gas: 295816)
+[PASS] test_FeedbackUnderAnotherTagDoesNotCount() (gas: 488365)
+[PASS] test_GasAgainstHistoryLength() (gas: 13646260)
+Logs:
+  getSummary entries=1 gas=28087
+  getSummary entries=5 gas=62440
+  getSummary entries=20 gas=191267
+  getSummary entries=50 gas=448932
+  getSummary entries=100 gas=878402
+
+[PASS] test_NegativeFeedbackCanFailTheGate() (gas: 507782)
+[PASS] test_OnlyTheOwnerSetsFloorsAndTheReadCeiling() (gas: 60742)
+[PASS] test_OverLongClientListReverts() (gas: 75938)
+[PASS] test_RevokedFeedbackDoesNotCount() (gas: 541295)
+[PASS] test_StarvingTheReadsOfGasRevertsInsteadOfSkippingTheGate() (gas: 460492)
+[PASS] test_TheOwnerCannotSetTheReadCeilingBelowTheFloor() (gas: 74717)
+[PASS] test_TheSameAgentFailsWhenTheFeedbackIsFromStrangers() (gas: 656865)
+[PASS] test_ZeroTrustedClientReverts() (gas: 70374)
+Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 38.97ms (58.16ms CPU time)
+
+Ran 1 test suite in 47.27ms (38.97ms CPU time): 21 tests passed, 0 failed, 0 skipped (21 total tests)

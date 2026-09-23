@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {AgentTrustEscrow} from "../src/AgentTrustEscrow.sol";
 import {CanonicalHash} from "../src/CanonicalHash.sol";
 import {MockIdentityRegistry} from "../src/mocks/MockIdentityRegistry.sol";
+import {MockReputationRegistry} from "../src/mocks/MockReputationRegistry.sol";
 import {MockUSDC} from "../src/mocks/MockUSDC.sol";
 import {FeeOnTransferToken, ReentrantToken, RevertingToken} from "../src/mocks/AdversarialTokens.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -15,6 +16,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract FundTest is Test {
     AgentTrustEscrow internal escrow;
     MockIdentityRegistry internal identity;
+    MockReputationRegistry internal reputation;
     MockUSDC internal usdc;
 
     address internal owner = makeAddr("owner");
@@ -28,6 +30,7 @@ contract FundTest is Test {
     uint64 internal constant MIN_TTL = 10 minutes;
     uint64 internal constant MAX_TTL = 24 hours;
     uint16 internal constant MAX_TRUSTED = 10;
+    uint64 internal constant READ_GAS = 250_000;
     uint256 internal constant PRICE = 250_000; // 0.25 USDC, 6 decimals
 
     bytes32 internal constant METHOD_HASH = keccak256("POST");
@@ -37,12 +40,15 @@ contract FundTest is Test {
 
     function setUp() public {
         identity = new MockIdentityRegistry();
+        reputation = new MockReputationRegistry(address(identity));
         usdc = new MockUSDC();
 
         vm.prank(seller);
         sellerAgentId = identity.register("https://seller.example/agent.json");
 
-        escrow = new AgentTrustEscrow(owner, address(identity), MIN_TTL, MAX_TTL, MAX_TRUSTED);
+        escrow = new AgentTrustEscrow(
+            owner, address(identity), address(reputation), MIN_TTL, MAX_TTL, MAX_TRUSTED, READ_GAS
+        );
         vm.prank(owner);
         escrow.setTokenAllowed(address(usdc), true);
 
@@ -400,7 +406,7 @@ contract FundTest is Test {
         address escrowAt = vm.parseJsonAddress(json, string.concat(base, ".input.escrow"));
         deployCodeTo(
             "AgentTrustEscrow.sol:AgentTrustEscrow",
-            abi.encode(owner, address(identity), MIN_TTL, MAX_TTL, MAX_TRUSTED),
+            abi.encode(owner, address(identity), address(reputation), MIN_TTL, MAX_TTL, MAX_TRUSTED, READ_GAS),
             escrowAt
         );
 
