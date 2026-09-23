@@ -1,0 +1,96 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/packages/core
+
+ ✓ test/x402.test.ts > CAIP-2 > round-trips a chain id 3ms
+ ✓ test/x402.test.ts > CAIP-2 > rejects the deprecated v1 network name 1ms
+ ✓ test/x402.test.ts > decodePaymentRequired > accepts a well-formed quote 1ms
+ ✓ test/x402.test.ts > decodePaymentRequired > rejects an amount written as a decimal 0ms
+ ✓ test/x402.test.ts > decodePaymentRequired > rejects a non-address payTo and asset 1ms
+ ✓ test/x402.test.ts > decodePaymentRequired > rejects a v1 envelope 0ms
+ ✓ test/x402.test.ts > decodePaymentRequired > rejects malformed base64 and JSON 1ms
+ ✓ test/x402.test.ts > selectRequirements > returns the matching offer 1ms
+ ✓ test/x402.test.ts > selectRequirements > refuses an offer on another chain, in another token, or over the price limit 1ms
+ ✓ test/x402.test.ts > selectRequirements > refuses a stock x402 scheme 0ms
+ ✓ test/x402.test.ts > selectRequirements > says which part did not match 1ms
+ ✓ test/x402.test.ts > decodePaymentPayload > accepts a well-formed retry 1ms
+ ✓ test/x402.test.ts > decodePaymentPayload > rejects a jobId, nonce or signature of the wrong shape 1ms
+ ✓ test/x402.test.ts > decodePaymentPayload > rejects a non-numeric or absent expiry 1ms
+ ✓ test/x402.test.ts > decodePaymentPayload > rejects a foreign scheme even when everything else is well formed 0ms
+ ✓ test/x402.test.ts > decodePaymentPayload > tolerates a missing fundTxHash, which is advisory 0ms
+ ✓ test/x402.test.ts > decodePaymentPayload > never throws something other than X402Error on hostile input 0ms
+ ✓ test/amounts.test.ts > parseAtomic > parses whole and fractional amounts 3ms
+ ✓ test/amounts.test.ts > parseAtomic > keeps precision a float would lose 0ms
+ ✓ test/amounts.test.ts > parseAtomic > refuses to round rather than silently truncating 1ms
+ ✓ test/amounts.test.ts > parseAtomic > rejects anything that is not a decimal number 1ms
+ ✓ test/amounts.test.ts > parseAtomic > handles a zero-decimal token 0ms
+ ✓ test/amounts.test.ts > formatAtomic > round-trips through parseAtomic 1ms
+ ✓ test/amounts.test.ts > formatAtomic > pads amounts smaller than one unit 0ms
+ ✓ test/amounts.test.ts > wire encoding > treats wire amounts as atomic units, not decimals 0ms
+ ✓ test/amounts.test.ts > wire encoding > rejects a decimal point on the wire 1ms
+ ✓ test/amounts.test.ts > wire encoding > survives amounts beyond Number.MAX_SAFE_INTEGER 0ms
+ ✓ test/config.test.ts > config loading > accepts a complete chain configuration and applies fallbacks 3ms
+ ✓ test/config.test.ts > config loading > reports every problem at once rather than the first 1ms
+ ✓ test/config.test.ts > config loading > refuses a value that looks like a private key 1ms
+ ✓ test/config.test.ts > config loading > rejects an origin that carries a path or query 0ms
+ ✓ test/config.test.ts > config loading > validates every entry of an address list 0ms
+ ✓ test/config.test.ts > config loading > warns, but does not fail, when the claim store sits on a Windows drive 1ms
+ ✓ test/config.test.ts > config loading > defaults the replay policy to idempotent, the policy measurements use 0ms
+ ✓ test/canonical.test.ts > vector file > is canonical-v1 and non-empty 2ms
+ ✓ test/canonical.test.ts > vector file > agrees on the three type hashes 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > simple_get: baseline GET, default port omitted 1ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > post_json_body: the normal paid call 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > empty_body: empty body hashes keccak256('') 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > binary_body: body is raw bytes, not text 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > unicode_path: UTF-8 path bytes hashed as received after normalisation 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > percent_case_normalised: %2f -> %2F, hex digits uppercased 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > unreserved_decoded: %7E is unreserved, so it decodes to ~ 1ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > query_sorted_distinct_keys: ?b=2&a=1 sorts to a=1&b=2 1ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > query_sorted_distinct_keys_other_order: must hash identically to the previous case 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > query_duplicate_keys: duplicates sort by value; input order is NOT preserved 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > query_duplicate_keys_other_order: must hash identically to the previous case 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > query_plus_is_literal: '+' is a literal plus, not a space; it re-encodes to %2B 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > query_empty_value: a key with an empty value keeps its '=' 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > explicit_non_default_port: non-default port is kept 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > default_http_port_omitted: port 80 on http is dropped 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > trailing_slash_is_significant: /v1/summarise/ differs from /v1/summarise 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > dot_segments_resolved: /v1/x/../summarise resolves before hashing 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > empty_path_becomes_root: an empty path is '/' 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > fragment_stripped: fragments never reach the server 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > large_body: 4 KiB body, no truncation anywhere 1ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > sibling_resource_classify: the equal-priced A3 sibling of /v1/summarise 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > orderings that must collide, do 0ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > a trailing slash is a different resource 1ms
+ ✓ test/canonical.test.ts > layer A — canonicalisation > rejects an unusable method and scheme instead of guessing 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > post_json_body__amount250000__chain84532: baseline paid call, 0.25 USDC on Base Sepolia 2ms
+ ✓ test/canonical.test.ts > layer B — hashing > sibling_resource_classify__amount250000__chain84532: same price, different resource -> different hash (A3) 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > post_json_body__amount250001__chain84532: one atomic unit more -> different hash 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > post_json_body__amount250000__chain84532: different token -> different hash 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > post_json_body__amount250000__chain31337: different chain -> different hash 0ms
+ ✓ test/canonical.test.ts > layer B — hashing > empty_body__amount1__chain31337: minimum amount, empty body, local chain 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > simple_get__amount250000__chain84532: GET with no body 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > query_duplicate_keys__amount250000__chain84532: duplicate query keys after sorting 1ms
+ ✓ test/canonical.test.ts > layer B — hashing > large_body__amount999999999999__chain84532: large body and large amount 1ms
+ ✓ test/canonical.test.ts > EIP-712 typed data > DeliveryRequest digest (signed by the payer) 2ms
+ ✓ test/canonical.test.ts > EIP-712 typed data > DeliveryReceipt digest (signed by the seller payee wallet) 1ms
+ ✓ test/canonical.test.ts > EIP-712 typed data > EvidenceAccess digest (signed by the payer) 0ms
+ ✓ test/abi.test.ts > declared ABI matches the exported artifacts > escrow 4ms
+ ✓ test/abi.test.ts > declared ABI matches the exported artifacts > identity registry 2ms
+ ✓ test/abi.test.ts > declared ABI matches the exported artifacts > reputation registry 2ms
+ ✓ test/abi.test.ts > declared ABI matches the exported artifacts > validation registry 2ms
+ ✓ test/abi.test.ts > return shapes the services depend on > jobs() returns the struct in the field order src/abi.ts declares 2ms
+ ✓ test/abi.test.ts > return shapes the services depend on > the ERC-8004 ABIs are the pinned upstream ones, not the mocks 6ms
+ ✓ test/chain.test.ts > chain client against a live node > verifies the configured chain id and refuses a mismatch 5ms
+ ✓ test/chain.test.ts > chain client against a live node > reads a funded job back with every field typed as a bigint or address 122ms
+ ✓ test/chain.test.ts > chain client against a live node > returns undefined for a job that does not exist, rather than throwing 9ms
+ ✓ test/chain.test.ts > chain client against a live node > throws ChainUnavailable when the node is unreachable 909ms
+ ✓ test/chain.test.ts > chain client against a live node > counts confirmations by polling and waits for more 361ms
+ ✓ test/chain.test.ts > chain client against a live node > reports zero confirmations for a transaction the node has never seen 2ms
+ ✓ test/chain.test.ts > chain client against a live node > times out rather than waiting forever for confirmations that will not come 414ms
+ ✓ test/chain.test.ts > chain client against a live node > finds JobFunded logs by polling a block range 120ms
+ ✓ test/chain.test.ts > chain client against a live node > chunks a wide range instead of asking for it all at once 33ms
+
+ Test Files  6 passed (6)
+      Tests  87 passed (87)
+   Start at  08:53:24
+   Duration  6.40s (import 75%, tests 19%, transform 5%, worker 1%)
+

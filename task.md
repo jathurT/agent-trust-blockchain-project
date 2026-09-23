@@ -881,12 +881,15 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### AGENT-001 — Shared TypeScript core library
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.25 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "start", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.25 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Package the SPEC-001 reference hashing with typed data, ABIs and chain access for buyer, seller and harness.
 - **Refs:** §9.1, §14.1 · FR-03, IR-05 · Depends: SPEC-001, CONTRACT-017
 - **Steps:** 1) Adopt the SPEC-001 TypeScript reference implementation of canonicalisation and `resourceHash`/`jobId`/`requestHash` (do not re-implement it). 2) EIP-712 helpers for the three structs. 3) Typed contract clients from the exported ABIs (viem 2.56.8), with **polling** watchers. 4) `bigint` atomic amounts everywhere; a decimal-string parser for display only. 5) A vector-conformance test suite.
-- **Acceptance:** 100% of `canonical-v1.json` vectors pass; no floating-point arithmetic touches an amount; watchers work over HTTP-only RPC.
-- **Verify:** `pnpm -C impl/packages/core test` → `evidence/AGENT-001/`
+- **Acceptance:** 100% of `canonical-v1.json` vectors pass ✔ (unchanged from SPEC-001); no floating-point arithmetic touches an amount ✔ (`src/amounts.ts` is `bigint` throughout, `parseAtomic` **refuses to round** rather than truncating, and `atomicFromWire` rejects a decimal point outright — "0.25" on the wire would be 0.00000025 USDC if read as atomic units); watchers work over HTTP-only RPC ✔ — proved against a live Anvil, not a mock.
+- **Verify:** `npx vitest run` in `impl/packages/core` → **87 tests** → `evidence/AGENT-001/vitest.log`.
+- **Outcome:** four new modules. `amounts.ts` (atomic units and the only bridge to human text). `abi.ts` (the contract surface as `parseAbi` signatures, because viem loses type inference through a widened JSON import — with `test/abi.test.ts` checking every signature against the exported artifacts, the same arrangement as the Solidity interfaces and REG-008). `chain.ts` (viem over HTTP with explicit polling, and a `ChainUnavailable` error so an unreachable node can never be mistaken for "no job found" — the distinction SPEC-002 turns into 503 versus 409). `x402.ts` (the SPEC-002 envelopes, with hostile-input tests).
+- **Two things the live test caught that a mock would not have.** Without the **custom errors** in the ABI, viem reports a bare 4-byte selector, so `getJob` could not tell `UnknownJob` from a broken node — all 26 errors are now declared. And the first version reused fixed nonces, so it passed exactly once against a node that outlived it; nonces are now seeded from the clock and the suite was re-run twice to prove it.
+- **It also confirmed the security review's finding #8 fix end to end:** funding with an empty gate policy is refused by the deployed escrow with `ReputationTooLow(Distinct, 0, 1)`, because `deploy.sh` now pins `minDistinctFloor = 1`. The test gives the seller one endorsement from an address the buyer trusts, which is the flow a real buyer would have.
 
 ### AGENT-002 — Deterministic buyer flow
 
