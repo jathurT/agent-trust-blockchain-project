@@ -34,17 +34,17 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 08:30):** **gate G1 reached a day early.** **29 of 134 tasks DONE** — planning (PLAN-001…006, 008), foundation (ENV-001…005, ENV-013), specs (SPEC-001), the ERC-8004 registry layer (REG-001…004, REG-008) and the **complete escrow** (CONTRACT-001/002/004/005/007/008/010/011/013/017).
+**Status (2026-09-23, 12:45):** **gates G1 and G2 both met, G2 two days early.** **38 of 134 tasks DONE** — planning, foundation, specs (SPEC-001/002), the ERC-8004 registry layer, the complete escrow, the shared TypeScript core, the seller (API-001…005), the deterministic buyer (AGENT-002) and the labelled vulnerable fixture (API-008).
 
-Local suite: **154 Solidity tests + 45 TypeScript tests**, all green; 6 invariants at 256 runs × depth 500; **97.55% line coverage** on `AgentTrustEscrow.sol`; the pinned ABI matches the deployed Base Sepolia registries (65/65 selectors).
+**327 tests across five packages**, all green: 154 Solidity + 6 invariants at 256 × 500, 87 core, 68 seller, 8 buyer end-to-end, 10 fixture. Escrow line coverage **97.55%**.
 
-**Nothing is deployed to a public chain and nothing has been measured.** No transaction has been sent to Base Sepolia, no wallet funded, no attack run. Every number above is a local test or a read-only chain query. The escrow deploys and smoke-checks on a local Anvil (`impl/scripts/deploy.sh local`).
+The headline measurement so far: **50 authenticated retries across two seller processes sharing one claim store produce exactly one execution** — 1 distinct result, 49 replays, no 5xx (`evidence/API-005/multiproc.log`). That is the defence the published A2 result calls for, and it lives in the claim store, not in the contract.
 
-The §6 security review of the payment path found a **HIGH** — `refund()` was fail-open on a validation read that ran out of gas, and a job holding a genuine passing attestation could be refunded to the buyer. It was reproduced, fixed and pinned by tests, along with eight further findings (§14).
+**Nothing is deployed to a public chain and no attack has been run.** No transaction has been sent to Base Sepolia, no wallet funded. Every number above is a local test.
 
-Next on the critical path is the seller service: **API-001…005** and **AGENT-001**, toward gate **G2 on Fri 25 Sep 23:59**.
+Next: **VAL-001…004** (the validator, and `release()` end to end) toward **G3b**, then **SEC-002/003/004**, the actual evaluation.
 
-Still blocking: **PLAN-007** sign-off on D1–D6 (defaults apply meanwhile), and **ENV-006/007** wallets and faucet ETH — the seller and validator need ETH as well as the deployer, or DEPLOY-001…003 cannot run.
+Still blocking: **PLAN-007** sign-off on D1–D6 (defaults apply meanwhile), and **ENV-006/007** wallets and faucet ETH — without them nothing reaches Base Sepolia at all.
 
 **Decisions the user already made**
 
