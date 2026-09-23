@@ -34,15 +34,20 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 12:45):** **gates G1 and G2 both met, G2 two days early.** **38 of 134 tasks DONE** — planning, foundation, specs (SPEC-001/002), the ERC-8004 registry layer, the complete escrow, the shared TypeScript core, the seller (API-001…005), the deterministic buyer (AGENT-002) and the labelled vulnerable fixture (API-008).
+**Status (2026-09-23, 17:00):** **G1, G2 and G3b all met — G3b three days early.** **47 of 134 tasks DONE**, including the whole local payment path end to end.
 
-**327 tests across five packages**, all green: 154 Solidity + 6 invariants at 256 × 500, 87 core, 68 seller, 8 buyer end-to-end, 10 fixture. Escrow line coverage **97.55%**.
+**399 tests across six packages**, all green: 154 Solidity + 6 invariants (256 × 500), 87 core, 76 seller, 8 buyer, 10 fixture, **64 Python validator**. Escrow line coverage 97.55%.
 
-The headline measurement so far: **50 authenticated retries across two seller processes sharing one claim store produce exactly one execution** — 1 distinct result, 49 replays, no 5xx (`evidence/API-005/multiproc.log`). That is the defence the published A2 result calls for, and it lives in the claim store, not in the contract.
+Two measurements worth stating precisely:
+
+- **One funded job, one execution.** 50 authenticated retries across two seller processes sharing one claim store → 1 execution, 1 distinct result, 49 replays, no 5xx (`evidence/API-005/multiproc.log`).
+- **The full path settles.** INT-001 runs discovery → quote → gate → fund → deliver → deposit → bind → attest → release with every service real, including the **Python validator in its own process**: buyer −250000, payee +250000, attestation 100, one execution. INT-002 covers both refund routes and the case where a refund must be refused.
+
+**canonical-v1 now has four independent implementations** — `cast` (Rust) generated the vectors; Solidity, TypeScript and **Python** each reproduce them, the Python one written from the spec rather than ported. That is what makes the agreement evidence.
 
 **Nothing is deployed to a public chain and no attack has been run.** No transaction has been sent to Base Sepolia, no wallet funded. Every number above is a local test.
 
-Next: **VAL-001…004** (the validator, and `release()` end to end) toward **G3b**, then **SEC-002/003/004**, the actual evaluation.
+Next: **SEC-002/003/004** — the A2 and A3 evaluation, which is **G3a** and the actual headline result.
 
 Still blocking: **PLAN-007** sign-off on D1–D6 (defaults apply meanwhile), and **ENV-006/007** wallets and faucet ETH — without them nothing reaches Base Sepolia at all.
 
@@ -1742,22 +1747,25 @@ Eight further findings were fixed in the same change, three of them worth naming
 
 ## 16. Next task
 
-**Gates G1 and G2 are both met — this is a default stopping point (CLAUDE.md §13).**
+**G1, G2 and G3b are met — this is a default stopping point (CLAUDE.md §13).**
 
 | Gate | Criterion | Status |
 |---|---|---|
-| G1 | contracts green on same-ABI mocks; REG-008; SPEC-001 vectors in Solidity + TS | ✔ (Tue, a day early) |
-| G2 | one execution per job on Anvil; A2/A3 fixture live; buyer E2E to delivery | ✔ (Tue, two days early) |
+| G1 (Thu 24) | contracts green on same-ABI mocks; REG-008; SPEC-001 vectors | ✔ a day early |
+| G2 (Fri 25) | one execution per job; A2/A3 fixture live; buyer E2E to delivery | ✔ two days early |
+| G3b (Sat 26) | validator path; release + refund E2E locally; Python vectors | ✔ **three days early** |
+| **G3a (Sat 26 16:00)** | **A2 + A3 on both targets, ≥10 runs each, results.json** | **not started — this is next** |
 
-**Next, toward G3b (Sat 26 Sep 23:59): the validator, and `release()` end to end.**
+**Next: SEC-002 → SEC-003 → SEC-004, the actual evaluation.**
 
-**VAL-001** (FastAPI skeleton + key) → **VAL-003** (the canonical hash **in Python, written from `docs/specs/canonical-hash.md` rather than ported** — that independence is the point, and it is what makes three-way agreement evidence) → **VAL-002** (evidence intake) → **VAL-004** (read-before-write response, then `release()` immediately) → **API-006** (the seller deposits the receipt, files `validationRequest`, binds) → **INT-001/002** (happy and refund paths end to end).
+**SEC-002** builds the harness and the `results.json` + run-manifest schema (commit, tool versions, chain and block, configuration, seeds, run count, raw log paths). **SEC-003** runs A2 (replay) against the labelled vulnerable fixture **and** against AgentTrust, ≥10 runs each. **SEC-004** runs A3 (cross-resource substitution) the same way, buyer-side.
 
-Two things the contract work already settled that VAL-004 must honour:
+Three things the build already settled that the evaluation must respect:
 
-- **The validator calls `release()` immediately after attesting.** Not an optimisation: the seller cannot snapshot its own pass, and `confirmValidation` is an extra transaction it would have to race, so until someone calls one of them a validator that flips its verdict erases it (DF-05, sharpened by the security review).
-- **The seller needs a `bindValidation` retry budget**, folded into `minDeadlineMargin`. `requestHash` squatting is unbounded against a mempool-watching adversary, because the salt is public from the moment the seller broadcasts (DF-06, corrected). SPEC-002 §7.1 has the formula.
+- **The A2 defence is not the escrow nonce.** It is the claim store, and the number that matters is `executions_completed` and `distinct_results`, not HTTP 2xx — replays are expected under `idempotent` (SPEC-002 §6.3, DF-01).
+- **The fixture is labelled, and the label must reach `results.json`.** `fixtureBanner()` is the single source; SEC-012 audits it. Nothing may be described as upstream x402 without an API-009 run, which is EXTENDED.
+- **Outcomes are reported with their denominator**: attacks *evaluated* out of the six defined, each Blocked / Mitigated-to-bound / Not blocked / Not evaluated. A2 and A3 are P0; A4, A6, A5 and A1 are E2 and will most likely be "Not evaluated", which is a result to state plainly, not to hide.
 
-Still open, and now genuinely blocking:
-1. **ENV-006/007 — wallets and faucet ETH.** This is the only thing standing between the project and a Base Sepolia deployment; everything else on the critical path is built. The **seller and validator need ETH too**, not just the deployer.
-2. **Sign-off on D1–D6** (§2). Defaults are applied and are now baked into a tested contract *and* a tested service pair, so changing D3/D4/D5 is rework rather than a tweak.
+Still open:
+1. **ENV-006/007 — wallets and faucet ETH.** Still the only thing between the project and Base Sepolia. The **seller and validator need ETH too**; the seller now sends two transactions per job (`validationRequest` and `bindValidation`) and the validator sends two (`validationResponse` and `release`).
+2. **Sign-off on D1–D6** (§2). Now baked into a tested contract, a tested service pair and a working end-to-end path.
