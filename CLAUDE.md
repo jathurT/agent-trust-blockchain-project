@@ -141,6 +141,17 @@ deployments/     evidence/<TASK-ID>/     .github/workflows/
 - Claude asks for explicit authorization before any on-chain transaction, deployment, faucet request or contract verification, and reports the transaction hash afterwards.
 - A secret-scan check runs before the first commit and before publication (ENV-002, DOC-009). If a key is ever exposed, rotate it and purge history before publishing.
 
+## 11a. Commits and authorship
+
+- **Commits are authored by the repository owners, never by Claude.** Do **not** add `Co-Authored-By: Claude …` or any assistant attribution to commit messages or PR descriptions. This project instruction overrides the assistant's default attribution behaviour, and the five commits made before it was set have been rewritten to drop the trailer.
+- Author identity comes from the repo's git config: `jathurT <ktmjathur2001@gmail.com>`. Do not attribute work to another collaborator unless they actually wrote it — if a change is genuinely joint, add a `Co-Authored-By` line for that person and say so.
+- Collaborator SSH public keys live in `.github/allowed_signers` (`gpg.format = ssh` is set locally), so signed commits can be verified. **Signing is not enabled in this environment** because neither collaborator's private key is on this machine. To turn it on where the key does live:
+  ```bash
+  git config user.signingkey ~/.ssh/<your-key>.pub
+  git config commit.gpgsign true
+  ```
+- Commit messages stay factual: what changed, why, and what was verified. No secrets, no keys, no fabricated results.
+
 ## 12. Evidence standards
 
 - **No fabricated measurements.** A number appears in task.md, docs or slides only if it came from a recorded run whose raw log is committed under `evidence/<TASK-ID>/` or `impl/attacks/results/`.

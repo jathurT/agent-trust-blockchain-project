@@ -1,0 +1,5 @@
+# Collaborators whose SSH-signed commits should verify as trusted.
+# Used by: git config gpg.ssh.allowedSignersFile .github/allowed_signers
+# Public keys only — private keys never belong in this repository.
+ktmjathur2001@gmail.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBdxTN3yDaDnHryvcvjm7qplNjkWt17//upO0p3GUwPe jathurT
+munsifshaifalikhan@gmail.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOylnGJVZZ5qSaGieEAZR0n0MlXF+MNuZtYFp5hjb3ur munsif-dev
