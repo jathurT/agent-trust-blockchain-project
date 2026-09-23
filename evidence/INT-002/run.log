@@ -1,41 +1,34 @@
-INT-002 — refund paths
-======================
-date:   2026-09-23T08:58:34Z
-commit: 31cc083905c934944a68c28eb28effae6c0b7440
-
-A. the validator never attests   -> refunded after deadline + grace, buyer whole
-B. the validator attests 0       -> refunded after deadline + grace, buyer whole
-C. a timely pass exists          -> the refund is refused
-
+(node:284833) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
 {
-  "runId": "int-002-1790153833669",
+  "runId": "int-002-1790154564209",
   "ok": true,
   "failures": [],
   "cases": {
     "A_noAttestation": {
-      "jobId": "0x777e98568fada0a502ad070b4bc2f2f5a08580bf16491077c300a4da5fcf7a06",
+      "jobId": "0x240ecf621d8d826282dc4ce0f6498c0e3a4904fe37e1abc20b81238f96ea7776",
       "state": 3,
       "netToBuyer": "0"
     },
     "B_failingAttestation": {
-      "jobId": "0xd4d933f1b7cfcef4f60684a12530b94fbd967930e9a5edb8541b15e96f6ba211",
+      "jobId": "0x8f2015c31bbe3b1bb5065b6f7f36991cc86578c6e82a0df82c4be284d2dea67e",
       "attestation": 0,
       "state": 3,
       "netToBuyer": "0"
     },
     "C_timelyPassBlocksRefund": {
-      "jobId": "0xfda17711b8d573fefbf5733524297a373ddce128e72a26081187cfa4aa2258fb",
-      "refusedWith": "The contract function \"refund\" reverted.\n\nError: BadState(bytes32 jobId, uint8 state)\n               (0xfda17711b8d573fefbf5733524297a373ddce128e72a26081187cfa4"
+      "jobId": "0x210542a3ff9955ad9e8340d72d4e8a7eeb4215b36e2cca5185b294cd775bc6a8",
+      "refusedWith": "The contract function \"refund\" reverted.\n\nError: BadState(bytes32 jobId, uint8 state)\n               (0x210542a3ff9955ad9e8340d72d4e8a7eeb4215b36e2cca5185b294cd"
     }
   },
   "durationsMs": {
-    "start->A_delivered": 1038,
-    "A_delivered->A_warped": 21,
-    "A_warped->A_refunded": 222,
-    "A_refunded->B_failed_attestation": 1429,
-    "B_failed_attestation->B_refunded": 235,
-    "B_refunded->C_checked": 7301,
-    "total": 10250
+    "start->A_delivered": 1089,
+    "A_delivered->A_warped": 19,
+    "A_warped->A_refunded": 230,
+    "A_refunded->B_failed_attestation": 1430,
+    "B_failed_attestation->B_refunded": 229,
+    "B_refunded->C_checked": 7318,
+    "total": 10319
   },
   "note": "Local Anvil; time moved with evm_increaseTime. Devnet measurement only."
 }

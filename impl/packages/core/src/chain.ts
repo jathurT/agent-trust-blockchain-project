@@ -61,6 +61,8 @@ export interface ChainClient {
   readonly chainId: number;
   readonly pollIntervalMs: number;
   blockNumber(): Promise<bigint>;
+  /** The latest block's timestamp, in unix seconds. */
+  blockTimestamp(): Promise<number>;
   getJob(jobId: Hex): Promise<Job | undefined>;
   confirmations(txHash: Hex): Promise<number>;
   waitForConfirmations(txHash: Hex, want: number, opts?: { timeoutMs?: number }): Promise<number>;
@@ -100,6 +102,20 @@ export function createChainClient(options: ChainOptions): ChainClient {
     pollIntervalMs,
 
     blockNumber: () => guarded("eth_blockNumber", () => client.getBlockNumber({ cacheTime: 0 })),
+
+    /**
+     * Chain time, not the local clock. A deadline written by a contract is measured in
+     * `block.timestamp`, and the two can differ — on a devnet by hours after a time
+     * warp, on a real chain by seconds. Comparing a chain deadline against a local
+     * clock is simply the wrong subtraction, and it fails open: a seller whose clock
+     * lags the chain would think there was more time left than there is.
+     */
+    blockTimestamp: async () => {
+      const block = await guarded("eth_getBlockByNumber", () =>
+        client.getBlock({ blockTag: "latest", includeTransactions: false }),
+      );
+      return Number(block.timestamp);
+    },
 
     /**
      * Returns `undefined` only when the chain positively says the job does not exist.

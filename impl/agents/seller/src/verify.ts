@@ -197,7 +197,18 @@ export async function verifyRequest(deps: VerifyDeps, req: RawRequest): Promise<
   }
 
   // 11. Enough time left to deliver, get attested and get bound (SPEC-002 §7.1).
-  const remaining = Number(job.deadline) - nowSeconds;
+  //     Measured in **chain time**: `job.deadline` was written by the contract from
+  //     `block.timestamp`, so subtracting a local clock is the wrong subtraction — and
+  //     it fails open, since a seller whose clock lags the chain would believe there
+  //     was more time left than there is.
+  let chainNow: number;
+  try {
+    chainNow = await deps.chain.blockTimestamp();
+  } catch (error) {
+    if (error instanceof ChainUnavailable) throw new SellerError("chain_unavailable", error.message);
+    throw error;
+  }
+  const remaining = Number(job.deadline) - chainNow;
   if (remaining < config.minDeadlineMargin) {
     throw new SellerError("deadline_margin", `${remaining}s left, ${config.minDeadlineMargin}s needed`);
   }

@@ -1,0 +1,263 @@
+G3b gate check — 2026-09-23T09:00:48Z
+commit: 606c575322e1096930ba3224fa1ca9cfc34ef37c
+chain:  anvil 31337 at block 874
+
+== 1. Python vectors (the independent third implementation) ==
+................................................................         [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /mnt/d/8th Sem/Blockchain_Project/impl/validator/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+64 passed, 1 warning in 6.91s
+VALIDATOR_EXIT=0
+
+== 2. contracts ==
+No files changed, compilation skipped
+
+Ran 3 tests for test/MockUSDC.t.sol:AdversarialTokenTest
+[PASS] test_FeeOnTransferDeliversLessThanRequested() (gas: 152104)
+[PASS] test_ReturnsFalseTokenIsCaughtBySafeERC20() (gas: 269124)
+[PASS] test_RevertingTokenBlocksPayouts() (gas: 99333)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 5.97ms (4.80ms CPU time)
+
+Ran 12 tests for test/Admin.t.sol:AdminTest
+[PASS] test_EverySetterIsOwnerOnly() (gas: 163972)
+[PASS] test_GateFloorsAreClamped() (gas: 109447)
+[PASS] test_GraceIsClamped() (gas: 74592)
+[PASS] test_MaxTrustedClientsIsClamped() (gas: 74299)
+[PASS] test_NoSetterCanTouchAFundedJob() (gas: 1118902)
+[PASS] test_OwnershipTransferNeedsAcceptance() (gas: 144262)
+[PASS] test_RenouncingOwnershipDoesNotStrandFunds() (gas: 841904)
+[PASS] test_ReputationReadGasIsClampedAtBothEnds() (gas: 105606)
+[PASS] test_RevokingATokenStillLetsExistingJobsRefund() (gas: 443640)
+[PASS] test_TheConstructorRejectsWhatTheSettersReject() (gas: 18430)
+[PASS] test_TheOwnerHasNoWayToWithdraw() (gas: 472836)
+[PASS] test_TtlBoundsAreClamped() (gas: 125005)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 8.02ms (2.38ms CPU time)
+
+Ran 10 tests for test/BlueprintCorrected.t.sol:BlueprintCorrectedTest
+[PASS] test_A2_ReplayedNonceRejected() (gas: 341870)
+[PASS] test_A3_PriceSubstitutionProducesADifferentJob() (gas: 346940)
+[PASS] test_A3_ResourceHashMismatchIsNotReleasable() (gas: 1146737)
+[PASS] test_A6_AnHonestNewcomerIsRefusedForTheSameReason() (gas: 262759)
+[PASS] test_A6_SybilRingUnderTrustAnchoredGateIsRefused() (gas: 1081299)
+[PASS] test_AttestationTimelinessIsInclusiveOfTheDeadline() (gas: 1490185)
+[PASS] test_BoundaryMatrixAroundDeadlineAndGrace() (gas: 365885)
+[PASS] test_PaymentFollowsTheSnapshottedWalletNotTheCurrentOwner() (gas: 997058)
+[PASS] test_RefundBlockedByTimelyPass() (gas: 935561)
+[PASS] test_ReleaseAndRefundCannotBothSucceedInTheSameBlock() (gas: 931896)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 16.05ms (10.43ms CPU time)
+
+Ran 5 tests for test/MockUSDC.t.sol:MockUSDCTest
+[PASS] test_AuthorizationNonceCannotBeReused() (gas: 142882)
+[PASS] test_AuthorizationRespectsValidityWindow() (gas: 59607)
+[PASS] test_MatchesRealUsdcShape() (gas: 20984)
+[PASS] test_ReceiveWithAuthorization_OnlyPayeeMaySubmit() (gas: 153785)
+[PASS] test_WrongSignerIsRejected() (gas: 60680)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 6.96ms (6.50ms CPU time)
+
+Ran 19 tests for test/Settlement.t.sol:SettlementTest
+[PASS] test_AJobLeavesFundedExactlyOnce() (gas: 861217)
+[PASS] test_APassAtTheDeadlineStillReleasesAnHourLater() (gas: 847595)
+[PASS] test_ASquattedHashForcesANewSaltAndStillBinds() (gas: 1048876)
+[PASS] test_AnAttestationAfterTheDeadlineNeverReleases() (gas: 829152)
+[PASS] test_AnAttestationOnAnotherJobDoesNotRelease() (gas: 1274761)
+[PASS] test_AnOverwriteAfterTheSnapshotCannotUnRelease() (gas: 877707)
+[PASS] test_AnOverwriteBeforeTheSnapshotDoesLoseThePass() (gas: 840669)
+[PASS] test_BindingARequestWithTheWrongValidatorReverts() (gas: 551013)
+[PASS] test_BindingTiesOneRequestHashToTheJob() (gas: 605871)
+[PASS] test_BindingTwiceReverts() (gas: 770603)
+[PASS] test_BindingWithoutFilingTheRequestReverts() (gas: 361808)
+[PASS] test_ConfirmingBeforeBindingReverts() (gas: 324794)
+[PASS] test_ConfirmingSnapshotsAPassingAttestation() (gas: 784166)
+[PASS] test_ConfirmingWithoutAPassReverts() (gas: 806600)
+[PASS] test_OnlyThePayeeMayBind() (gas: 526657)
+[PASS] test_ReleaseIsImpossibleWithoutABoundHash() (gas: 330022)
+[PASS] test_ReleaseIsPermissionlessAndStillPaysThePayee() (gas: 817970)
+[PASS] test_ReleasePaysTheSnapshottedPayee() (gas: 862297)
+[PASS] test_SettlementCallsOnAnUnknownJobRevert() (gas: 108712)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 119.62ms (7.33ms CPU time)
+
+Ran 7 tests for test/SecurityReview.t.sol:SecurityReviewTest
+[PASS] test_AGenuinelyUnknownRequestStillReadsAsNoValidation() (gas: 407677)
+[PASS] test_AMalformedReputationAnswerDoesNotBrickFunding() (gas: 3868743)
+[PASS] test_StarvingTheValidationReadCannotRefundAnAttestedJob() (gas: 22879023)
+[PASS] test_TheAgentOwnerStillCannotBeItsOwnValidator() (gas: 62262)
+[PASS] test_TheAgentsPayoutWalletCannotBeItsOwnValidator() (gas: 124383)
+[PASS] test_TheOwnerDistinctFloorIsEnforcedWhenItIsTheBindingConstraint() (gas: 333952)
+[PASS] test_TheSameJobStillReadsCorrectlyWithEnoughGas() (gas: 46433047)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 136.82ms (28.15ms CPU time)
+
+Ran 16 tests for test/Refund.t.sol:RefundTest
+[PASS] testFuzz_EveryJobPaysExactlyOnePartyInFull(bool,uint64) (runs: 256, μ: 642125, ~: 833458)
+[PASS] test_ALargeGraceCannotFreezeAnExistingJob() (gas: 454053)
+[PASS] test_OnlyTheOwnerSetsGrace() (gas: 34890)
+[PASS] test_RefundAfterAFailingResponseSucceeds() (gas: 798478)
+[PASS] test_RefundAfterALatePassSucceeds() (gas: 891231)
+[PASS] test_RefundAfterAPendingOnlyRequestSucceeds() (gas: 712471)
+[PASS] test_RefundAfterAnUnderThresholdResponseSucceeds() (gas: 830832)
+[PASS] test_RefundBeforeDeadlinePlusGraceReverts() (gas: 453800)
+[PASS] test_RefundBlockedByASnapshotEvenAfterTheRegistryFlips() (gas: 951852)
+[PASS] test_RefundIsPermissionlessAndAlwaysPaysThePayer() (gas: 423837)
+[PASS] test_RefundReturnsTheMoneyToThePayerAfterGrace() (gas: 450164)
+[PASS] test_RefundWithARecordedPassReverts() (gas: 907637)
+[PASS] test_RefundWithAnUnrecordedButTimelyPassReverts() (gas: 819406)
+[PASS] test_RefundWithNoValidationAtAllSucceeds() (gas: 387482)
+[PASS] test_RefundingTwiceReverts() (gas: 410795)
+[PASS] test_ShorteningGraceDoesNotOpenTheValveOnAFundedJob() (gas: 734549)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 137.11ms (136.50ms CPU time)
+
+Ran 22 tests for test/Gate.t.sol:GateTest
+[PASS] test_ABuyerCannotAskForLessThanTheOwnerFloor() (gas: 980398)
+[PASS] test_ABuyerMayBeStricterThanTheFloor() (gas: 335654)
+[PASS] test_AHugeHistoryDoesNotPreventFunding() (gas: 42142505)
+[PASS] test_AgentWithTrustedFeedbackPasses() (gas: 728447)
+[PASS] test_AverageDimensionIsReported() (gas: 484984)
+[PASS] test_AverageIsWeightedByEntryCount() (gas: 1372923)
+[PASS] test_CountDimensionIsReported() (gas: 481807)
+[PASS] test_CrossEndorsingSybilsDoNotHelp() (gas: 1498175)
+[PASS] test_DeployingWithTooSmallAReadCeilingReverts() (gas: 18639)
+[PASS] test_DifferentValueDecimalsAreNormalised() (gas: 728416)
+[PASS] test_DuplicateTrustedClientReverts() (gas: 288231)
+[PASS] test_FeedbackUnderAnotherTagDoesNotCount() (gas: 471746)
+[PASS] test_GasAgainstHistoryLength() (gas: 11971076)
+[PASS] test_NegativeFeedbackCanFailTheGate() (gas: 485349)
+[PASS] test_OnlyTheOwnerSetsFloorsAndTheReadCeiling() (gas: 60738)
+[PASS] test_OverLongClientListReverts() (gas: 76175)
+[PASS] test_RevokedFeedbackDoesNotCount() (gas: 518862)
+[PASS] test_StarvingTheReadsOfGasRevertsInsteadOfSkippingTheGate() (gas: 436009)
+[PASS] test_TagMatchesTheContract() (gas: 9540)
+[PASS] test_TheOwnerCannotSetTheReadCeilingBelowTheFloor() (gas: 74783)
+[PASS] test_TheSameAgentFailsWhenTheFeedbackIsFromStrangers() (gas: 623572)
+[PASS] test_ZeroTrustedClientReverts() (gas: 70611)
+Suite result: ok. 22 passed; 0 failed; 0 skipped; finished in 132.31ms (56.02ms CPU time)
+
+Ran 25 tests for test/MockRegistries.t.sol:MockRegistriesTest
+[PASS] test_agentWalletIsRegistrantThenClearedOnTransfer() (gas: 288746)
+[PASS] test_agentWalletKeyIsReserved() (gas: 229785)
+[PASS] test_bindsToTheErc8004Interface() (gas: 274122)
+[PASS] test_countIsEntriesNotDistinctClients() (gas: 632614)
+[PASS] test_crossEndorsingSybilsPassGateV1AndFailTheTrustAnchoredGate() (gas: 1122564)
+[PASS] test_firstRegisteredAgentHasIdZero() (gas: 353087)
+[PASS] test_getSummaryRefusesAnEmptyClientList() (gas: 207341)
+[PASS] test_isAuthorizedOrOwnerRevertsForUnknownAgent() (gas: 13321)
+[PASS] test_onlyTheAgentOwnerOrOperatorMayFileARequest() (gas: 247539)
+[PASS] test_onlyTheNamedValidatorMayRespond() (gas: 414537)
+[PASS] test_operatorCannotRateTheAgentItOperates() (gas: 288700)
+[PASS] test_ownerCannotRateItsOwnAgent() (gas: 237089)
+[PASS] test_pendingIsIndistinguishableFromAFailingResponse() (gas: 653825)
+[PASS] test_reputationBindsToTheErc8004Interface() (gas: 461752)
+[PASS] test_requestHashCanBeSquattedByAnyone() (gas: 606404)
+[PASS] test_responseIsCappedAt100() (gas: 412502)
+[PASS] test_revokedAndMistaggedFeedbackIsExcluded() (gas: 672377)
+[PASS] test_setAgentWalletRejectsFarFutureDeadline() (gas: 231827)
+[PASS] test_setAgentWalletRejectsSignatureFromSomeoneElse() (gas: 240948)
+[PASS] test_setAgentWalletRequiresSignatureFromTheNewWallet() (gas: 248705)
+[PASS] test_summaryDistinguishesPendingFromAFailingResponse() (gas: 661140)
+[PASS] test_summaryScalesToTheMostCommonDecimals() (gas: 632634)
+[PASS] test_unknownRequestHashReverts() (gas: 26527)
+[PASS] test_validationBindsToTheErc8004Interface() (gas: 566253)
+[PASS] test_validatorCanOverwriteAnEarlierVerdict() (gas: 584026)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 150.50ms (13.65ms CPU time)
+
+Ran 4 tests for test/CanonicalHash.t.sol:CanonicalHashTest
+[PASS] testFuzz_JobIdIsDomainSeparated(bytes32,bytes32,address,address) (runs: 256, μ: 1374, ~: 1374)
+[PASS] test_AllHashingVectors() (gas: 37182425)
+[PASS] test_BindingProperties() (gas: 3984939)
+[PASS] test_TypeHashesMatchVectors() (gas: 3478841)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 152.18ms (214.15ms CPU time)
+
+Ran 31 tests for test/Fund.t.sol:FundTest
+[PASS] testFuzz_TtlWithinBoundsIsAccepted(uint64) (runs: 256, μ: 323430, ~: 323668)
+[PASS] test_AFailedTransferLeavesTheNonceUnconsumed() (gas: 740325)
+[PASS] test_AReentrantTokenCannotOpenASecondJob() (gas: 871219)
+[PASS] test_AgentIdZeroIsFundable() (gas: 319856)
+[PASS] test_AnOverLongTrustedClientListReverts() (gas: 76223)
+[PASS] test_AnUnapprovedTransferLeavesTheNonceUnconsumed() (gas: 324610)
+[PASS] test_DerivationsMatchTheSharedVectors() (gas: 2185271)
+[PASS] test_FeeOnTransferTokenReverts() (gas: 490172)
+[PASS] test_FundEmitsTheJobItStored() (gas: 322987)
+[PASS] test_FundEscrowsTheAmountAndRecordsTheJob() (gas: 372003)
+[PASS] test_FundingAnUnknownAgentReverts() (gas: 62667)
+[PASS] test_JobsViewRevertsForAnUnknownJob() (gas: 38605)
+[PASS] test_OnlyTheOwnerConfigures() (gas: 88302)
+[PASS] test_OwnershipTransferNeedsAcceptance() (gas: 109071)
+[PASS] test_PayeeFallsBackToTheOwnerAfterATransfer() (gas: 400336)
+[PASS] test_PayeeIsTheAgentWalletWhenOneIsSet() (gas: 387638)
+[PASS] test_PreviewsAgreeWithWhatFundStores() (gas: 338583)
+[PASS] test_PriceIsPartOfTheResourceBinding() (gas: 17355)
+[PASS] test_RemovingATokenDoesNotAffectExistingJobs() (gas: 358741)
+[PASS] test_ReplayingANonceReverts() (gas: 337964)
+[PASS] test_TheSameNonceIsUsableByADifferentPayer() (gas: 681526)
+[PASS] test_TokenNotOnTheAllowlistReverts() (gas: 118921)
+[PASS] test_TransferringTheAgentAfterFundingDoesNotMoveThePayee() (gas: 388537)
+[PASS] test_TtlAboveTheMaximumReverts() (gas: 54235)
+[PASS] test_TtlBelowTheMinimumReverts() (gas: 54129)
+[PASS] test_TtlBoundsMustBeSane() (gas: 88356)
+[PASS] test_ValidatorCannotBeAnOperatorOfTheAgent() (gas: 121894)
+[PASS] test_ValidatorCannotBeTheAgentOwner() (gas: 62276)
+[PASS] test_ValidatorCannotBeThePayer() (gas: 60294)
+[PASS] test_ValidatorCannotBeZero() (gas: 59712)
+[PASS] test_ZeroAmountReverts() (gas: 48843)
+Suite result: ok. 31 passed; 0 failed; 0 skipped; finished in 152.26ms (170.26ms CPU time)
+
+Ran 11 test suites in 164.43ms (1.02s CPU time): 154 tests passed, 0 failed, 0 skipped (154 total tests)
+FORGE_EXIT=0
+
+== 3. core ==
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/packages/core
+
+
+ Test Files  6 passed (6)
+      Tests  87 passed (87)
+   Start at  14:31:08
+   Duration  6.86s (import 73%, tests 21%, transform 5%, worker 2%)
+
+CORE_EXIT=0
+
+== 4. seller ==
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/seller
+
+(node:279656) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ test/verify.test.ts (13 tests | 1 failed) 2288ms
+   ❯ deadline margin (1)
+     × refuses a job with too little time left 131ms
+(node:280178) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/verify.test.ts > deadline margin > refuses a job with too little time left
+AssertionError: expected 200 to be 410 // Object.is equality
+
+- Expected
++ Received
+
+- 410
++ 200
+
+ ❯ test/verify.test.ts:126:24
+    124|       .send(BODY);
+    125|
+    126|     expect(res.status).toBe(410);
+       |                        ^
+    127|     expect(res.body.error.code).toBe("deadline_margin");
+    128|   }, 30_000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 74 passed (75)
+   Start at  14:31:17
+   Duration  91.40s (import 88%, tests 10%, transform 1%)
+
+    Isolate  6 workers spawned · ~964ms startup each (spawn + environment, per file)
+             at least ~4.82s faster with isolate: false — reuses workers across files instead of one per file
+
+SELLER_EXIT=1

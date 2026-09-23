@@ -1,18 +1,10 @@
-INT-001 — local happy path, end to end
-======================================
-date:   2026-09-23T08:58:34Z
-commit: 31cc083905c934944a68c28eb28effae6c0b7440
-chain:  anvil 31337 at block 874
-escrow: 0x162A433068F51e18b7d13932F27e66a3f99E6890
-
-Every service real: the deployed escrow and ERC-8004 mocks, the Express seller with
-its claim store, the Python validator in its own process, the deterministic buyer.
-
+(node:284148) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
 {
-  "runId": "int-001-1790153906957",
+  "runId": "int-001-1790154506009",
   "ok": true,
   "failures": [],
-  "jobId": "0xdf5a3ef92e5cf1e70b6ea767db681c7cf5f542479bc69189ff97e11dc2abc4b6",
+  "jobId": "0xae11632c787ed478f2f86cbb3c1c99d2c6afe5119a6f2aae17fbe870d22e27dd",
   "disposition": "executed",
   "buyerDelta": "-250000",
   "payeeDelta": "250000",
@@ -21,10 +13,10 @@ its claim store, the Python validator in its own process, the deterministic buye
     "evidenceId": "c76e317bb5bce9e7e14e8e56af2292a6c5f6d2d3297b0514829d4f1a153b1c46",
     "passed": true,
     "reason": "recomputed output matches the delivered bytes",
-    "requestHash": "0x1bcb7f14e60f21518fa0a087ee7e3b129e27a1a6879ba6e62a1936007e7227ff",
+    "requestHash": "0x35bda1a5b5e8ac1e8e3de5909fb3d36223b62e6fa22c187b0888a925fbb6a1c3",
     "responseHash": "0xc76e317bb5bce9e7e14e8e56af2292a6c5f6d2d3297b0514829d4f1a153b1c46",
-    "responseTx": "3d6e0c15ccb156ba168c707a878ca4d938bfea9714acd0e8e70411f106079f81",
-    "releaseTx": "88f4506ae8dfa68625e650d3f139b38c2cc816cdc5c8603108a616416bf7663d"
+    "responseTx": "8666156030947446bd8e2e75d6fffb1b7359cc85bb2986231c3fc5f7f2892fda",
+    "releaseTx": "afdb7b74d26352206d5365b9599f37e603f4c6cd32c2b9b04370f5faed83bb8b"
   },
   "metrics": {
     "executions_completed": 1,
@@ -34,16 +26,13 @@ its claim store, the Python validator in its own process, the deterministic buye
     "aborted_executions": 0
   },
   "durationsMs": {
-    "start->services_up": 6160,
-    "services_up->purchase_begin": 13,
-    "purchase_begin->delivered": 790,
+    "start->services_up": 6167,
+    "services_up->purchase_begin": 7,
+    "purchase_begin->delivered": 792,
     "delivered->validator_decided": 259,
-    "validator_decided->released": 7,
-    "released->verified": 9,
-    "total": 7243
+    "validator_decided->released": 5,
+    "released->verified": 10,
+    "total": 7245
   },
   "note": "Local Anvil. These latencies are a devnet measurement and must never be quoted as Base Sepolia numbers (EVAL-006)."
 }
-
-The latencies are a local Anvil measurement (EVAL-006) and must never be quoted as Base
-Sepolia numbers. Nothing here has been deployed to a public chain.

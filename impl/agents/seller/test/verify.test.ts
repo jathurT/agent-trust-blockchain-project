@@ -112,6 +112,47 @@ describe("resource binding", () => {
 });
 
 describe("deadline margin", () => {
+  /**
+   * The margin is measured in **chain time**, not the seller's clock. This test pins
+   * that: it warps the chain forward and asserts the seller notices, which a
+   * wall-clock implementation would not. INT-002's `evm_increaseTime` is what exposed
+   * the original bug, by making the two disagree by an hour.
+   */
+  it("measures the remaining time against the chain, not the local clock", async () => {
+    const job = await fundJob(world, "/v1/summarise", BODY, { ttlSeconds: 1200 });
+    const header = await signedHeader(world, job, "/v1/summarise", BODY);
+    const strict = build({ minDeadlineMargin: 600 });
+
+    // Comfortably inside the margin.
+    await request(strict)
+      .post("/v1/summarise")
+      .set("Content-Type", "application/json")
+      .set("PAYMENT-SIGNATURE", header)
+      .send(BODY)
+      .expect(200);
+
+    // Move the chain forward past the margin, without touching the local clock.
+    await fetch(process.env["RPC_URL"] ?? "http://127.0.0.1:8545", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "evm_increaseTime", params: [900] }),
+    });
+    await fetch(process.env["RPC_URL"] ?? "http://127.0.0.1:8545", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "evm_mine", params: [] }),
+    });
+
+    const later = await fundJob(world, "/v1/classify", BODY, { ttlSeconds: 700 });
+    const res = await request(build({ minDeadlineMargin: 900 }))
+      .post("/v1/classify")
+      .set("Content-Type", "application/json")
+      .set("PAYMENT-SIGNATURE", await signedHeader(world, later, "/v1/classify", BODY))
+      .send(BODY);
+    expect(res.status).toBe(410);
+    expect(res.body.error.code).toBe("deadline_margin");
+  }, 60_000);
+
   /** Acceptance (c). */
   it("refuses a job with too little time left", async () => {
     // Fund with a 10-minute TTL, then ask a seller that needs 30 minutes of headroom.
