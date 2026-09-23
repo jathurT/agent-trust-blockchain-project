@@ -34,7 +34,7 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 17:00):** **G1, G2 and G3b all met — G3b three days early.** **47 of 134 tasks DONE**, including the whole local payment path end to end.
+**Status (2026-09-23, 17:00):** **G1, G2 and G3b all met — G3b three days early.** **45 of 134 tasks DONE**, including the whole local payment path end to end.
 
 **399 tests across six packages**, all green: 154 Solidity + 6 invariants (256 × 500), 87 core, 76 seller, 8 buyer, 10 fixture, **64 Python validator**. Escrow line coverage 97.55%.
 
