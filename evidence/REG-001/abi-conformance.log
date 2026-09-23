@@ -1,0 +1,5 @@
+chain block: 47179737
+Identity 0x8004A818BFB912233c491871b3d84c89A494BD9e impl=0x7274e874ca62410a93bd8bf61c69d8045e399c02 version="2.0.0"  32/32 selectors present
+Reputation 0x8004B663056A597Dffe9eCcC1965A193B7388713 impl=0x16e0fa7f7c56b9a767e34b192b51f921be31da34 version="2.0.0"  18/18 selectors present
+Validation 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 impl=0xdb31f5d9167f8ebc8b30fbbf814c4d297c2d7f99 version="2.0.0"  15/15 selectors present
+PASS: pinned ABI matches the deployed registries

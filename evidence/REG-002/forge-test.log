@@ -1,0 +1,54 @@
+Compiling 2 files with Solc 0.8.37
+Solc 0.8.37 finished in 1.12s
+Compiler run successful!
+
+Ran 3 tests for test/MockUSDC.t.sol:AdversarialTokenTest
+[PASS] test_FeeOnTransferDeliversLessThanRequested() (gas: 152104)
+[PASS] test_ReturnsFalseTokenIsCaughtBySafeERC20() (gas: 269124)
+[PASS] test_RevertingTokenBlocksPayouts() (gas: 99333)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 3.53ms (1.27ms CPU time)
+
+Ran 5 tests for test/MockUSDC.t.sol:MockUSDCTest
+[PASS] test_AuthorizationNonceCannotBeReused() (gas: 142882)
+[PASS] test_AuthorizationRespectsValidityWindow() (gas: 56309)
+[PASS] test_MatchesRealUsdcShape() (gas: 20984)
+[PASS] test_ReceiveWithAuthorization_OnlyPayeeMaySubmit() (gas: 153785)
+[PASS] test_WrongSignerIsRejected() (gas: 60680)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 3.55ms (4.92ms CPU time)
+
+Ran 25 tests for test/MockRegistries.t.sol:MockRegistriesTest
+[PASS] test_agentWalletIsRegistrantThenClearedOnTransfer() (gas: 288746)
+[PASS] test_agentWalletKeyIsReserved() (gas: 229785)
+[PASS] test_bindsToTheErc8004Interface() (gas: 274122)
+[PASS] test_countIsEntriesNotDistinctClients() (gas: 632614)
+[PASS] test_crossEndorsingSybilsPassGateV1AndFailTheTrustAnchoredGate() (gas: 1122564)
+[PASS] test_firstRegisteredAgentHasIdZero() (gas: 353087)
+[PASS] test_getSummaryRefusesAnEmptyClientList() (gas: 207341)
+[PASS] test_isAuthorizedOrOwnerRevertsForUnknownAgent() (gas: 13321)
+[PASS] test_onlyTheAgentOwnerOrOperatorMayFileARequest() (gas: 247539)
+[PASS] test_onlyTheNamedValidatorMayRespond() (gas: 414537)
+[PASS] test_operatorCannotRateTheAgentItOperates() (gas: 288700)
+[PASS] test_ownerCannotRateItsOwnAgent() (gas: 237089)
+[PASS] test_pendingIsIndistinguishableFromAFailingResponse() (gas: 653825)
+[PASS] test_reputationBindsToTheErc8004Interface() (gas: 461752)
+[PASS] test_requestHashCanBeSquattedByAnyone() (gas: 606404)
+[PASS] test_responseIsCappedAt100() (gas: 412502)
+[PASS] test_revokedAndMistaggedFeedbackIsExcluded() (gas: 672377)
+[PASS] test_setAgentWalletRejectsFarFutureDeadline() (gas: 231453)
+[PASS] test_setAgentWalletRejectsSignatureFromSomeoneElse() (gas: 240575)
+[PASS] test_setAgentWalletRequiresSignatureFromTheNewWallet() (gas: 248331)
+[PASS] test_summaryDistinguishesPendingFromAFailingResponse() (gas: 661140)
+[PASS] test_summaryScalesToTheMostCommonDecimals() (gas: 632634)
+[PASS] test_unknownRequestHashReverts() (gas: 26527)
+[PASS] test_validationBindsToTheErc8004Interface() (gas: 565880)
+[PASS] test_validatorCanOverwriteAnEarlierVerdict() (gas: 580762)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 3.91ms (7.25ms CPU time)
+
+Ran 4 tests for test/CanonicalHash.t.sol:CanonicalHashTest
+[PASS] testFuzz_JobIdIsDomainSeparated(bytes32,bytes32,address,address) (runs: 256, μ: 1374, ~: 1374)
+[PASS] test_AllHashingVectors() (gas: 37182425)
+[PASS] test_BindingProperties() (gas: 3984939)
+[PASS] test_TypeHashesMatchVectors() (gas: 3478841)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 93.78ms (167.53ms CPU time)
+
+Ran 4 test suites in 98.50ms (104.77ms CPU time): 37 tests passed, 0 failed, 0 skipped (37 total tests)

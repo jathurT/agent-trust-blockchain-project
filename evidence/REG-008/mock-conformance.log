@@ -1,0 +1,9 @@
+Identity: 25 shared functions identical, 8 omitted, 0 added
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+Reputation: 8 shared functions identical, 10 omitted, 1 added
+    added   distinctClientsUnfiltered(uint256) — SEC-007 gate-v1 comparison model; cannot be computed on the real ABI (DF-09)
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+Validation: 8 shared functions identical, 7 omitted, 0 added
+    differs getVersion() — returns "2.0.0-mock" instead of "2.0.0", so a mock can never be mistaken for the live registry
+
+PASS: mocks match the pinned ERC-8004 ABI on every shared member

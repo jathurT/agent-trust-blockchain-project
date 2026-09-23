@@ -1,12 +1,46 @@
 #!/usr/bin/env bash
-# Blocks commits that look like they contain a private key, mnemonic or .env file.
-# Bypass (only with a very good reason): git commit --no-verify
+# Refuses commits that look like they carry a private key, mnemonic or .env file.
+#
+# A blanket "any 0x + 64 hex" rule is useless in this repository: it is full of
+# keccak hashes, type hashes and storage slots, and `impl/vectors/canonical-v1.json`
+# alone holds 155 of them. Such a rule gets bypassed with --no-verify, which is
+# worse than no rule at all — and that is exactly what happened to the SPEC-001
+# commit. So the broad scan now skips the generated hash artifacts by path, and a
+# short allowlist covers named public constants. Everything else is still scanned.
+#
+# Check the hook itself with: bash .githooks/test-pre-commit.sh
+# Bypass (record it in task.md §14 if you ever do): git commit --no-verify
 set -uo pipefail
+
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 [ -z "$staged" ] && exit 0
 fail=0
 
-# 1. never commit a .env (but .env.example is fine)
+# Generated artifacts whose whole purpose is to carry hashes. Each is produced by a
+# committed script from public inputs, so a secret cannot legitimately arrive here.
+is_hash_artifact() {
+  case "$1" in
+    impl/vectors/*.json) return 0;;
+    impl/contracts/abi/*) return 0;;
+    deployments/*.json) return 0;;
+    *) return 1;;
+  esac
+}
+
+# Named public constants that are 32 bytes of hex and are not secrets.
+ALLOWED_CONSTANTS=(
+  # EIP-1967 implementation slot: keccak256('eip1967.proxy.implementation') - 1
+  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
+  # EIP-1967 admin slot: keccak256('eip1967.proxy.admin') - 1
+  '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103'
+  # keccak256(""), the empty-body hash in docs/specs/canonical-hash.md
+  '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'
+)
+
+# The Anvil/Hardhat public test mnemonic: test-only, never funded.
+ALLOW_MNEMONIC='test test test test test test test test test test test junk'
+
+# 1. file names that should never be committed
 while IFS= read -r f; do
   case "$f" in
     *.env|*.env.*) [ "${f##*/}" = ".env.example" ] || { echo "BLOCKED: $f looks like an env file"; fail=1; };;
@@ -14,21 +48,35 @@ while IFS= read -r f; do
   esac
 done <<< "$staged"
 
-# 2. scan staged content for secrets
-#    The Anvil/Hardhat public test mnemonic is explicitly allowed (test-only, never funded).
-ALLOW_MNEMONIC='test test test test test test test test test test test junk'
-added=$(git diff --cached -U0 | grep '^+' | grep -v '^+++' || true)
-scan=$(printf '%s\n' "$added" | grep -v -F "$ALLOW_MNEMONIC" || true)
+# 2. content, per file so exemptions are per file rather than per commit
+while IFS= read -r f; do
+  added=$(git diff --cached -U0 -- "$f" | grep '^+' | grep -v '^+++' || true)
+  [ -z "$added" ] && continue
 
-if printf '%s\n' "$scan" | grep -qE '(^|[^0-9a-fA-Fx])0x[a-fA-F0-9]{64}([^0-9a-fA-F]|$)'; then
-  echo "BLOCKED: a 32-byte hex value that looks like a private key is staged"; fail=1
-fi
-if printf '%s\n' "$scan" | grep -qE 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY'; then
-  echo "BLOCKED: a PEM private key is staged"; fail=1
-fi
-if printf '%s\n' "$scan" | grep -qiE '(PRIVATE_KEY|MNEMONIC|SEED_PHRASE)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9 ]{16,}'; then
-  echo "BLOCKED: a PRIVATE_KEY/MNEMONIC assignment with a value is staged"; fail=1
-fi
+  scan=$(printf '%s\n' "$added" | grep -v -F "$ALLOW_MNEMONIC" || true)
+  for c in "${ALLOWED_CONSTANTS[@]}"; do
+    scan=$(printf '%s\n' "$scan" | grep -v -F "$c" || true)
+  done
+
+  # Always fatal, wherever they appear.
+  if printf '%s\n' "$scan" | grep -qE 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY'; then
+    echo "BLOCKED: $f stages a PEM private key"; fail=1
+  fi
+  if printf '%s\n' "$scan" | grep -qiE '(private[_-]?key|mnemonic|seed[_-]?phrase|secret[_-]?key)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9 ]{16,}'; then
+    echo "BLOCKED: $f stages a private-key/mnemonic assignment with a value"; fail=1
+  fi
+  if printf '%s\n' "$scan" | grep -qE -- '--private-key[[:space:]]+(0x)?[a-fA-F0-9]{64}'; then
+    echo "BLOCKED: $f stages a literal --private-key argument"; fail=1
+  fi
+
+  # The broad 32-byte scan, skipped for the generated hash artifacts.
+  is_hash_artifact "$f" && continue
+  if printf '%s\n' "$scan" | grep -qE '(^|[^0-9a-fA-Fx])0x[a-fA-F0-9]{64}([^0-9a-fA-F]|$)'; then
+    echo "BLOCKED: $f stages a bare 32-byte hex value that could be a private key"
+    echo "         If it is a public constant, add it to ALLOWED_CONSTANTS in this hook."
+    fail=1
+  fi
+done <<< "$staged"
 
 [ $fail -eq 0 ] || { echo; echo "Commit refused. Move the secret to .env (git-ignored) or a keystore."; exit 1; }
 exit 0
