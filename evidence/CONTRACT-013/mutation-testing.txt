@@ -1,0 +1,45 @@
+mutation testing of the CONTRACT-013 invariants
+==============================================
+
+Acceptance asks that 'a deliberately broken build fails them'. Each row below
+injects one bug into AgentTrustEscrow.sol, runs the invariant suite with a
+cleared failure cache, and records which invariants caught it. 10 runs x depth
+150 per mutation; the full gate run is 256 x 500.
+
+Two of these were NOT caught by the first version of this suite, which only
+asserted conservation: an escrow that pays the wrong party still holds the right
+total. Invariants E, F and G exist because of that result.
+
+run: 2026-09-23T02:37:16Z
+commit: fd7cf48
+
+  release() pays the payer instead of the payee          caught by EF
+  release() never leaves the Funded state                caught by ABC
+  refund() pays whoever called it                        caught by FG
+  refund() ignores a recorded pass                       NOT CAUGHT
+  refund() drops the deadline+grace requirement          NOT CAUGHT
+  fund() skips the balance-delta check                   NOT CAUGHT
+  fund() forgets to burn the payer nonce                 NOT CAUGHT
+  release() accepts an attestation after the deadline    NOT CAUGHT
+
+A = escrow holds exactly the funded jobs   E = released money reached the payee
+B = no job settles twice                   F = each buyer balance fully explained
+C = configuration never moves money        G = no third party holds escrowed funds
+
+the same mutations against the unit suite (133 tests, invariants excluded)
+-------------------------------------------------------------------------
+Invariants police accounting; unit tests police policy. Both halves matter,
+so both are recorded.
+
+  release() pays the payer instead of the payee          test_APassAtTheDeadlineStillReleasesAnHourLater test_AnOverwriteAfterTheSnapshotCannotUnRelease 
+  release() never leaves the Funded state                test_ReleaseAndRefundCannotBothSucceedInTheSameBlock test_ReleasePaysTheSnapshottedPayee 
+  refund() pays whoever called it                        test_RefundAfterAFailingResponseSucceeds test_RefundIsPermissionlessAndAlwaysPaysThePayer 
+  refund() ignores a recorded pass                       NOT CAUGHT
+  refund() drops the deadline+grace requirement          test_RefundBeforeDeadlinePlusGraceReverts 
+  fund() skips the balance-delta check                   test_FeeOnTransferTokenReverts 
+  fund() forgets to burn the payer nonce                 test_A2_ReplayedNonceRejected test_AFailedTransferLeavesTheNonceUnconsumed 
+  release() accepts an attestation after the deadline    test_AnAttestationAfterTheDeadlineNeverReleases test_AttestationTimelinessIsInclusiveOfTheDeadline 
+  the gate ignores the owner floor for distinct attesters NOT CAUGHT
+  the gate accepts a duplicated trusted client           test_DuplicateTrustedClientReverts 
+  the gate skips the gas-starvation check                test_StarvingTheReadsOfGasRevertsInsteadOfSkippingTheGate 
+  bindValidation() does not check the validator matches  test_BindingARequestWithTheWrongValidatorReverts 

@@ -15,7 +15,7 @@ contract GateTest is EscrowFixture {
     // ------------------------------------------------------------------ helpers
 
     function _rate(address client, int128 value) internal {
-        _rate(client, value, 2, escrow.FEEDBACK_TAG());
+        _rate(client, value, 2, FEEDBACK_TAG);
     }
 
     function _rate(address client, int128 value, uint8 decimals, string memory tag) internal {
@@ -58,6 +58,12 @@ contract GateTest is EscrowFixture {
             validator,
             gate
         );
+    }
+
+    /// @dev The fixture holds the tag as a constant to avoid spending pranks on the
+    ///      getter; this is what stops the two drifting apart.
+    function test_TagMatchesTheContract() public view {
+        assertEq(escrow.FEEDBACK_TAG(), FEEDBACK_TAG);
     }
 
     // ------------------------------------------------------------- the two halves
@@ -167,8 +173,8 @@ contract GateTest is EscrowFixture {
 
     /// @dev Clients are free to use different `valueDecimals`; the gate normalises.
     function test_DifferentValueDecimalsAreNormalised() public {
-        _rate(alice, 90, 0, escrow.FEEDBACK_TAG()); // 90, zero decimals
-        _rate(bob, 9000, 2, escrow.FEEDBACK_TAG()); // 90.00, two decimals
+        _rate(alice, 90, 0, FEEDBACK_TAG); // 90, zero decimals
+        _rate(bob, 9000, 2, FEEDBACK_TAG); // 90.00, two decimals
 
         bytes32 jobId = _fundWith(_policy(_two(), 2, 2, 9000), bytes32(uint256(1)));
         assertEq(escrow.jobs(jobId).amount, PRICE);
@@ -400,7 +406,7 @@ contract GateTest is EscrowFixture {
                 written++;
             }
             uint256 before = gasleft();
-            reputation.getSummary(sellerAgentId, one, escrow.FEEDBACK_TAG(), "");
+            reputation.getSummary(sellerAgentId, one, FEEDBACK_TAG, "");
             console.log("getSummary entries=%s gas=%s", written, before - gasleft());
         }
     }

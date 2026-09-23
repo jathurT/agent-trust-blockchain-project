@@ -69,5 +69,11 @@ printf '  grace             %s\n' "$(cast call "$ESCROW" 'grace()(uint64)' --rpc
 printf '  passThreshold     %s\n' "$(cast call "$ESCROW" 'PASS_THRESHOLD()(uint8)' --rpc-url "$RPC")"
 printf '  token allowed     %s\n' "$(cast call "$ESCROW" 'tokenAllowed(address)(bool)' "$(jq -r '.token' "$OUT")" --rpc-url "$RPC")"
 printf '  identityRegistry  %s\n' "$(cast call "$ESCROW" 'identityRegistry()(address)' --rpc-url "$RPC")"
+# The gate floors are the whole point of the A6 claim, so a deployment that left them
+# at zero would silently invalidate it.
+printf '  gate floors       distinct>=%s count>=%s avg>=%s\n' \
+  "$(cast call "$ESCROW" 'minDistinctFloor()(uint16)' --rpc-url "$RPC")" \
+  "$(cast call "$ESCROW" 'minCountFloor()(uint64)' --rpc-url "$RPC")" \
+  "$(cast call "$ESCROW" 'minAvgValueFloor()(int128)' --rpc-url "$RPC")"
 
 bash "$ROOT/impl/scripts/export-abi.sh"

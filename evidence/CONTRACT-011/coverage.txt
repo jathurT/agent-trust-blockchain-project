@@ -1,0 +1,45 @@
+| File                                 | % Lines          | % Statements     | % Branches      | % Funcs         |
+| script/Deploy.s.sol                  | 0.00% (0/66)     | 0.00% (0/74)     | 0.00% (0/4)     | 0.00% (0/6)     |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/AgentTrustEscrow.sol             | 97.55% (199/204) | 96.14% (249/259) | 86.54% (45/52)  | 96.67% (29/30)  |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/CanonicalHash.sol                | 100.00% (6/6)    | 100.00% (6/6)    | N/A (0/0)       | 100.00% (3/3)   |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/mocks/AdversarialTokens.sol      | 94.44% (34/36)   | 96.97% (32/33)   | 100.00% (3/3)   | 92.86% (13/14)  |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/mocks/MockIdentityRegistry.sol   | 64.29% (45/70)   | 66.67% (46/69)   | 25.00% (5/20)   | 66.67% (10/15)  |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/mocks/MockReputationRegistry.sol | 100.00% (69/69)  | 96.20% (76/79)   | 37.50% (9/24)   | 100.00% (13/13) |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/mocks/MockUSDC.sol               | 72.22% (26/36)   | 70.00% (21/30)   | 66.67% (4/6)    | 83.33% (10/12)  |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| src/mocks/MockValidationRegistry.sol | 100.00% (52/52)  | 100.00% (51/51)  | 21.05% (4/19)   | 100.00% (9/9)   |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| test/Invariant.t.sol                 | 0.00% (0/102)    | 0.00% (0/122)    | 0.00% (0/35)    | 0.00% (0/14)    |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| test/MockUSDC.t.sol                  | 50.00% (1/2)     | 0.00% (0/1)      | N/A (0/0)       | 100.00% (1/1)   |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| test/SecurityReview.t.sol            | 20.00% (2/10)    | 14.29% (1/7)     | N/A (0/0)       | 12.50% (1/8)    |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| test/support/EscrowFixture.sol       | 80.00% (28/35)   | 78.12% (25/32)   | N/A (0/0)       | 100.00% (9/9)   |
+|--------------------------------------+------------------+------------------+-----------------+-----------------|
+| Total                                | 67.15% (462/688) | 66.45% (507/763) | 42.94% (70/163) | 73.13% (98/134) |
+
+forge coverage --no-match-contract InvariantTest --ir-minimum --report summary
+2026-09-23
+
+CONTRACT-011 requires >= 90% lines on AgentTrustEscrow.sol: 97.55% (199/204). The five
+uncovered lines and the seven uncovered branches are the defensive arms that need a
+misbehaving registry or a chain state the mocks cannot produce.
+
+The "Total" row is low because it includes the mocks, which are deliberately only
+exercised where the escrow touches them -- MockUSDC's cancelAuthorization and
+MockIdentityRegistry's metadata overloads have no caller in this project. They are
+faithful copies of upstream (REG-002/003/004), not project code, and REG-008 checks them
+against the pinned ABI rather than by coverage.
+
+Coverage recompiles without the optimizer, and that build exposed a real test bug the
+Foundry linter had already flagged: the compiler may cache `block.timestamp` across a
+`vm.warp`, so test_RefundBeforeDeadlinePlusGraceReverts passed under `forge test` and
+failed under `forge coverage`. Every timestamp read in the test tree now goes through
+`vm.getBlockTimestamp()`.

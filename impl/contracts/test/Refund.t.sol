@@ -40,7 +40,7 @@ contract RefundTest is EscrowFixture {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                AgentTrustEscrow.DeadlineNotReached.selector, uint64(block.timestamp), deadline + GRACE
+                AgentTrustEscrow.DeadlineNotReached.selector, uint64(vm.getBlockTimestamp()), deadline + GRACE
             )
         );
         escrow.refund(jobId);
@@ -50,7 +50,7 @@ contract RefundTest is EscrowFixture {
         assertFalse(escrow.isRefundable(jobId));
         vm.expectRevert(
             abi.encodeWithSelector(
-                AgentTrustEscrow.DeadlineNotReached.selector, uint64(block.timestamp), deadline + GRACE
+                AgentTrustEscrow.DeadlineNotReached.selector, uint64(vm.getBlockTimestamp()), deadline + GRACE
             )
         );
         escrow.refund(jobId);
@@ -180,18 +180,72 @@ contract RefundTest is EscrowFixture {
 
     // ---------------------------------------------------------------------- grace
 
-    /// @dev Grace is owner-configurable because the right margin depends on how fast
-    ///      the chain is confirming, but changing it must not reach into a job's money
-    ///      other than by moving when the valve opens.
-    function test_ShorteningGraceOpensTheValveEarlier() public {
+    /// @dev Grace is owner-configurable, but each job freezes it at funding time.
+    ///      Before that snapshot existed, `setGrace` was the one administrative call
+    ///      that could reach an already-funded job: shortening it opened the refund
+    ///      valve under a seller whose validator was about to attest. The security
+    ///      review found it; this test now pins the opposite.
+    function test_ShorteningGraceDoesNotOpenTheValveOnAFundedJob() public {
         bytes32 jobId = _fund(NONCE);
+        assertEq(escrow.jobs(jobId).grace, GRACE);
+
         vm.warp(uint256(escrow.jobs(jobId).deadline) + 1 minutes);
         assertFalse(escrow.isRefundable(jobId));
 
         vm.prank(owner);
         escrow.setGrace(30 seconds);
-        assertTrue(escrow.isRefundable(jobId));
+
+        assertFalse(escrow.isRefundable(jobId));
+        vm.expectRevert();
         escrow.refund(jobId);
+
+        // The new value applies to the next job, not to this one.
+        bytes32 later = _fund(bytes32(uint256(2)));
+        assertEq(escrow.jobs(later).grace, 30 seconds);
+    }
+
+    /// @dev And the dangerous direction: a huge grace used to overflow
+    ///      `job.deadline + grace`, so `refund()` reverted for every funded job — and
+    ///      with `renounceOwnership` being a single step, permanently.
+    function test_ALargeGraceCannotFreezeAnExistingJob() public {
+        bytes32 jobId = _fund(NONCE);
+
+        // Read the bound before pranking: a call inside the expectRevert argument
+        // would consume the prank and the setter would run as the test contract.
+        uint64 maxGrace = escrow.MAX_GRACE();
+
+        vm.prank(owner);
+        vm.expectRevert(
+            abi.encodeWithSelector(AgentTrustEscrow.GraceOutOfBounds.selector, type(uint64).max, maxGrace)
+        );
+        escrow.setGrace(type(uint64).max);
+
+        // Even at the largest permitted value, this job is unaffected.
+        vm.prank(owner);
+        escrow.setGrace(maxGrace);
+        _warpPastGrace(jobId);
+        escrow.refund(jobId);
+        assertEq(usdc.balanceOf(address(escrow)), 0);
+    }
+
+    /// @dev The gap my own mutation testing found: a pass that was snapshotted and then
+    ///      overwritten in the registry must still block the refund. Only the
+    ///      `validationRecorded` flag stands in the way at that point.
+    function test_RefundBlockedByASnapshotEvenAfterTheRegistryFlips() public {
+        bytes32 jobId = _fund(NONCE);
+        bytes32 requestHash = _bind(jobId, SALT);
+        _attest(requestHash, 100);
+        escrow.confirmValidation(jobId);
+
+        _attest(requestHash, 0); // the validator changes its mind
+        _warpPastGrace(jobId);
+
+        assertFalse(escrow.isRefundable(jobId));
+        vm.expectRevert(abi.encodeWithSelector(AgentTrustEscrow.ValidationExists.selector, jobId));
+        escrow.refund(jobId);
+
+        escrow.release(jobId);
+        assertEq(usdc.balanceOf(seller), PRICE);
     }
 
     function test_OnlyTheOwnerSetsGrace() public {

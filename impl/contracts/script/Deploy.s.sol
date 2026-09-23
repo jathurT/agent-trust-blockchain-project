@@ -33,6 +33,9 @@ contract Deploy is Script {
         uint64 grace;
         uint16 maxTrustedClients;
         uint64 reputationReadGas;
+        uint16 minDistinctFloor;
+        uint64 minCountFloor;
+        int128 minAvgValueFloor;
         bool deployedMocks;
     }
 
@@ -55,6 +58,7 @@ contract Deploy is Script {
             cfg.reputationReadGas
         );
         escrow.setTokenAllowed(cfg.token, true);
+        escrow.setGateFloors(cfg.minDistinctFloor, cfg.minCountFloor, cfg.minAvgValueFloor);
         vm.stopBroadcast();
 
         _write(address(escrow), cfg);
@@ -73,6 +77,15 @@ contract Deploy is Script {
         cfg.grace = uint64(vm.envOr("GRACE_SECONDS", uint256(15 minutes)));
         cfg.maxTrustedClients = uint16(vm.envOr("MAX_TRUSTED_CLIENTS", uint256(10)));
         cfg.reputationReadGas = uint64(vm.envOr("REPUTATION_READ_GAS", uint256(250_000)));
+        // The gate's floors. Without these a fresh deployment has the reputation gate
+        // switched off until someone remembers to send a second transaction — and since
+        // the headline A6 claim is about the gate, a deployment record that did not pin
+        // them would make any A6 result unreproducible. §6.8 specifies at least one
+        // distinct trusted attester; `minCountFloor` is 1 so that a policy asking for
+        // "nothing negative" cannot be satisfied by an agent with no feedback at all.
+        cfg.minDistinctFloor = uint16(vm.envOr("MIN_DISTINCT_FLOOR", uint256(1)));
+        cfg.minCountFloor = uint64(vm.envOr("MIN_COUNT_FLOOR", uint256(1)));
+        cfg.minAvgValueFloor = int128(int256(vm.envOr("MIN_AVG_VALUE_FLOOR", int256(0))));
 
         // All three registries come from the same place, or none of them do: a
         // deployment that mixed a live registry with a mock would be a trap.
@@ -117,6 +130,9 @@ contract Deploy is Script {
         vm.serializeUint(o, "graceSeconds", cfg.grace);
         vm.serializeUint(o, "maxTrustedClients", cfg.maxTrustedClients);
         vm.serializeUint(o, "reputationReadGas", cfg.reputationReadGas);
+        vm.serializeUint(o, "minDistinctFloor", cfg.minDistinctFloor);
+        vm.serializeUint(o, "minCountFloor", cfg.minCountFloor);
+        vm.serializeInt(o, "minAvgValueFloor", cfg.minAvgValueFloor);
         string memory json = vm.serializeString(o, "commit", _commit());
 
         vm.writeJson(json, path);

@@ -1,0 +1,10 @@
+EXIT=0
+[PASS] invariant_A_EscrowHoldsExactlyTheFundedJobs
+[PASS] invariant_B_NoJobSettlesTwice
+[PASS] invariant_C_ConfigurationNeverTouchesTheBalance
+[PASS] invariant_E_ReleasedMoneyReachedThePayee
+[PASS] invariant_F_EachBuyersBalanceIsFullyExplained
+[PASS] invariant_G_NoThirdPartyHoldsEscrowedFunds
+Ran 11 test suites in 205.84s (206.42s CPU time): 143 tests passed, 0 failed, 0 skipped (143 total tests)
+
+[exited with code 0]

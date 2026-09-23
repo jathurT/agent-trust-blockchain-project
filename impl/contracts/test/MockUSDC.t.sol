@@ -76,14 +76,14 @@ contract MockUSDCTest is Test {
         bytes32 structHash = keccak256(
             abi.encode(
                 usdc.RECEIVE_WITH_AUTHORIZATION_TYPEHASH(),
-                payer, payee, uint256(1), block.timestamp + 100, type(uint256).max, nonce
+                payer, payee, uint256(1), vm.getBlockTimestamp() + 100, type(uint256).max, nonce
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", usdc.DOMAIN_SEPARATOR(), structHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(payerKey, digest);
         vm.prank(payee);
         vm.expectRevert(MockUSDC.AuthorizationNotYetValid.selector);
-        usdc.receiveWithAuthorization(payer, payee, 1, block.timestamp + 100, type(uint256).max, nonce, v, r, s);
+        usdc.receiveWithAuthorization(payer, payee, 1, vm.getBlockTimestamp() + 100, type(uint256).max, nonce, v, r, s);
     }
 
     function test_WrongSignerIsRejected() public {

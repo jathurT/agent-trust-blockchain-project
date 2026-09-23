@@ -101,7 +101,7 @@ contract SettlementTest is EscrowFixture {
         _attest(requestHash, 100);
 
         vm.expectEmit(true, true, false, true, address(escrow));
-        emit AgentTrustEscrow.ValidationRecorded(jobId, requestHash, 100, block.timestamp);
+        emit AgentTrustEscrow.ValidationRecorded(jobId, requestHash, 100, vm.getBlockTimestamp());
         escrow.confirmValidation(jobId);
 
         assertTrue(escrow.jobs(jobId).validationRecorded);
@@ -239,7 +239,7 @@ contract SettlementTest is EscrowFixture {
         );
         escrow.release(jobId);
 
-        vm.warp(block.timestamp + MAX_TTL + GRACE + 1);
+        vm.warp(vm.getBlockTimestamp() + MAX_TTL + GRACE + 1);
         vm.expectRevert(
             abi.encodeWithSelector(AgentTrustEscrow.BadState.selector, jobId, AgentTrustEscrow.State.Released)
         );

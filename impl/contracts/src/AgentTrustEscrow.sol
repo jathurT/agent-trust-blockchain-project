@@ -56,6 +56,8 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     /// @param resourceHash     binds the job to one canonical request at one price
     /// @param requestHash      the bound ERC-8004 validation key (CONTRACT-007)
     /// @param deadline         last moment an attestation may carry to be usable
+    /// @param grace            refund margin, frozen at funding time so no later
+    ///                         configuration change can move this job's money
     /// @param validationRecorded  a passing attestation has been snapshotted
     struct Job {
         address payer;
@@ -68,6 +70,7 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         bytes32 requestHash;
         uint64 fundedAt;
         uint64 deadline;
+        uint64 grace;
         State state;
         bool validationRecorded;
     }
@@ -136,11 +139,26 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     ///         feedback. A read that exceeds this contributes nothing.
     uint64 public reputationReadGas;
 
-    /// @notice How long after the deadline a refund has to wait.
+    /// @notice How long after the deadline a refund has to wait, for jobs funded from
+    ///         now on.
     /// @dev    Margin for an attestation that is timely but mined late. Too short and
     ///         an honest seller loses; too long and the buyer's money is held for no
     ///         reason. DF-05 calls this the tunable that carries the residual risk.
+    ///
+    ///         Each job **freezes this value at funding time**. Without that, the one
+    ///         owner setter that could reach an already-funded job was this one: set
+    ///         it to zero and a job about to be attested refunds instead; set it to
+    ///         `type(uint64).max` and `job.deadline + grace` overflows, so `refund()`
+    ///         reverts for every funded job — and since `renounceOwnership` is one
+    ///         step, that freeze would be permanent. CLAUDE.md requires that no
+    ///         administrative path can move escrowed funds; the snapshot is what makes
+    ///         that true rather than nearly true.
     uint64 public grace;
+
+    /// @notice Largest refund margin the owner may configure.
+    /// @dev    Bounded so `deadline + grace` cannot overflow and so a new job's money
+    ///         cannot be parked indefinitely. 30 days against a 24-hour maximum TTL.
+    uint64 public constant MAX_GRACE = 30 days;
 
     /// @notice Owner floors. A buyer may be stricter than these, never weaker.
     uint16 public minDistinctFloor;
@@ -190,6 +208,8 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     error BadState(bytes32 jobId, State state);
     error DeadlineNotReached(uint64 nowTs, uint64 refundableAt);
     error ValidationExists(bytes32 jobId);
+    error ValidationReadFailed(bytes32 requestHash);
+    error GraceOutOfBounds(uint64 given, uint64 max);
     error InvalidTtlBounds();
     error UnknownJob(bytes32 jobId);
 
@@ -213,6 +233,7 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
             revert InvalidValidator(address(0));
         }
         if (minTtl_ == 0 || maxTtl_ < minTtl_) revert InvalidTtlBounds();
+        if (grace_ > MAX_GRACE) revert GraceOutOfBounds(grace_, MAX_GRACE);
         if (reputationReadGas_ < MIN_REPUTATION_READ_GAS) {
             revert ReputationReadGasTooLow(reputationReadGas_, MIN_REPUTATION_READ_GAS);
         }
@@ -264,7 +285,7 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         // Resolving the payee also proves the agent exists: `ownerOf` reverts otherwise,
         // and failing closed here is the point.
         address payee = _resolvePayee(payeeAgentId);
-        _requireAcceptableValidator(validator, payeeAgentId);
+        _requireAcceptableValidator(validator, payee, payeeAgentId);
         _enforceGate(payeeAgentId, gate);
 
         bytes32 resourceHash = CanonicalHash.resourceHash(
@@ -291,6 +312,7 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
             // forge-lint: disable-next-line(unsafe-typecast)
             fundedAt: uint64(block.timestamp),
             deadline: deadline,
+            grace: grace,
             state: State.Funded,
             validationRecorded: false
         });
@@ -306,8 +328,14 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         _emitJobFunded(jobId);
     }
 
-    /// @dev Headroom left for the rest of `fund()` after a capped registry read.
-    uint256 internal constant GAS_AFTER_READ = 100_000;
+    /// @dev Headroom `fund()` needs after its last capped registry read: the payee
+    ///      resolution, the storage writes, the token pull and the event. Measured at
+    ///      ~290k for a one-client policy, so 100k — the first value here — was about
+    ///      three times too small and a tight caller got a plain out-of-gas instead of
+    ///      the intended `InsufficientGasForReputationRead`. It does not open the gate
+    ///      bypass either way, because the pre-check still forces the callee to receive
+    ///      the full ceiling; too small only made the diagnostic worse.
+    uint256 internal constant GAS_AFTER_READ = 320_000;
 
     /// @notice Smallest ceiling the owner may set for one reputation read.
     /// @dev    A ceiling low enough that every read runs out of gas and is caught would
@@ -339,9 +367,17 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
 
     /// @dev Independence is really supplied by the buyer choosing a validator it trusts
     ///      from the seller's offered set (DF-06); this check is defence in depth
-    ///      against the two cases the chain can see by itself.
-    function _requireAcceptableValidator(address validator, uint256 agentId) internal view {
-        if (validator == address(0) || validator == msg.sender) revert InvalidValidator(validator);
+    ///      against the cases the chain can see by itself.
+    ///
+    ///      The payee check is not redundant with the owner/operator one. Once the
+    ///      seller sets `agentWallet` — the very case DF-12 exists for — that wallet is
+    ///      neither the NFT's owner nor an approved operator, so it passed
+    ///      `isAuthorizedOrOwner` and could be named as its own validator: bind,
+    ///      attest 100, release, with no independent party anywhere in the flow.
+    function _requireAcceptableValidator(address validator, address payee, uint256 agentId) internal view {
+        if (validator == address(0) || validator == msg.sender || validator == payee) {
+            revert InvalidValidator(validator);
+        }
         if (identityRegistry.isAuthorizedOrOwner(validator, agentId)) revert InvalidValidator(validator);
     }
 
@@ -398,15 +434,23 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
 
         int256 requiredAvg = gate.minAvgValue > minAvgValueFloor ? gate.minAvgValue : minAvgValueFloor;
         if (totalCount == 0) {
-            // No entries at all: only a policy that asks for nothing can pass, and the
-            // two checks above have already allowed that case through.
+            // No entries at all, so there is no average to compare. A threshold of 0 is
+            // a real requirement ("nothing negative"), not an empty one, but it cannot
+            // be evaluated here — and a buyer that means it should be setting
+            // `minCount >= 1`, which the checks above would already have caught.
+            // `minCountFloor` is deployed at 1 for exactly this reason.
             if (requiredAvg > 0) revert ReputationTooLow(GateDimension.Average, 0, requiredAvg);
             return;
         }
 
         // Back to the project's two-decimal units. Integer division truncates towards
-        // zero, so a negative average is reported very slightly high; the effect is one
-        // hundredth of a point and always in the buyer's favour.
+        // zero, so a negative average is reported very slightly **high** — that is, the
+        // agent looks marginally better than it is, which favours the **seller**, not
+        // the buyer. The error is at most one hundredth of a point. A positive average
+        // truncates the other way, against the seller. Noted rather than corrected:
+        // rounding is below the resolution the gate is meaningfully set at, and the
+        // default `minAvgValueFloor` of 0 makes a negative threshold unreachable anyway,
+        // since the effective threshold is `max(policy, floor)`.
         int256 averageWad = weightedSumWad / int256(totalCount);
         int256 average = averageWad / int256(10 ** uint256(WAD_DECIMALS - FEEDBACK_DECIMALS));
         if (average < requiredAvg) {
@@ -436,6 +480,12 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         try reputationRegistry.getSummary{gas: ceiling}(agentId, one, FEEDBACK_TAG, "") returns (
             uint64 c, int128 v, uint8 d
         ) {
+            // The registry caps `valueDecimals` at 18 on write, but it is upgradeable
+            // by a single key (V-97). A larger value would underflow `18 - d` in the
+            // caller — a panic *outside* this guard, which would make the agent
+            // unfundable by anyone. Treating it as no data keeps the promise that a
+            // misbehaving read contributes nothing rather than bricking `fund()`.
+            if (d > WAD_DECIMALS) return (0, 0, 0);
             return (c, v, d);
         } catch {
             return (0, 0, 0);
@@ -510,12 +560,15 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     function refund(bytes32 jobId) external nonReentrant {
         Job storage job = _requireFunded(jobId);
 
-        uint64 refundableAt = job.deadline + grace;
+        uint256 refundableAt = uint256(job.deadline) + job.grace;
         // forge-lint: disable-next-line(block-timestamp)
-        if (block.timestamp <= refundableAt) revert DeadlineNotReached(uint64(block.timestamp), refundableAt);
+        if (block.timestamp <= refundableAt) {
+            revert DeadlineNotReached(uint64(block.timestamp), uint64(refundableAt));
+        }
         if (job.validationRecorded) revert ValidationExists(jobId);
         // A pass that was earned in time but never snapshotted still counts.
-        if (_isPassing(job)) revert ValidationExists(jobId);
+        (bool passing,,) = _isPassing(job);
+        if (passing) revert ValidationExists(jobId);
 
         job.state = State.Refunded;
         address payer = job.payer;
@@ -530,7 +583,9 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     function isReleasable(bytes32 jobId) external view returns (bool) {
         Job storage job = _jobs[jobId];
         if (job.state != State.Funded) return false;
-        return job.validationRecorded || _isPassing(job);
+        if (job.validationRecorded) return true;
+        (bool passing,,) = _isPassing(job);
+        return passing;
     }
 
     /// @notice Whether `refund()` would succeed right now.
@@ -538,8 +593,10 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         Job storage job = _jobs[jobId];
         if (job.state != State.Funded) return false;
         // forge-lint: disable-next-line(block-timestamp)
-        if (block.timestamp <= job.deadline + grace) return false;
-        return !job.validationRecorded && !_isPassing(job);
+        if (block.timestamp <= uint256(job.deadline) + job.grace) return false;
+        if (job.validationRecorded) return false;
+        (bool passing,,) = _isPassing(job);
+        return !passing;
     }
 
     function _requireFunded(bytes32 jobId) private view returns (Job storage job) {
@@ -552,25 +609,50 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
     ///      later than the job's deadline. `lastUpdate` is set by `validationRequest`
     ///      as well as by `validationResponse`, so the response value is what
     ///      distinguishes a real pass from a pending request (V-99).
-    function _isPassing(Job storage job) private view returns (bool) {
-        if (job.requestHash == bytes32(0)) return false;
-        (bool found, address validator, uint256 agentId, uint8 response, uint256 lastUpdate) =
-            _readValidation(job.requestHash);
-        return found && validator == job.validator && agentId == job.payeeAgentId && response >= PASS_THRESHOLD
-            && lastUpdate <= job.deadline;
+    /// @dev Returns the attestation alongside the verdict so callers never read twice:
+    ///      the read can be expensive (see `_readValidation`) and doing it once for the
+    ///      decision and again for the event doubled that cost for no reason.
+    function _isPassing(Job storage job) private view returns (bool passing, uint8 response, uint256 lastUpdate) {
+        if (job.requestHash == bytes32(0)) return (false, 0, 0);
+        (bool found, address validator, uint256 agentId, uint8 r, uint256 u) = _readValidation(job.requestHash);
+        passing = found && validator == job.validator && agentId == job.payeeAgentId && r >= PASS_THRESHOLD
+            && u <= job.deadline;
+        return (passing, r, u);
     }
 
     function _recordPass(bytes32 jobId, Job storage job) private returns (bool) {
         if (job.requestHash == bytes32(0)) revert NotBound(jobId);
-        if (!_isPassing(job)) return false;
+        (bool passing, uint8 response, uint256 lastUpdate) = _isPassing(job);
+        if (!passing) return false;
         job.validationRecorded = true;
-        (,,, uint8 response, uint256 lastUpdate) = _readValidation(job.requestHash);
         emit ValidationRecorded(jobId, job.requestHash, response, lastUpdate);
         return true;
     }
 
     /// @dev `getValidationStatus` reverts "unknown" for a hash nobody has filed, so the
-    ///      read is wrapped and a revert means "no validation" rather than a dead job.
+    ///      read is wrapped and that particular revert means "no validation".
+    ///
+    ///      **Not every failure may be read that way.** `getValidationStatus` returns
+    ///      the validator-supplied `tag`, and the registry copies the whole struct into
+    ///      memory to do it, so the read's cost is set by whoever wrote the tag: about
+    ///      30k gas for this project's 10-byte tag, but 14M at 200 KB. A caller that
+    ///      simply supplies a modest gas limit could make the sub-call run out of gas,
+    ///      have it caught here as "no validation", and refund a job that held a
+    ///      genuine passing attestation — taking delivered, attested work for free.
+    ///      That was reproduced before this check existed.
+    ///
+    ///      The two cases are distinguishable in the returndata: an out-of-gas
+    ///      sub-call returns **zero** bytes, while the registry's `require(…, "unknown")`
+    ///      returns a 100-byte `Error(string)`. An empty revert is therefore treated as
+    ///      "could not read" and propagated, so every caller fails closed.
+    ///
+    ///      Deliberately **uncapped**. A gas ceiling here would not help — the cost is
+    ///      incurred inside the registry either way — and would convert "supply more
+    ///      gas" into "this job can never be read again", stranding the money. Writing
+    ///      a large tag always costs its author more than reading it costs anyone else
+    ///      (17.2M to write 200 KB against 14.2M to read it), so a tag that fit in a
+    ///      block can always be read back within one. The residual cost is recorded in
+    ///      DOC-004 rather than hidden behind a cap.
     function _readValidation(bytes32 requestHash)
         private
         view
@@ -580,7 +662,8 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
             address v, uint256 a, uint8 r, bytes32, string memory, uint256 u
         ) {
             return (true, v, a, r, u);
-        } catch {
+        } catch (bytes memory reason) {
+            if (reason.length == 0) revert ValidationReadFailed(requestHash);
             return (false, address(0), 0, 0, 0);
         }
     }
@@ -650,7 +733,10 @@ contract AgentTrustEscrow is Ownable2Step, ReentrancyGuard {
         emit GateFloorsUpdated(minDistinct_, minCount_, minAvgValue_);
     }
 
+    /// @dev Forward-looking only: jobs already funded keep the grace they were funded
+    ///      with, so this cannot reach anyone's money.
     function setGrace(uint64 grace_) external onlyOwner {
+        if (grace_ > MAX_GRACE) revert GraceOutOfBounds(grace_, MAX_GRACE);
         grace = grace_;
         emit GraceUpdated(grace_);
     }

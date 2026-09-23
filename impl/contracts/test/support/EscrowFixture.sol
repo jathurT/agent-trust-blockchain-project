@@ -38,6 +38,13 @@ abstract contract EscrowFixture is Test {
     bytes32 internal constant BODY_HASH = keccak256('{"text":"hello"}');
     bytes32 internal constant NONCE = bytes32(uint256(1));
 
+    /// @dev Mirrors `AgentTrustEscrow.FEEDBACK_TAG`. Held as a constant rather than read
+    ///      through the getter because an external call placed inside a pranked
+    ///      statement consumes the prank: `vm.prank(x); f(escrow.FEEDBACK_TAG())` calls
+    ///      `f` as the test contract, not as x. `test_TagMatchesTheContract` keeps the
+    ///      two in step.
+    string internal constant FEEDBACK_TAG = "agenttrust";
+
     function setUp() public virtual {
         identity = new MockIdentityRegistry();
         reputation = new MockReputationRegistry(address(identity));
@@ -119,6 +126,8 @@ abstract contract EscrowFixture is Test {
 
     function _attest(bytes32 requestHash, uint8 response) internal {
         vm.prank(validator);
-        validation.validationResponse(requestHash, response, "https://validator.example/r", keccak256("body"), "agenttrust");
+        validation.validationResponse(
+            requestHash, response, "https://validator.example/r", keccak256("body"), FEEDBACK_TAG
+        );
     }
 }

@@ -620,7 +620,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-004 — Escrow state machine and `fund()`
 
-- [ ] **Status:** IN_PROGRESS — implementation and tests complete, **held for the CLAUDE.md §6 security review**, which runs once `release()`/`refund()` exist so the whole money path is reviewed at once · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) — security review passed, see §14 · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** The core state machine with on-chain resource binding, payer nonce, payee snapshot and TTL bounds.
 - **Progress (2026-09-23):** `impl/contracts/src/AgentTrustEscrow.sol` + `test/Fund.t.sol`, **31 tests passing** (`evidence/CONTRACT-004/forge-test.log`). All six acceptance criteria are covered: replayed nonce reverts; a failed transfer leaves the nonce unconsumed *and* the buyer can then reuse it; a 1% fee-on-transfer token reverts `TransferAmountMismatch`; TTL bounds are enforced both ways plus a 256-run fuzz inside them; the derivations are checked against **every** shared hashing vector, with the contract deployed at the vector's escrow address on the vector's chain so the job id is comparable too; and the payee is the agent wallet when set, the owner after a transfer, and stays snapshotted if the agent moves mid-job. Extra coverage beyond the criteria: nonces are payer-scoped, the validator may not be the payer, zero, the agent's owner or its **operator**, funding an unknown agent reverts, and a re-entrant token's callback is asserted with `vm.expectCall` before showing the guard stopped it.
 - **Refs:** §5.1(4), §5.2, §9.2, §9.3 · FR-03, FR-04, FR-09, FR-11, SR-01, SR-02, SR-04, SR-09, SR-12 · DF-04, DF-12, DF-22
@@ -634,7 +634,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-005 — Trust-anchored reputation gate
 
-- [ ] **Status:** IN_PROGRESS — implementation and tests complete, held with CONTRACT-004 for the §6 security review · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(B) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) — security review passed, see §14 · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(B) · contracts-protocol
 - **Objective:** Gate funding on feedback from clients the buyer actually trusts, with bounded gas.
 - **Progress (2026-09-23):** `_enforceGate` in `AgentTrustEscrow.sol` + `test/Gate.t.sol`, **21 tests passing** (`evidence/CONTRACT-005/`). All five acceptance criteria are covered, plus three things the step list did not anticipate:
   - **Gas starvation was a real bypass.** A bounded `try/catch` read means a caller could supply just enough gas that every `getSummary` runs out, is caught, contributes nothing — and the gate waves them through while appearing to have been applied. `_readSummary` now requires `gasleft() >= ceiling * 64/63 + 100k` before each read (EIP-150's 63/64 rule) and reverts `InsufficientGasForReputationRead` rather than deciding on no data. `test_StarvingTheReadsOfGasRevertsInsteadOfSkippingTheGate` pins it.
@@ -659,7 +659,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-007 — `bindValidation`, `confirmValidation` and `release`
 
-- [ ] **Status:** IN_PROGRESS (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) — security review passed, see §14 · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Tie exactly one validation request to a job and pay only against a timely pass.
 - **Refs:** §5.1(6)(7), §9.2 · FR-06, FR-07, FR-21, FR-22, SR-03 · DF-05, DF-06, DF-15 · V-94, V-98, V-99
 - **Depends:** CONTRACT-004, REG-004, SPEC-003
@@ -669,7 +669,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-008 — `refund()` after deadline plus grace
 
-- [ ] **Status:** IN_PROGRESS (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) — security review passed, see §14 · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Give the buyer a safety valve that cannot steal a delivered, attested job.
 - **Refs:** §5.1(7), §9.2, §9.3 · FR-07, FR-22 · DF-05 · V-99
 - **Depends:** CONTRACT-007
@@ -690,7 +690,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-011 — Unit and boundary test suite
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 1.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Cover every state transition, error and boundary — including the corrected versions of the blueprint's tests.
 - **Refs:** §9.4 · FR-04, FR-07, FR-09, FR-11, ER-09 · DF-05, DF-13, DF-22 · Gate: **G1**
 - **Skill:** `test-driven-development`, `solidity@solskill`
@@ -707,7 +707,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### CONTRACT-013 — Core invariants
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "ok", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Prove the two properties that matter most: money is conserved and no job settles twice.
 - **Refs:** §9.3 · SR-10, FR-09 · DF-12
 - **Depends:** CONTRACT-011
@@ -1573,6 +1573,29 @@ The conformance script paid for itself on first run: it caught `NewFeedback` dec
 **ENV-002 follow-up — the secret-scan hook was being bypassed.** Committing this batch, the hook refused a public EIP-1967 storage slot. Checking why showed the rule ("any `0x` + 64 hex") matches every keccak hash in the repository — 155 in `impl/vectors/canonical-v1.json` alone — and that the SPEC-001 commit, which the hook would have blocked on 154 lines, went in with `--no-verify`, unrecorded. A control that gets bypassed is worse than no control, so the hook was rewritten rather than worked around: it now scans per file, skips the generated hash artifacts by path (`impl/vectors/*.json`, `impl/contracts/abi/*`, `deployments/*.json`), allowlists named public constants (the two EIP-1967 slots, `keccak256("")`), and adds targeted rules for key-shaped assignments and literal `--private-key` arguments. `.githooks/test-pre-commit.sh` now checks the hook itself — **13 cases, 7 that must block and 6 that must pass** — with fixtures assembled at run time, because written literally they made the hook block its own test file. A rescan of the whole history found **no key-shaped content** in any commit. DOC-009 should run the self-test before publication.
 
 A test I got wrong, and what it taught: `test_ReturnsFalseTokenIsCaughtBySafeERC20` failed at first. Reading the installed `SafeERC20` showed the library was right and the **test** was wrong — `safeTransfer` is an internal library call, so `vm.expectRevert` matched the inner token call (which succeeds by returning `false`) instead of the library's revert. Fixed by crossing an external call boundary. Worth remembering for every future `expectRevert` on library code.
+
+### Implementation evidence — the escrow (2026-09-23)
+
+| Task | Result | Evidence |
+|---|---|---|
+| CONTRACT-004 | `AgentTrustEscrow.sol` + `Fund.t.sol`, **31 tests**. Resource hash derived on-chain, payee snapshotted, payer nonce burned atomically with a strict balance-delta check. Derivations checked against **every** shared hashing vector with the contract deployed at the vector's escrow address on the vector's chain | `evidence/CONTRACT-004/` |
+| CONTRACT-005 | Trust-anchored gate + `Gate.t.sol`, **22 tests**. Two gas-starvation bypasses closed (caller-side `gasleft()` pre-check, owner-side `MIN_REPUTATION_READ_GAS`); duplicates rejected, not deduplicated; `FEEDBACK_TAG` a constant | `evidence/CONTRACT-005/`, `gas-vs-history.txt` |
+| CONTRACT-007/008 | bind / confirm / release / refund + **35 tests**. Release has no deadline of its own; the first pass is snapshotted; refund needs deadline + grace and no recorded-or-recordable pass | `evidence/CONTRACT-007/`, `evidence/CONTRACT-008/` |
+| CONTRACT-011 | `BlueprintCorrected.t.sol` — the §9.4 set, corrected, each test stating what the original asserted and why that was the wrong property | see below |
+| CONTRACT-013 | `Invariant.t.sol` — 6 invariants plus an `afterInvariant` liveness check, 256 runs × depth 500 | `evidence/CONTRACT-013/` |
+| CONTRACT-017 | Deploy script, deployment record with real block and tx, smoke check, ABI export | `evidence/CONTRACT-017/` |
+
+**Measured (CONTRACT-005 acceptance d).** `getSummary` costs ~19.5k fixed + **~8,589 gas per feedback entry**, linear to 100 entries. At the 250k default ceiling a trusted client with more than ~26 entries for one agent is **dropped from the gate**. That is ERC-8004's read cost, not the escrow's — DOC-004 and EVAL-002.
+
+**The security review (CLAUDE.md §6) found a real HIGH, and it was not theoretical.** `refund()` was **fail-open** on a validation read that ran out of gas: `getValidationStatus` returns the validator-supplied `tag`, the registry copies the whole struct to memory to do it, so the read costs whatever the tag's author chose — ~30k for this project's tag, ~14M at 200 KB. The wrapper caught *every* failure as "no validation". I reproduced it here before fixing: `refund{gas: 5_000_000}` on a job holding a genuine passing attestation paid the buyer 250,000 atomic units and set the job to `Refunded`. The fix distinguishes an out-of-gas sub-call (**0 bytes** of returndata) from the registry's `require(…,"unknown")` (a 100-byte `Error(string)`) and reverts on the ambiguous case. Deliberately **no gas cap** — the cost is incurred inside the registry either way, and a cap would convert "supply more gas" into "this job can never be read again", stranding the money.
+
+Eight further findings were fixed in the same change, three of them worth naming: the agent's **payout wallet could be its own validator** (`isAuthorizedOrOwner` misses it, because a wallet set via `setAgentWallet` is neither owner nor operator); **`setGrace` was the one owner setter that reached an already-funded job**, and at `type(uint64).max` it overflowed `deadline + grace` so `refund()` reverted for every job — permanently, since `renounceOwnership` is a single step; and a **fresh deployment left every gate floor at 0**, so the reputation gate was off until someone sent a second transaction, which would have made any A6 result unreproducible. Full table, including what was checked and found sound: `evidence/SEC-REVIEW-001/findings.md`.
+
+**Mutation testing earned its place twice.** The first version of the invariants asserted only that money was *conserved* — and an escrow that pays the wrong party still holds the right total. Two injected bugs (`release()` paying the payer, `refund()` paying `msg.sender`) passed. Invariants E, F and G exist because of that result and catch both. Against the unit suite, 10 of 12 mutations were caught; the two that were not exposed genuine gaps — no test made the owner's **distinct** floor the binding constraint, and none covered a refund after a snapshotted pass was overwritten in the registry. Both now have tests. `evidence/CONTRACT-013/mutation-testing.txt`.
+
+**Two process notes, neither flattering.** Invariant D was written as an `invariant_` function asserting "at least one job has been funded" — but Foundry checks those after **every** call including the first, so it failed immediately and every time, and I went looking for a contract bug that was not there before moving it to `afterInvariant`. And the first round of mutation results was **contaminated by Foundry's invariant failure cache**, which replays the last failing sequence: runs finishing in 62ms rather than 1s gave it away, and the whole round had to be redone with `cache/invariant` cleared between mutations. Separately, the reviewer observed a mutation live in the working tree while reading the file — mutation testing writes to source, so it must not run while a review is in flight (CLAUDE.md §6, one writer per area).
+
+**`vm.prank` consumption bit three times**, each time producing a confusing failure: an external call placed inside a pranked statement — `escrow.previewRequestHash(...)` in an `expectRevert` argument, `escrow.FEEDBACK_TAG()` as a call argument, `escrow.MAX_GRACE()` in an error selector — consumes the prank, so the call under test runs as the test contract. The fixture now holds `FEEDBACK_TAG` as a constant and the affected tests hoist the read above the prank.
 
 ### Review outcomes (PLAN-006)
 

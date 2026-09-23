@@ -26,8 +26,8 @@ contract FundTest is EscrowFixture {
         assertEq(job.validator, validator);
         assertEq(job.token, address(usdc));
         assertEq(job.amount, PRICE);
-        assertEq(job.deadline, uint64(block.timestamp) + MIN_TTL);
-        assertEq(job.fundedAt, uint64(block.timestamp));
+        assertEq(job.deadline, uint64(vm.getBlockTimestamp()) + MIN_TTL);
+        assertEq(job.fundedAt, uint64(vm.getBlockTimestamp()));
         assertEq(uint8(job.state), uint8(AgentTrustEscrow.State.Funded));
         assertEq(job.requestHash, bytes32(0));
         assertFalse(job.validationRecorded);
@@ -51,7 +51,7 @@ contract FundTest is EscrowFixture {
             address(usdc),
             PRICE,
             resourceHash,
-            uint64(block.timestamp) + MIN_TTL
+            uint64(vm.getBlockTimestamp()) + MIN_TTL
         );
         assertEq(_fund(NONCE), expectedJobId);
     }
@@ -201,7 +201,7 @@ contract FundTest is EscrowFixture {
         vm.prank(buyer);
         bytes32 jobId =
             escrow.fund(sellerAgentId, address(usdc), PRICE, _resource(), NONCE, ttl, validator, _openGate());
-        assertEq(escrow.jobs(jobId).deadline, uint64(block.timestamp) + ttl);
+        assertEq(escrow.jobs(jobId).deadline, uint64(vm.getBlockTimestamp()) + ttl);
     }
 
     // ------------------------------------------------------------------ validator
@@ -271,7 +271,7 @@ contract FundTest is EscrowFixture {
     }
 
     function _setAgentWallet(address wallet, uint256 walletKey) internal {
-        uint256 deadline = block.timestamp + 60;
+        uint256 deadline = vm.getBlockTimestamp() + 60;
         bytes32 domain = keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),

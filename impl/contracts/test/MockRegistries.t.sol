@@ -67,7 +67,7 @@ contract MockRegistriesTest is Test {
     function test_setAgentWalletRequiresSignatureFromTheNewWallet() public {
         uint256 agentId = _registerSeller();
         (address wallet, uint256 walletKey) = makeAddrAndKey("agentWallet");
-        uint256 deadline = block.timestamp + 60;
+        uint256 deadline = vm.getBlockTimestamp() + 60;
 
         bytes32 digest = _walletDigest(agentId, wallet, seller, deadline);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(walletKey, digest);
@@ -81,7 +81,7 @@ contract MockRegistriesTest is Test {
         uint256 agentId = _registerSeller();
         (address wallet,) = makeAddrAndKey("agentWallet");
         (, uint256 imposterKey) = makeAddrAndKey("imposter");
-        uint256 deadline = block.timestamp + 60;
+        uint256 deadline = vm.getBlockTimestamp() + 60;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(imposterKey, _walletDigest(agentId, wallet, seller, deadline));
 
@@ -93,7 +93,7 @@ contract MockRegistriesTest is Test {
     function test_setAgentWalletRejectsFarFutureDeadline() public {
         uint256 agentId = _registerSeller();
         (address wallet, uint256 walletKey) = makeAddrAndKey("agentWallet");
-        uint256 deadline = block.timestamp + 6 minutes; // MAX_DEADLINE_DELAY is 5
+        uint256 deadline = vm.getBlockTimestamp() + 6 minutes; // MAX_DEADLINE_DELAY is 5
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(walletKey, _walletDigest(agentId, wallet, seller, deadline));
 
@@ -368,7 +368,7 @@ contract MockRegistriesTest is Test {
         validation.validationResponse(h, 0, "", bytes32(0), TAG);
         (,, uint8 revoked,,, uint256 lastUpdate) = validation.getValidationStatus(h);
         assertEq(revoked, 0);
-        assertEq(lastUpdate, block.timestamp);
+        assertEq(lastUpdate, vm.getBlockTimestamp());
     }
 
     function test_onlyTheNamedValidatorMayRespond() public {
@@ -407,7 +407,7 @@ contract MockRegistriesTest is Test {
         assertEq(response, 100);
         assertEq(responseHash, keccak256("body"));
         assertEq(tag, TAG);
-        assertEq(lastUpdate, block.timestamp);
+        assertEq(lastUpdate, vm.getBlockTimestamp());
         assertEq(val.getAgentValidations(agentId)[0], h);
         assertEq(val.getValidatorRequests(validator)[0], h);
         assertEq(val.getIdentityRegistry(), address(identity));

@@ -65,6 +65,19 @@
   },
   {
     "inputs": [],
+    "name": "MAX_GRACE",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "MIN_REPUTATION_READ_GAS",
     "outputs": [
       {
@@ -393,6 +406,11 @@
           {
             "internalType": "uint64",
             "name": "deadline",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "grace",
             "type": "uint64"
           },
           {
@@ -1224,6 +1242,22 @@
   {
     "inputs": [
       {
+        "internalType": "uint64",
+        "name": "given",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "max",
+        "type": "uint64"
+      }
+    ],
+    "name": "GraceOutOfBounds",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "available",
         "type": "uint256"
@@ -1488,6 +1522,17 @@
       }
     ],
     "name": "ValidationExists",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "requestHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ValidationReadFailed",
     "type": "error"
   },
   {
