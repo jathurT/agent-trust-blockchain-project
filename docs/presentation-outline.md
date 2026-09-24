@@ -122,6 +122,10 @@ upstream x402"**. Right pane: AgentTrust.
   "local devnet" and the presenter says so.
 - The closing honesty beat is blueprint §6.3, and it is deliberately the last thing
   said.
+- **The ethics line goes on this slide, not in the script** (SEC-011): *testnet only,
+  valueless tokens, our own services, published vulnerabilities, no third-party
+  targets.* It is one line of slide text, said only if asked — the same wording as
+  `README.md` §"Ethics and scope" and `docs/results.md`.
 
 ---
 

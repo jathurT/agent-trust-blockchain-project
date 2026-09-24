@@ -224,6 +224,17 @@ impl/attacks   the harness and the labelled vulnerable fixture
 evidence/      one directory per task; raw logs for every recorded number
 ```
 
+The specifications, each with the tests that pin it:
+
+| Document | What it fixes |
+|---|---|
+| [`docs/specs/canonical-hash.md`](docs/specs/canonical-hash.md) | the request hash, with cross-language vectors (SPEC-001) |
+| [`docs/specs/http-protocol.md`](docs/specs/http-protocol.md) | the 402 quote, the signed retry, the one-grant rule (SPEC-002) |
+| [`docs/specs/settlement.md`](docs/specs/settlement.md) | validation binding, release, refund and the reputation gate (SPEC-003) |
+| [`docs/specs/versions.md`](docs/specs/versions.md) | every pinned version |
+| [`docs/demo-script.md`](docs/demo-script.md) | the demo commands and what each pane shows |
+| [`docs/presentation-outline.md`](docs/presentation-outline.md) | the 386-word talk, with every figure's source |
+
 `task.md` is the plan and the progress record. `CLAUDE.md` holds the working rules.
 
 ---

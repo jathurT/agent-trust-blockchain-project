@@ -8,6 +8,19 @@ Every figure in this document is read from a recorded run under `evidence/SEC-00
 reproduces the file byte for byte. No number here was typed by hand, which is the point:
 a figure nobody measured cannot reach this page (CLAUDE.md §12).
 
+## Ethics and scope (SEC-011)
+
+Testnet only, with valueless tokens. Every attack behind these numbers ran **against
+this project's own services on a local chain** — never against a third-party endpoint,
+never against a hosted facilitator, and never with real funds. The vulnerable fixture
+exists solely as a measurement control and is labelled as such in its source, its logs,
+its HTTP responses and every manifest it appears in.
+
+The two attack classes reproduced here are already public: arXiv 2605.11781 §4.3 and
+arXiv 2605.30998 §4.1. Nothing in this repository discloses a new vulnerability in
+anyone else's software, and no result here is evidence about anyone else's
+implementation.
+
 ## What the two targets are
 
 **`agenttrust`** is the system as built: the escrow with its on-chain `resourceHash` and

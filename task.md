@@ -497,14 +497,16 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SPEC-003 — Settlement, validation binding and the reputation gate
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(A) · contracts-protocol
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.75 h · **Hat/agent:** U(A) · contracts-protocol
 - **Objective:** Pin down the money rules: what binds a validation, when release is possible, when refund is possible, and what the gate computes.
 - **Refs:** §5.1(2)(6)(7), §9.2 · FR-02, FR-06, FR-07, FR-21, FR-22 · DF-05, DF-06, DF-09, DF-22, DF-23 · V-93, V-94, V-99
 - **Depends:** SPEC-001, REG-001
 - **Steps:** 1) Write `docs/specs/settlement.md`: requestHash derivation and the bind-once rule; the pass predicate (`response ≥ 100`, `lastUpdate ≤ deadline`, validator and agent match); snapshot semantics; refund predicate (`now > deadline + GRACE` and no recordable pass); why there is no early refund on "fail" (pending ≡ 0). 2) Gate: `getSummary` per trusted client, bounded list, distinct/count/average thresholds, owner floors, the mock-only v1 comparison. 3) TTL bounds and the seller's deadline margin. 4) Enumerate the boundary cases that CONTRACT-011 must test.
 - **Files:** `docs/specs/settlement.md`
-- **Acceptance:** every case in the table — attest before/after deadline, release before/after deadline, refund before/at/after deadline+grace, overwrite after a snapshot, competing release/refund in one block, squatted requestHash — has a defined outcome.
-- **Verify:** each row maps to a named test in CONTRACT-011 → `evidence/SPEC-003/`
+- **Acceptance:** ✔. Every named case has a defined outcome in `docs/specs/settlement.md` §2–§6, and **all 57 tests** in `Settlement.t.sol` (19), `Refund.t.sol` (16) and `Gate.t.sol` (22) are cited — checked by script, zero uncited, zero cited-but-missing. The 16 custom errors the document names were checked against the contract source the same way.
+- **Verify:** `forge test --match-contract "Settlement|Refund|Gate"` → 57 passed → `evidence/SPEC-003/forge.log`.
+- **Written from the implemented contract, and says so.** SPEC-003 was meant to precede CONTRACT-007/008/010; those were built first against the DF decisions, so the document states the rules the contract enforces and declares the contract authoritative where they disagree. Pretending otherwise would make it a specification nobody wrote to.
+- **What it pins that was only implicit before:** the fail-closed distinction between an out-of-gas registry read (zero returndata) and a genuine "unknown" (100-byte `Error(string)`); why the read is deliberately uncapped; why `grace` is snapshotted at funding; why a duplicate trusted client is rejected rather than deduplicated; and why the blueprint's gate v1 cannot be computed on the real ERC-8004 ABI at all.
 
 ### SPEC-004 — Feedback lifecycle
 
