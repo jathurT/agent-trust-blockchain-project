@@ -34,7 +34,7 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 22:30):** **G1, G2, G3a and G3b all met.** **50 of 134 tasks DONE** — the local system is complete and **the A2 and A3 evaluation is measured**.
+**Status (2026-09-23, 22:30):** **G1, G2, G3a and G3b all met.** **52 of 134 tasks DONE** — the local system is complete and **the A2 and A3 evaluation is measured**.
 
 **413 tests across six packages**, all green. Escrow line coverage 97.55%.
 
@@ -56,6 +56,8 @@ Thirteen runs, one commit, none with a dirty tree. Every figure is generated fro
 **The baseline is a fixture written for this evaluation — not upstream x402, not the `@x402/*` packages.** Anything about upstream needs API-009, which was not run.
 
 **Nothing is deployed to a public chain.** Every measurement is on a local Anvil; latency, gas and confirmation behaviour do not transfer to Base Sepolia.
+
+The repository now has a **README** that opens with the problem and whose quickstart was executed as written, and **`docs/LIMITATIONS.md`**, which states the uncomfortable things plainly — collusion unaddressed, honest newcomers refused by design, a trusted client silently dropped past ~26 feedback entries, unbounded `requestHash` squatting against a mempool watcher, a blacklisted payee stranding funds, one-host-only claim semantics, and four of six attacks not evaluated.
 
 Still blocking: **PLAN-007** sign-off on D1–D6, and **ENV-006/007** wallets and faucet ETH — without them nothing reaches Base Sepolia at all.
 
@@ -1790,18 +1792,18 @@ testnet deployment was not done — which is a cut the gate list already anticip
 
 **Not blocked, and next in order:**
 
-1. **DOC-001** — the README, opening with the problem statement and the reproduction
-   commands. The repository has no README at all yet.
-2. **DOC-004** — limitations. There is a lot to say and it is all already recorded: the
-   ~8,589 gas per feedback entry and the ~26-entry ceiling; unbounded `requestHash`
-   squatting against a mempool watcher; the DF-05 window where an unsnapshotted pass can
-   be erased; the blacklisted-payee trap (DF-16); coverage being 2 of 6.
-3. **PRES-003** — the 45-second demo recording. `e2e-happy.sh` already produces a clean
-   run in about 7 seconds, so the material exists.
-4. **SEC-012** (P1) — the claims audit. Everything measured is now in `docs/results.md`;
-   this checks that no document, slide or README sentence claims more than the runs show.
-   The two phrasings to watch are "not upstream x402" and the qualified "indistinguishable"
-   from V-99a.
+1. **PRES-003** — the 45-second demo recording. `e2e-happy.sh` produces a clean run in
+   about 7 seconds, so the material exists; what is missing is the capture and the
+   narration.
+2. **PRES-001/002** — the five slides. The deck can now be assembled entirely from
+   `docs/results.md` and `docs/LIMITATIONS.md`; no figure needs to be invented.
+3. **SEC-012** (P1) — the claims audit. Everything measured is in `docs/results.md`, and
+   the README and limitations are written; this checks that no sentence anywhere claims
+   more than the runs show. Three phrasings to watch: "not upstream x402", the qualified
+   "indistinguishable" from V-99a, and the narrowed novelty claim from V-143.
+4. **DOC-006** — the clean-clone reproduction. DOC-001 verified that every command in the
+   README exists and works **in this tree**; it has not been run from a fresh clone, and
+   that difference is where install-order mistakes hide.
 
 **Still open:** **PLAN-007** sign-off on D1–D6. The defaults are now baked into a tested
 contract, a tested service pair, a working end-to-end path **and a published measurement**
