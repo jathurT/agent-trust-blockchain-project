@@ -24,6 +24,13 @@ export interface SellerAppOptions {
   origin: string;
   /** The ERC-8004 agent id this seller publishes. */
   agentId: string;
+  /**
+   * REG-006 — the validators this seller will accept, published on the agent card so a
+   * buyer can choose one *before* asking for a quote. The quote repeats it in
+   * `extra.acceptedValidators`; a buyer that picks from the card and finds the quote
+   * disagrees should treat that as the seller having changed policy, not as a hint.
+   */
+  acceptedValidators?: string[];
   /** Largest request body accepted, in bytes. */
   maxBodyBytes?: number;
   /**
@@ -94,6 +101,19 @@ export function createApp(options: SellerAppOptions): Express {
         description: r.description,
         price: { atomic: r.price.toString(), display: formatAtomic(r.price, TOKEN_DECIMALS), decimals: TOKEN_DECIMALS },
       })),
+      // The rule the buyer enforces against this card, stated on the card itself so it
+      // is checkable rather than folklore (REG-006, DF-04).
+      originRule:
+        "The origin of `endpoint` must equal the origin the buyer is calling, and this " +
+        "card must be the one the Identity registry's agentURI resolves to. A buyer " +
+        "that skips either check is trusting DNS rather than the registry.",
+      validatorPolicy: {
+        accepted: options.acceptedValidators ?? [],
+        note:
+          options.acceptedValidators === undefined
+            ? "not configured on this instance; the 402 quote is authoritative"
+            : "the 402 quote repeats this in extra.acceptedValidators",
+      },
       interoperability: INTEROPERABILITY_NOTE,
     });
   });

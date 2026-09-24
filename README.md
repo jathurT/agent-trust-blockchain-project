@@ -167,10 +167,10 @@ The tests:
 ```bash
 (cd impl/contracts     && forge test)          # 154 unit and boundary tests + 6 invariants
 (cd impl/packages/core && npx vitest run)      # 87
-(cd impl/agents/seller && npx vitest run)      # 80
+(cd impl/agents/seller && npx vitest run)      # 96
 (cd impl/agents/buyer  && npx vitest run)      # 21
 (cd impl/attacks       && npx vitest run)      # 32
-(cd impl/validator     && uv run pytest)       # 68
+(cd impl/validator     && uv run pytest)       # 73
 ```
 
 The buyer, seller, attacks and validator suites drive a **live chain**, so they need the

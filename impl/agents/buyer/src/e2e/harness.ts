@@ -207,6 +207,27 @@ export async function startStack(options: StackOptions): Promise<Stack> {
     args: [agentId],
   })) as Address;
 
+  // REG-006 step 4. Three roles must be the same key: the agent **owner** (who may call
+  // `validationRequest`), the **agentWallet** the escrow snapshots as payee (who must
+  // call `bindValidation`), and the key the seller signs and sends with. They are the
+  // same here because they are the same account — but "because they happen to be" is
+  // not a property, and on Base Sepolia three keys means three keys to fund
+  // (ENV-006/007). Asserted at setup so a fixture change cannot quietly split them.
+  const owner = (await chain.client.readContract({
+    address: deployment.identityRegistry,
+    abi: identityRegistryAbi,
+    functionName: "ownerOf",
+    args: [agentId],
+  })) as Address;
+  const sellerKey = accounts.seller.address;
+  if (owner.toLowerCase() !== sellerKey.toLowerCase() || payee.toLowerCase() !== sellerKey.toLowerCase()) {
+    throw new Error(
+      `REG-006: owner (${owner}), agentWallet/payee (${payee}) and the seller key ` +
+        `(${sellerKey}) must be one address. Split, validationRequest and bindValidation ` +
+        `come from different keys and both need funding.`,
+    );
+  }
+
   // The Python validator, in its own process, with its own key.
   let validator: ChildProcess | undefined;
   if (options.startValidator !== false) {
@@ -253,6 +274,7 @@ export async function startStack(options: StackOptions): Promise<Stack> {
     origin: sellerOrigin,
     agentId: agentId.toString(),
     gated: true,
+    acceptedValidators: [accounts.validator.address],
     paymentGate: createPaymentGate({
       chain,
       config: {

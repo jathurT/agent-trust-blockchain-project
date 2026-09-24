@@ -59,6 +59,41 @@ Paid routes are deterministic: no randomness, no clock, no network, no model. Th
 request body always produces byte-identical output, because the validator has to
 recompute it independently (DF-08).
 
+### 2.1 Discovery and the origin rule (REG-006)
+
+The buyer does not trust the host it happens to be talking to. It resolves the seller
+through the Identity registry first:
+
+1. read `tokenURI(agentId)` — the `agentURI` — from the Identity registry;
+2. fetch that URI; it must return the seller's **agent card**;
+3. the origin of the card's `endpoint` must **equal** the origin the buyer is calling;
+4. the payee the escrow will snapshot (`getAgentWallet`, falling back to `ownerOf` —
+   DF-12) must equal the `payTo` in the quote.
+
+A buyer that skips (3) is trusting DNS rather than the registry, and an impostor who
+controls the host is then indistinguishable from the agent. A buyer that skips (4)
+can fund a job whose payee is not the seller it is talking to. Both are refused
+**before any money moves**: `origin_mismatch` and `payee_mismatch` in AGENT-002, tested
+by "refuses when the registry names a different origin" and "refuses when the quote
+pays someone other than the agent the registry names".
+
+The card states the rule on itself, in `originRule`, so it is checkable rather than
+folklore. It also carries `validatorPolicy.accepted`, so a buyer can choose a validator
+the seller will accept **before** asking for a quote; the quote repeats it in
+`extra.acceptedValidators`, which is authoritative if the two ever disagree.
+
+The validator publishes a card of the same shape at its own
+`/.well-known/agent-card`, carrying the address that will sign, the response value it
+treats as a pass, and — explicitly — what it does **not** check. For the validator the
+card is a convenience only: the escrow names the validator by **address** at funding,
+so a wrong origin there cannot redirect an attestation anywhere.
+
+**One key, three roles.** The agent **owner** (who may call `validationRequest`), the
+**`agentWallet`** the escrow snapshots as payee (who must call `bindValidation`), and
+the key the seller signs and sends with are required to be the same address. Split them
+and two different keys each need funding, and the fixtures assert the identity at setup
+so a change cannot quietly split them.
+
 ---
 
 ## 3. The unpaid request → 402
@@ -455,6 +490,7 @@ about.
 | §8 every code | API-003/004/005 |
 | §3.1 `no-store` and `Vary` on every response | API-007 `headers` |
 | §9 one NDJSON line per request, reason as a code | API-007 `headers` |
+| §2.1 discovery, origin rule, validator policy on the card | REG-006 `card` (seller), `test_card.py` (validator), AGENT-002 `e2e` |
 
 The two paid routes exist to be confused with one another. `SEC-004` funds one and
 presents the other; §7 step 6 is what must refuse it.

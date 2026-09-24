@@ -79,6 +79,39 @@ def create_app(settings: Settings, chain: ChainClient | None = None) -> FastAPI:
             body["chainError"] = str(exc)
         return body
 
+    @app.get("/.well-known/agent-card")
+    def agent_card() -> dict[str, object]:
+        """REG-006 — what a buyer needs to decide whether to name this validator.
+
+        A buyer picks the validator, and the escrow snapshots that choice at funding
+        (DF-06), so the decision is made before any money moves and cannot be changed
+        afterwards. What it needs to know is the address that will sign, the response
+        value this validator treats as a pass, and what it actually checks — which
+        here is narrow and is stated narrowly: the delivered bytes are recomputed from
+        the request and compared. It is not a judgement of whether the answer was good
+        (DF-08).
+        """
+        return {
+            "name": "AgentTrust demo validator",
+            "role": "validator",
+            "address": client.address,
+            "endpoint": settings.PUBLIC_ORIGIN,
+            "protocol": {"name": "erc-8004", "registry": settings.VALIDATION_REGISTRY},
+            "policy": {
+                "passResponse": settings.PASS_RESPONSE,
+                "feedbackTag": settings.FEEDBACK_TAG,
+                "checks": "the delivered bytes are recomputed from the request and compared byte for byte",
+                "doesNotCheck": "whether the answer is useful, correct in the real world, or worth the price",
+                "attestsAfter": "the payee has filed its validationRequest and bound it to the job",
+                "refusesAfter": "the job deadline: a late attestation can never release (SPEC-003 §3)",
+            },
+            "originRule": (
+                "The origin of `endpoint` must equal the origin the buyer is calling. This "
+                "validator is named in the funding transaction by address, not by URL, so "
+                "the card is a convenience — the address is what binds."
+            ),
+        }
+
     @app.get("/decisions/{job_id}")
     def get_decision(job_id: str) -> dict[str, object]:
         """What the validator concluded, once it has concluded it."""

@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     PASS_RESPONSE: int = 100
     FAIL_RESPONSE: int = 0
     FEEDBACK_TAG: str = "agenttrust"
+    #: The origin this validator publishes on its agent card (REG-006). It is a
+    #: convenience for discovery only: the escrow names the validator by **address** at
+    #: funding, so a wrong origin here cannot redirect an attestation anywhere.
+    PUBLIC_ORIGIN: str = "http://127.0.0.1:8099"
 
     @field_validator("ESCROW_ADDRESS", "VALIDATION_REGISTRY", "IDENTITY_REGISTRY")
     @classmethod
@@ -71,4 +75,5 @@ class Settings(BaseSettings):
             "bindingTimeoutSeconds": self.BINDING_TIMEOUT_SECONDS,
             "passResponse": self.PASS_RESPONSE,
             "feedbackTag": self.FEEDBACK_TAG,
+            "publicOrigin": self.PUBLIC_ORIGIN,
         }

@@ -588,13 +588,18 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### REG-006 — Agent cards and registration fixtures
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(B) · contracts-protocol
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(B) · contracts-protocol
 - **Objective:** Give the buyer something real to discover: agent cards whose endpoint origin can be checked.
 - **Refs:** §5.1(1), §10.1 · FR-01 · DF-04
 - **Depends:** REG-002
 - **Steps:** 1) JSON cards for seller and validator (name, endpoint origin, services, price hints, validator policy). 2) Serve them statically; register agents with `agentURI` pointing at them. 3) Document the origin-matching rule. 4) **Set the agent owner, its `agentWallet` and the seller service key to one address** — otherwise `validationRequest` (owner/operator) and `bindValidation` (payee) come from different keys and both need funding (ENV-006/007).
-- **Acceptance:** `agentURI` resolves to a card whose origin equals the seller the buyer talks to; a mismatched card is rejected by AGENT-002; owner == `agentWallet` == seller key is asserted in the fixture setup.
-- **Verify:** buyer discovery test → `evidence/REG-006/`
+- **Acceptance:** ✔ all three. `agentURI` resolves to a card whose origin equals the seller being called, and a mismatched card is refused **before funding** — AGENT-002's "refuses when the registry names a different origin" and "refuses when the quote pays someone other than the agent the registry names". Owner == `agentWallet`/payee == seller key is now asserted in `startStack`, with an error that says why it matters.
+- **Verify:** `evidence/REG-006/` — buyer discovery (21), seller card (7), validator card (5).
+- **What was already there:** discovery itself (`discovery.ts`), the origin check and the seller's card. **What was missing:** the validator had no card at all, the seller's card carried no validator policy and no statement of the rule, and nothing asserted the three-roles-one-key property.
+- **The card now states the rule it is judged by.** `originRule` on both cards, so it is checkable rather than folklore, and `validatorPolicy.accepted` on the seller's, so a buyer can pick a validator the seller will accept **before** requesting a quote. When no policy is configured the card says so rather than publishing an empty list that reads like "none accepted".
+- **The validator's card says what it does not check** (DF-08): it recomputes the delivered bytes and compares them, and explicitly does not judge whether the answer is useful or worth the price. A test asserts that sentence is present — the claim is easy to lose in a rewrite, and losing it is the overclaim the whole project is careful about.
+- **The three-roles assertion is the part with a cost attached.** Owner, `agentWallet` and the seller's signing key are one address because they are one account in the fixtures — but "because they happen to be" is not a property. On Base Sepolia, split, that is two more keys to fund (ENV-006/007). The harness now fails loudly at setup rather than at deployment.
+- **One test of mine was wrong, not the code.** "never claims to be x402-compliant" asserted the string was absent, and it appears inside *"Nothing here should be described as x402-compliant"* — the very sentence that makes the claim honest. Rewritten to assert the denial.
 
 ### REG-007 — Live testnet registration, feedback and validation
 

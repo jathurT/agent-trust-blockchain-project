@@ -1,0 +1,35 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/buyer
+
+(node:2313262) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"5c977bde-8c03-4482-94e5-916ae5f2885c","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":2.844741,"at":"2026-09-24T02:52:52.671Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"9f54c194-1487-41ff-a81b-11311ad68577","method":"POST","path":"/v1/summarise","status":402,"durationMs":3.103957,"at":"2026-09-24T02:52:52.676Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"b91cb062-f887-49fc-9170-dc86aaa892c1","method":"POST","path":"/v1/summarise","status":200,"jobId":"0x8bd5274cccde3ea56a7f9e413daf9ce5fa353eed0d6102bbd183680e03eccab7","disposition":"executed","durationMs":68.085491,"at":"2026-09-24T02:52:52.878Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"c1062474-3fb6-4395-8d05-f2d1512b0179","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.608991,"at":"2026-09-24T02:52:52.891Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"c49c5f5a-7dc9-4cee-a35d-d49c1d2eb309","method":"POST","path":"/v1/summarise","status":402,"durationMs":2.215209,"at":"2026-09-24T02:52:52.895Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"6d4be4e2-7382-4167-bd15-dee27e96e508","method":"POST","path":"/v1/summarise","status":200,"jobId":"0x252a31f835d85856a33d39eb2692952a8beaf6d65eab49bebed2aac0e0f3a397","disposition":"executed","durationMs":7.636179,"at":"2026-09-24T02:52:53.045Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"b690d1df-980a-46d2-80d1-3bb520a32050","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.412547,"at":"2026-09-24T02:52:53.057Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"d3be071e-c894-4b97-9996-d7dd4278b169","method":"POST","path":"/v1/summarise","status":402,"durationMs":1.826261,"at":"2026-09-24T02:52:53.059Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"aebb5e66-59fc-49fd-a651-9e608d1fd26c","method":"POST","path":"/v1/summarise","status":200,"jobId":"0x252a31f835d85856a33d39eb2692952a8beaf6d65eab49bebed2aac0e0f3a397","disposition":"replayed","durationMs":6.908422,"at":"2026-09-24T02:52:53.099Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"eccb38f5-1a70-495e-8569-4a674975b5ba","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.787746,"at":"2026-09-24T02:52:53.110Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"7ed6ae3e-c336-4809-8022-39b567acff87","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.369014,"at":"2026-09-24T02:52:53.119Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"c09235df-aa1f-4a5a-aa39-f9e670065ddb","method":"POST","path":"/v1/summarise","status":402,"durationMs":1.931467,"at":"2026-09-24T02:52:53.122Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"7836a770-1ab9-4e2f-aefe-74e3bc21a4a5","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.362233,"at":"2026-09-24T02:52:53.135Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"860f6a0f-b2dc-4741-a0c6-90469a8a6177","method":"POST","path":"/v1/summarise","status":402,"durationMs":1.550169,"at":"2026-09-24T02:52:53.137Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"bf4f30ca-0f3f-46f8-8653-6c3899778143","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.546418,"at":"2026-09-24T02:52:53.140Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"63d04893-3338-43df-ba19-dd85c3a40bdb","method":"POST","path":"/v1/summarise","status":402,"durationMs":1.675073,"at":"2026-09-24T02:52:53.143Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"19a588ca-47ab-4a22-9016-c340aad2df17","method":"GET","path":"/.well-known/agent-card","status":200,"durationMs":0.289568,"at":"2026-09-24T02:52:53.147Z"}
+{"level":"info","msg":"request","runId":"d3f95b39-d8a5-41e3-b58a-224691ea6339","requestId":"e3bdaed1-3ba7-4748-8482-6c37458de411","method":"POST","path":"/v1/summarise","status":402,"durationMs":1.557568,"at":"2026-09-24T02:52:53.149Z"}
+(node:2313595) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  08:22:30
+   Duration  42.95s (import 96%, transform 2%, tests 2%)
+
+     Import  33 modules were evaluated 56 times · 39.19s total, 96% of tracked time
+             ~16.09s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+

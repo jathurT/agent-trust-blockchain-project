@@ -381,6 +381,7 @@ export async function startAgentTrust(opts: {
       origin,
       agentId: agentId.toString(),
       gated: true,
+      acceptedValidators: [accounts.validator.address],
       paymentGate: createPaymentGate({
         chain,
         config: {

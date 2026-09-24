@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /mnt/d/8th Sem/Blockchain_Project/impl/validator/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/d/8th Sem/Blockchain_Project/impl/validator
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 5 items
+
+tests/test_card.py::test_the_card_names_the_address_that_will_sign PASSED [ 20%]
+tests/test_card.py::test_the_policy_states_the_pass_value_the_escrow_requires PASSED [ 40%]
+tests/test_card.py::test_the_policy_says_what_it_does_not_check PASSED   [ 60%]
+tests/test_card.py::test_the_card_says_the_address_binds_not_the_url PASSED [ 80%]
+tests/test_card.py::test_the_card_never_contains_the_key PASSED          [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /mnt/d/8th Sem/Blockchain_Project/impl/validator/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 5 passed, 1 warning in 0.97s =========================
