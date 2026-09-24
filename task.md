@@ -34,9 +34,13 @@
 
 ## 2. Current status and planning decisions
 
-**Status (2026-09-23, 22:30):** **G1, G2, G3a and G3b all met.** **52 of 134 tasks DONE** — the local system is complete and **the A2 and A3 evaluation is measured**.
+**Status (2026-09-24, 08:30):** **G1, G2, G3a and G3b all met.** **59 of 134 tasks DONE** — the local system is complete, **the A2 and A3 evaluation is measured**, and the demo, the deck script and the specifications are written.
 
-**413 tests across six packages**, all green. Escrow line coverage 97.55%.
+**443 tests across six packages**, all green: Solidity 154 + 6 invariants, core 87, seller 96, buyer 21, attacks 32, validator 73. Escrow line coverage 97.55%.
+
+**Every CORE-P0 task that does not need you or a teammate is now DONE.** What remains is
+the recording (PRES-003), the deck (PRES-002, blocked on ADMIN-002), the rehearsal, and
+everything on the testnet path (blocked on ENV-006/007).
 
 ### The measured result
 
@@ -59,7 +63,14 @@ Thirteen runs, one commit, none with a dirty tree. Every figure is generated fro
 
 The repository now has a **README** that opens with the problem and whose quickstart was executed as written, and **`docs/LIMITATIONS.md`**, which states the uncomfortable things plainly — collusion unaddressed, honest newcomers refused by design, a trusted client silently dropped past ~26 feedback entries, unbounded `requestHash` squatting against a mempool watcher, a blacklisted payee stranding funds, one-host-only claim semantics, and four of six attacks not evaluated.
 
-Still blocking: **PLAN-007** sign-off on D1–D6, and **ENV-006/007** wallets and faucet ETH — without them nothing reaches Base Sepolia at all.
+It also has `docs/specs/settlement.md` (the money rules, with all 57 settlement, refund
+and gate tests cited), `docs/demo-script.md` (the §18 commands as they actually exist)
+and `docs/presentation-outline.md` (the 386-word talk, every figure sourced, five
+corrections to blueprint §17 stated rather than applied silently).
+
+Still blocking: **PLAN-007** sign-off on D1–D6, **ADMIN-002** for the deck's group number
+and file format, and **ENV-006/007** wallets and faucet ETH — without them nothing
+reaches Base Sepolia at all.
 
 **Decisions the user already made**
 
@@ -1833,9 +1844,16 @@ testnet deployment was not done — which is a cut the gate list already anticip
    It is **blocked on ADMIN-002** for the group number and whether `.ppt` or `.pptx` is
    required — the filename is `GP_XX_AgentTrust` until that is answered.
 3. **SEC-012** (P1) — the claims audit. Everything measured is in `docs/results.md`, and
-   the README and limitations are written; this checks that no sentence anywhere claims
-   more than the runs show. Three phrasings to watch: "not upstream x402", the qualified
-   "indistinguishable" from V-99a, and the narrowed novelty claim from V-143.
+   the README, limitations, specs and slide script are written; this checks that no
+   sentence anywhere claims more than the runs show. Four phrasings to watch: "not
+   upstream x402", the qualified "indistinguishable" from V-99a, the narrowed novelty
+   claim from V-143, and the validator card's `doesNotCheck` (DF-08). This is the last
+   thing I can do without you.
+
+**Everything else that is left needs you or a teammate:** ADMIN-001/002 (deadline, group
+number, file format), ENV-006/007 (wallets and faucet ETH, which gate DEPLOY-001/002/003,
+INT-003 and REG-007), PLAN-007 (D1–D6), PRES-002 (the deck, blocked on ADMIN-002),
+PRES-003 (the screen recording — I cannot capture video), PRES-004/005 and DOC-005.
 4. **DOC-006** — the clean-clone reproduction. DOC-001 verified that every command in the
    README exists and works **in this tree**; it has not been run from a fresh clone, and
    that difference is where install-order mistakes hide.
