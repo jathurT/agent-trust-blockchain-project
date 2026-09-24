@@ -23,11 +23,28 @@ fi
 
 npx tsx src/aggregate.ts "$SRC" "$ROOT/docs/results.tables.md"
 
+# docs/results.md carries the same tables inline so it reads as one document. That copy
+# used to be made by hand, and a change to the generator silently left it behind — which
+# is precisely the drift the generated file exists to prevent. It is now spliced in
+# between the markers, so there is still only one source.
+python3 - "$ROOT/docs/results.md" "$ROOT/docs/results.tables.md" <<'PY'
+import io, sys
+
+target, source = sys.argv[1], sys.argv[2]
+begin = "<!-- The tables below are generated. Edit impl/attacks/src/aggregate.ts, not this file. -->"
+doc = io.open(target, encoding="utf-8").read()
+tables = io.open(source, encoding="utf-8").read().rstrip() + "\n"
+head, marker, _ = doc.partition(begin)
+if not marker:
+    sys.exit(f"{target} has no generated-tables marker")
+io.open(target, "w", encoding="utf-8").write(head + begin + "\n\n" + tables)
+PY
+
 if [ "${1:-}" = "--check" ]; then
-  if git -C "$ROOT" diff --exit-code -- docs/results.tables.md docs/results.chart.svg; then
-    echo "tables and chart match the recorded runs"
+  if git -C "$ROOT" diff --exit-code -- docs/results.tables.md docs/results.chart.svg docs/results.md; then
+    echo "tables, chart and results.md match the recorded runs"
   else
-    echo "docs/results.tables.md or the chart differs from what the runs say" >&2
+    echo "docs/results.tables.md, the chart or docs/results.md differs from what the runs say" >&2
     exit 1
   fi
 fi

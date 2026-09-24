@@ -164,19 +164,26 @@ export function render(loaded: Loaded[]): string {
   // ----------------------------------------------------------------- A2
   lines.push("### A2 — replay");
   lines.push("");
+  // Median, IQR, min and max, because the pre-registered protocol
+  // (`docs/planning/evaluation-plan.md` §6) asks for dispersion and not just a centre.
+  // For these runs the spread is zero, which is the interesting part: every run of a
+  // configuration produced the same count. Reporting "median 50" alone would hide that.
   lines.push(
-    "| target | variant | requests/run | replays/run | runs | executions/run (median) | extra executions | unauthorised 2xx | replay success (Wilson 95%) | run id |",
+    "| target | variant | requests/run | replays/run | runs | executions/run (median) | IQR | min–max | extra executions | unauthorised 2xx | replay success (Wilson 95%) | run id |",
   );
-  lines.push("|---|---|---|---|---|---|---|---|---|---|");
+  lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|");
   for (const l of sorted(a2)) {
     const m = l.results.metrics;
     const ex = ((m["executions"] as number[]) ?? []).slice().sort((a, b) => a - b);
-    const median = ex.length ? ex[Math.floor(ex.length / 2)] : 0;
+    const q = (p: number) => (ex.length ? ex[Math.min(ex.length - 1, Math.floor(ex.length * p))]! : 0);
+    const median = q(0.5);
+    const iqr = q(0.75) - q(0.25);
+    const span = ex.length ? `${ex[0]}–${ex[ex.length - 1]}` : "—";
     const rate = m["replay_success_rate"] as { lower: number; upper: number } | undefined;
     const variant = String(l.results.config).split("-")[0];
     lines.push(
       `| ${l.results.target} | ${variant} | ${m["requests_per_run"]} | ${m["replays_per_run"]} | ${m["runs"]} | ` +
-        `**${median}** | ${m["extra_executions_total"]} | ${m["unauthorized_2xx_total"]} | ${ci(rate)} | \`${l.results.runId}\` |`,
+        `**${median}** | ${iqr} | ${span} | ${m["extra_executions_total"]} | ${m["unauthorized_2xx_total"]} | ${ci(rate)} | \`${l.results.runId}\` |`,
     );
   }
   lines.push("");

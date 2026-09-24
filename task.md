@@ -1216,10 +1216,11 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-011 — Ethics and scope note
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.1 h · **Hat/agent:** U(D)
+- [ ] **Status:** IN_PROGRESS (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.1 h · **Hat/agent:** U(D)
 - **Refs:** §12.4 · SR-15 · Depends: —
 - **Objective:** One paragraph, used in the README and on a slide: own endpoints, public testnet, valueless tokens, already-published vulnerabilities, no third-party targets.
 - **Acceptance:** present in `docs/results.md`, the README and the deck.
+- **Two of three done.** The paragraph is in `README.md` §"Ethics and scope" (from DOC-001) and now in `docs/results.md` immediately before the targets section, in the same wording. **The deck instance is not done** — PRES-002 is blocked on ADMIN-002 — so this stays IN_PROGRESS rather than DONE. `docs/presentation-outline.md` names it as slide-5 text with the wording to copy, so PRES-002 carries no decision, only the paste.
 
 ### SEC-012 — Claims audit
 
