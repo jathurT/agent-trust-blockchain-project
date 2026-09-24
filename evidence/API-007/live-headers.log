@@ -1,0 +1,17 @@
+# API-007 — headers on a live seller (npm run target:agenttrust)
+
+$ curl -sI http://127.0.0.1:4022/health
+HTTP/1.1 200 OK
+Cache-Control: no-store
+Vary: PAYMENT-SIGNATURE, Accept-Encoding
+
+$ curl -si -X POST .../v1/summarise  (no payment -> 402 quote)
+HTTP/1.1 402 Payment Required
+Cache-Control: no-store
+Vary: PAYMENT-SIGNATURE, Accept-Encoding
+
+$ curl -si http://127.0.0.1:4022/no-such-route  (404)
+HTTP/1.1 404 Not Found
+Cache-Control: no-store
+Vary: PAYMENT-SIGNATURE, Accept-Encoding
+{"error":{"code":"not_found","message":"no such route"}}

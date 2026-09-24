@@ -6,6 +6,7 @@
  * by SPEC-002 §8 and deliberately says nothing about other jobs.
  */
 import type { Response } from "express";
+import { applyCachePolicy, tag } from "./observability.js";
 
 export const ERRORS = {
   signature_invalid: { status: 403, message: "payment signature missing, malformed, or not from the payer" },
@@ -41,8 +42,9 @@ export class SellerError extends Error {
 }
 
 export function sendError(res: Response, error: SellerError): void {
-  res
-    .status(error.status)
-    .set("Cache-Control", "no-store")
-    .json({ error: { code: error.code, message: error.message } });
+  // The code, not the message, is what the access log carries: the harness counts
+  // rejections by reason, and a sentence cannot be counted (API-007).
+  tag(res, { logReason: error.code });
+  applyCachePolicy(res);
+  res.status(error.status).json({ error: { code: error.code, message: error.message } });
 }

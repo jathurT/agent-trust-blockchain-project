@@ -72,11 +72,20 @@ HTTP/1.1 402 Payment Required
 PAYMENT-REQUIRED: <base64(JSON PaymentRequired)>
 Content-Type: application/json
 Cache-Control: no-store
+Vary: PAYMENT-SIGNATURE, Accept-Encoding
 ```
 
-`Cache-Control: no-store` is required on **every** response from a paid route, 402 and
-200 alike. A cached 200 is a delivered result served without a payment, which is the
-HTTP/proxy cache-confusion class the x402 vulnerability paper lists separately from A1–A6.
+`Cache-Control: no-store` is required on **every** response the seller sends — paid
+route or not, 402 and 200 alike. A cached 200 is a delivered result served without a
+payment, which is the HTTP/proxy cache-confusion class the x402 vulnerability paper
+lists separately from A1–A6.
+
+`Vary: PAYMENT-SIGNATURE, Accept-Encoding` is required alongside it (API-007). `no-store`
+is the instruction; `Vary` is the fallback for anything that ignores it. A paid response
+is a function of the payment header, so a cache keyed on the URL alone could hand one
+payer's bytes to another. `Accept-Encoding` is there because a shared cache that
+normalises encodings would otherwise key two different bodies together. A 402 carries
+both too: a quote names a payee and a deadline, and a cached quote is a stale payee.
 
 ### 3.2 Body and header payload
 
@@ -408,10 +417,28 @@ was written before this document existed.
 
 ## 9. Logging
 
-Structured JSON, one object per line, every line carrying `runId` and — where one exists —
-`jobId`. Logged: the decision at each step of §7, the claim transition, timings, and the
-`responseHash`. Never logged: private keys, signatures, raw request or response bodies,
-or anything from `.env`.
+Structured JSON, one object per line (NDJSON), every line carrying `runId` and — where
+one exists — `jobId`. Logged: the decision at each step of §7, the claim transition,
+timings, and the `responseHash`. Never logged: private keys, signatures, raw request or
+response bodies, or anything from `.env`.
+
+The access line is written once per request, on `finish`, so its status and duration are
+the ones the client saw:
+
+```json
+{"level":"info","msg":"request","runId":"run-42","requestId":"…","method":"POST",
+ "path":"/v1/summarise","status":409,"reason":"signature_replayed",
+ "jobId":"0x…","durationMs":3.4,"at":"2026-09-24T08:00:00.000Z"}
+```
+
+**`reason` is a code from the §8 table, never a sentence.** The harness counts
+rejections by reason, and a sentence cannot be counted. A successful delivery carries
+`disposition` (`executed` or `replayed`) instead, which is the same distinction the
+counters report.
+
+The log can be turned off (`accessLog: false`), and the measurement harnesses do so: one
+line per replay, across 50 replays and 10 runs, would out-shout the counters the run is
+about.
 
 ---
 
@@ -426,6 +453,8 @@ or anything from `.env`.
 | §7 check order and each failure | API-003 `verify`, API-004 `auth` |
 | §7.2 fail closed | API-003 `verify` (RPC down) |
 | §8 every code | API-003/004/005 |
+| §3.1 `no-store` and `Vary` on every response | API-007 `headers` |
+| §9 one NDJSON line per request, reason as a code | API-007 `headers` |
 
 The two paid routes exist to be confused with one another. `SEC-004` funds one and
 presents the other; §7 step 6 is what must refuse it.

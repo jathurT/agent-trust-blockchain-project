@@ -12,6 +12,7 @@
  */
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { SellerError, sendError } from "./errors.js";
+import { accessLog, applyCachePolicy, type AccessLogOptions } from "./observability.js";
 import { PayloadTooLarge, parseJsonBody, rawBody, type RawRequest } from "./rawBody.js";
 import { PAID_ROUTES, TOKEN_DECIMALS, routeFor } from "./pricing.js";
 import { BadRequest, classify, serialise, summarise } from "./routes/deterministic.js";
@@ -38,6 +39,12 @@ export interface SellerAppOptions {
    * bypassed by a route that forgot to use it.
    */
   deliver?: RequestHandler;
+  /**
+   * API-007. Omitted, the seller writes one NDJSON line per request to stdout. Passing
+   * `false` silences it — which the tests do, because 76 suites each printing a line
+   * per request buries the failure that matters.
+   */
+  accessLog?: AccessLogOptions | false;
 }
 
 export const INTEROPERABILITY_NOTE =
@@ -62,17 +69,22 @@ export function createApp(options: SellerAppOptions): Express {
   app.set("strict routing", true);
   app.set("case sensitive routing", true);
 
+  // First, so the line is written even for a request that never reaches a route.
+  if (options.accessLog !== false) app.use(accessLog(options.accessLog ?? {}));
+
   // Before any parser. See rawBody.ts.
   app.use(rawBody({ maxBytes: options.maxBodyBytes }));
 
   // ------------------------------------------------------------------ free routes
 
   app.get("/health", (_req: Request, res: Response) => {
-    res.set("Cache-Control", "no-store").json({ status: "ok", origin: options.origin });
+    applyCachePolicy(res);
+    res.json({ status: "ok", origin: options.origin });
   });
 
   app.get("/.well-known/agent-card", (_req: Request, res: Response) => {
-    res.set("Cache-Control", "no-store").json({
+    applyCachePolicy(res);
+    res.json({
       name: "AgentTrust demo seller",
       agentId: options.agentId,
       endpoint: options.origin,
@@ -87,7 +99,8 @@ export function createApp(options: SellerAppOptions): Express {
   });
 
   app.get("/", (_req: Request, res: Response) => {
-    res.set("Cache-Control", "no-store").json({
+    applyCachePolicy(res);
+    res.json({
       service: "AgentTrust seller",
       origin: options.origin,
       paidRoutes: PAID_ROUTES.map((r) => r.path),
@@ -152,10 +165,10 @@ export function createApp(options: SellerAppOptions): Express {
  */
 function sendDeterministic(res: Response, value: unknown): void {
   const bytes = serialise(value);
+  applyCachePolicy(res);
   res
     .status(200)
     .set("Content-Type", "application/json; charset=utf-8")
-    .set("Cache-Control", "no-store")
     .set("Content-Length", String(bytes.length))
     .end(bytes);
 }

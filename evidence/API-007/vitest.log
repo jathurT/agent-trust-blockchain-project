@@ -1,0 +1,9 @@
+
+ RUN  v5.0.1 /mnt/d/8th Sem/Blockchain_Project/impl/agents/seller
+
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  08:10:55
+   Duration  10.65s (import 95%, transform 4%, tests 1%)
+

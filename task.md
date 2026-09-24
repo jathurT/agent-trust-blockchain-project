@@ -878,13 +878,17 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-007 — Response headers, error mapping, structured logs
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** Make responses safe to cache-never, errors machine-readable, and runs measurable.
 - **Refs:** §11.2 · SR-14 · V-17 (mitigation M5)
 - **Depends:** API-003
 - **Steps:** 1) `Cache-Control: no-store` and `Vary` on paid routes. 2) A single error mapper implementing the SPEC-002 table. 3) NDJSON logs with `runId`, `jobId`, decision, timing and outcome — the harness reads these.
-- **Acceptance:** every paid response carries `no-store`; every rejection logs a machine-readable reason that the harness can count.
-- **Verify:** `pnpm -C impl/agents/seller test -- headers` → `evidence/API-007/`
+- **Acceptance:** ✔ both. Every response — 200, 402 and 404 alike, paid route or not — carries `Cache-Control: no-store` and `Vary: PAYMENT-SIGNATURE, Accept-Encoding`, verified against a **live** server as well as in tests (`evidence/API-007/live-headers.log`). Every rejection logs `reason` as a code from the SPEC-002 §8 table, and a test counts two `not_found`s from the log alone without parsing a sentence.
+- **Verify:** `npx vitest run test/headers.test.ts` → 9 passed → `evidence/API-007/{vitest.log,live-headers.log,access-log.ndjson}`. Full seller suite 89 passed.
+- **Files:** `impl/agents/seller/src/observability.ts` (new), wired through `errors.ts`, `gate.ts`, `deliver.ts`, `server.ts`; `docs/specs/http-protocol.md` §3.1, §9, §10.
+- **Step 2 was already done** — `errors.ts` has implemented the §8 table since API-001. What was missing was steps 1 and 3.
+- **`Vary` was absent entirely, and it is the half that survives a cache ignoring `no-store`.** A paid response is a function of the payment header, so a cache keyed on the URL alone could serve one payer's bytes to another — the HTTP/proxy cache-confusion class (V-17, M5). `Accept-Encoding` is included because a shared cache normalising encodings would otherwise key two different bodies together. The 402 carries both too: a cached quote is a stale payee.
+- **One decision worth recording:** the access log defaults to on, and the **measurement harnesses turn it off**. One line per replay across 50 replays × 10 runs would out-shout the counter the run is about — and the demo's counter line is what the video crops to. The real server (`main.ts`) leaves it on.
 
 ### API-008 — Labelled vulnerable baseline fixture (A2/A3)
 

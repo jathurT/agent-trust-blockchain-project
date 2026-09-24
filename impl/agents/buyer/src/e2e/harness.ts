@@ -246,6 +246,10 @@ export async function startStack(options: StackOptions): Promise<Stack> {
 
   const claims = new ClaimStore({ path: join(dir, "claims.sqlite") });
   const app = createApp({
+    // API-007's per-request line is real output, but a measurement harness that
+    // prints one per replay buries the counter the run is about. The real server
+    // (`main.ts`) leaves it on.
+    accessLog: false,
     origin: sellerOrigin,
     agentId: agentId.toString(),
     gated: true,

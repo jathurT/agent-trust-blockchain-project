@@ -11,6 +11,7 @@ import { encodeHeader, HEADER_REQUIRED, type ChainClient } from "@agenttrust/cor
 import type { RawRequest } from "./rawBody.js";
 import { buildPaymentRequired, resolvePayee, QuoteError, type QuoteConfig } from "./quote.js";
 import { SellerError, sendError } from "./errors.js";
+import { applyCachePolicy } from "./observability.js";
 import { verifyRequest, type NonceStore, type VerifiedRequest, type VerifyConfig } from "./verify.js";
 import type { ClaimStore } from "./claims.js";
 
@@ -42,11 +43,8 @@ export async function sendQuote(deps: GateDeps, req: RawRequest, res: Response, 
   const payee = await resolvePayee(deps.chain, deps.config.agentId);
   const quote = buildPaymentRequired(deps.config, { path: req.path, payee, now, error });
 
-  res
-    .status(402)
-    .set(HEADER_REQUIRED, encodeHeader(quote))
-    .set("Cache-Control", "no-store")
-    .json(quote);
+  applyCachePolicy(res);
+  res.status(402).set(HEADER_REQUIRED, encodeHeader(quote)).json(quote);
 }
 
 export function createPaymentGate(deps: GateDeps) {

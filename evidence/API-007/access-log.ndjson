@@ -1,0 +1,3 @@
+{"level":"info","msg":"request","runId":"api-007-demo","requestId":"9f7dfe88-1599-4ea0-8742-e2fe9e6b3b9d","method":"GET","path":"/health","status":200,"durationMs":3.670669,"at":"2026-09-24T02:42:39.132Z"}
+{"level":"info","msg":"request","runId":"api-007-demo","requestId":"17fd0754-ea9a-442f-b942-a911ea4189a8","method":"GET","path":"/no-such-route","status":404,"reason":"not_found","durationMs":0.674088,"at":"2026-09-24T02:42:39.139Z"}
+{"level":"info","msg":"request","runId":"api-007-demo","requestId":"5e66bee6-04f0-4b19-8804-31821b34a600","method":"POST","path":"/v1/summarise","status":200,"durationMs":1.315993,"at":"2026-09-24T02:42:39.144Z"}

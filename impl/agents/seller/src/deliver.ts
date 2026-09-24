@@ -25,6 +25,7 @@ import {
 import type { ClaimStore } from "./claims.js";
 import { depositAndBind, EvidenceError, type DepositResult, type EvidenceDeps } from "./evidence.js";
 import { SellerError, sendError } from "./errors.js";
+import { applyCachePolicy, tag } from "./observability.js";
 import { parseJsonBody } from "./rawBody.js";
 import { classify, serialise, summarise, BadRequest } from "./routes/deterministic.js";
 import type { GatedRequest } from "./gate.js";
@@ -83,10 +84,11 @@ function send(
   disposition: Disposition,
   evidenceId?: string,
 ): void {
+  tag(res, { logJobId: req.verified?.jobId, logDisposition: disposition });
+  applyCachePolicy(res);
   res
     .status(200)
     .set("Content-Type", contentType)
-    .set("Cache-Control", "no-store")
     .set("Content-Length", String(body.length))
     .set(HEADER_RESPONSE, encodeHeader(settlement(deps, req, disposition, hash, evidenceId)))
     .end(body);

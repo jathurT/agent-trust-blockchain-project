@@ -375,6 +375,9 @@ export async function startAgentTrust(opts: {
 
   for (const port of opts.sellerPorts) {
     const app = createApp({
+      // See the note in the e2e harness: the access log stays off inside a
+      // measurement run, where it would out-shout the counters.
+      accessLog: false,
       origin,
       agentId: agentId.toString(),
       gated: true,
