@@ -1373,11 +1373,15 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### PRES-001 — Five-slide outline (~380 words)
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h review (TM drafts) · **Hat/agent:** TM+U(D)
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.5 h review (TM drafts) · **Hat/agent:** TM+U(D)
 - **Objective:** The script, using only verified figures and claims that match what exists.
 - **Refs:** §17, §20 · AR-04, AR-05, AR-12, AR-14, AR-18 · DF-08, DF-19 · Depends: design-findings.md, verification-log.md
 - **Steps:** 1) Slide 1 hook with attributed adoption figures (V-21/V-74), not the unresolved 725→50M (V-22). 2) Slide 2 problem: attacks attributed per paper (V-11). 3) Slide 3 solution: gate, resource-bound escrow, validation-triggered release — with DF-08 wording. 4) Slide 4 demo. 5) Slide 5 results with the coverage denominator, address, QR. 6) Keep §6.2 verbatim for the "why blockchain" beat.
-- **Acceptance:** ≈380 words; every number has a source; no claim outruns the implementation.
+- **Acceptance:** ✔ all three. **386 spoken words**, counted by script rather than estimated (the counter is in the document, so a later edit can be rechecked). Every figure cites a V-ID — V-21, V-74, V-11, V-12, V-24, V-31 — and each was re-read against `verification-log.md` before use. No claim outruns the implementation: slide 5 states **2 of 6 evaluated** and shows the other four as "Not evaluated".
+- **File:** `docs/presentation-outline.md`.
+- **Word count was measured, not asserted.** The first draft was written to a claimed 387 and actually came out at **440** — about 3:28 against a 3:00 limit. Cut to 386 and the per-slide table now carries the measured counts with their implied timings at 129 wpm. Same defect class as the README test counts: a number written from intention rather than from a run.
+- **Five corrections to blueprint §17, each stated in the document so the presenter knows why a familiar number is gone.** (1) The "725 → 50 million" growth figure is dropped — V-22, UNRESOLVED. (2) "Two papers document eleven vulnerabilities" becomes one paper — V-11. (3) "Five fake servers captured 60% of traffic" is dropped: that is A6, it comes from an LLM discovery-ranking experiment, and this project did not evaluate it — claiming it on slide 2 and omitting it from slide 5 is the overclaim an examiner finds first. (4) "Vanilla x402" and "the second call reverts `ReplayedNonce()`" are replaced by the labelled fixture and the claim-store explanation (DF-13). (5) "Six attacks, six blocked" becomes 2 of 6 evaluated, and no Base Sepolia address is shown while DEPLOY-001 is blocked.
+- **Blocked downstream:** PRES-002 still needs ADMIN-002 (group number, and `.ppt` vs `.pptx`).
 
 ### PRES-002 — Build the deck and backup slides
 
@@ -1804,8 +1808,11 @@ testnet deployment was not done — which is a cut the gate list already anticip
    capture itself, which is yours to do — I cannot record video. Start both targets before
    recording: module loading under `tsx` on this workspace takes about a minute per
    service, and that is not part of a 45-second shot.
-2. **PRES-001/002** — the five slides. The deck can now be assembled entirely from
-   `docs/results.md` and `docs/LIMITATIONS.md`; no figure needs to be invented.
+2. **PRES-002** — build the deck. **PRES-001 is done**: `docs/presentation-outline.md`
+   has the 386-word script, the per-slide timings and the five corrections to blueprint
+   §17. The deck is assembled from it plus `docs/results.md`; no figure needs inventing.
+   It is **blocked on ADMIN-002** for the group number and whether `.ppt` or `.pptx` is
+   required — the filename is `GP_XX_AgentTrust` until that is answered.
 3. **SEC-012** (P1) — the claims audit. Everything measured is in `docs/results.md`, and
    the README and limitations are written; this checks that no sentence anywhere claims
    more than the runs show. Three phrasings to watch: "not upstream x402", the qualified
