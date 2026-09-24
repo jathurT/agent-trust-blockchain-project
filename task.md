@@ -308,7 +308,8 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### PLAN-009 — Maintain the authorization log and stopping points
 
-- [ ] **Status:** TODO · **Authorized:** n/a (process) · **Tier:** CORE-P0 · **Est:** ongoing · **Hat/agent:** U · lead
+- [ ] **Status:** IN_PROGRESS (ongoing) · **Authorized:** n/a (process) · **Tier:** CORE-P0 · **Est:** ongoing · **Hat/agent:** U · lead
+- **2026-09-24:** the §14 log had fallen four grants behind — it stopped at "do that" on 23 Sep while five further batches had been authorized and executed. Backfilled from the per-task `Authorized:` fields, which were current. It stays IN_PROGRESS because it is a standing process, not a task that finishes.
 - **Objective:** Record every authorization the user grants, and stop at each gate by default.
 - **Refs:** CLAUDE.md §3, §13 · §11, §14
 - **Steps:** 1) Before starting a task, confirm it is authorized. 2) Append to the §14 authorization log: date, scope, who granted it. 3) At each gate, stop and report.
@@ -1786,6 +1787,15 @@ Eight further findings were fixed in the same change, three of them worth naming
 | 2026-09-22 | Planning package only; skills installation | user | Plan approved in plan mode; implementation explicitly withheld |
 | 2026-09-22 | Project-scope skill installation (6 plugins + 7 vendored skills) | user | Executed and verified; see PLAN-003 |
 | 2026-09-23 | Implementation start — ENV-001, then ENV-002/003, then SPEC-001 ("do that") | user | ENV-001/002/003 DONE; SPEC-001 is next |
+| 2026-09-23 | The contracts and registries batch ("do it", "ok") | user | SPEC-001, REG-001…004/008, CONTRACT-001…017 |
+| 2026-09-23 | The seller batch toward G2 ("start") | user | SPEC-002, AGENT-001, API-001…005, API-008 |
+| 2026-09-23 | The validator batch toward G3b ("do it") | user | VAL-001…004, API-006, INT-001/002 |
+| 2026-09-23 | The evaluation ("do the evaluation") | user | SEC-002/003/004, EVAL-004/005 |
+| 2026-09-24 | README and limitations ("write the README and limitations doc") | user | DOC-001, DOC-004; LICENSE created because the README references it |
+| 2026-09-24 | The next work in §16 ("continue") | user | AGENT-006, PRES-001, SPEC-003, SEC-011 (partial), EVAL-001, EVAL-006, API-007, REG-006, SEC-012. **Read as a batch authorization for the tasks §16 listed as next.** No testnet transaction, deployment, faucet request or publication was performed — all of those remain unauthorized and blocked on ENV-006/007 |
+
+**Never authorized, and not done:** any Base Sepolia transaction, any deployment, any
+faucet request, any contract verification, any publication, any contact with anyone.
 
 ---
 
