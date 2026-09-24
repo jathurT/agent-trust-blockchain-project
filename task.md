@@ -1296,12 +1296,15 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### DOC-001 — README
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.5 h (TM drafts the problem statement) · **Hat/agent:** U(D)+TM
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "write the README and limitations doc", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.5 h (TM drafts the problem statement) · **Hat/agent:** U(D)+TM
 - **Objective:** Problem first, then what this is, how to run it, and what it does not claim.
 - **Refs:** §16, §20 · AR-08, AR-12, AR-13 · DF-03, DF-19 · Depends: INT-001, EVAL-004
 - **Steps:** 1) Problem statement with verified figures only. 2) What AgentTrust is, with the honest x402 interoperability sentence. 3) Quickstart: devnet, services, one paid job, one attack run. 4) Results summary linking `docs/results.md`. 5) Deployed addresses and explorer links. 6) Limitations link. 7) Licence and the ethics note.
-- **Acceptance:** a reader who has never seen the project can run the local demo from the README alone; every figure cites a V-ID or a results row.
-- **Verify:** follow it on a clean clone (DOC-006 formalises this) → `evidence/DOC-001/`
+- **Acceptance:** ✔ both. Every script, package path and link the README names was checked to exist, and the quickstart was **executed as written** — `e2e-happy.sh` exited 0 with `"ok": true`, and `report.sh --check` confirmed the published tables still match the recorded runs (`evidence/DOC-001/walkthrough.txt`). Every figure in the problem statement cites a verification id (V-12, V-13, V-24); every figure in the results table was cross-checked line by line against `docs/results.tables.md`, which is generated from the 13 runs.
+- **Verify:** `evidence/DOC-001/walkthrough.txt`. A genuine clean-clone run is DOC-006 and has **not** been done — what was verified here is that the commands exist and work in this tree.
+- **Outcome:** the README opens with the problem rather than the solution, and the figures in it are the published measurements (248 grants, 50→50, 100/100), each with its V-ID. It carries the honest interoperability sentence and the narrowed novelty claim (V-143: the x402 spec already defines an escrow scheme, so what is different is the reputation gate plus validator-attested release). The **deployed-addresses section is deliberately empty** and says why, rather than carrying a placeholder; the ERC-8004 registry addresses that *are* live are listed with the single-key upgrade caveat (V-97).
+- **Test counts were measured, not quoted.** A first draft said "160 Solidity tests" and "19 attacks tests" from memory; running them gave 154 + 6 invariants and 20. Corrected before commit — a wrong number in a README is the same defect as a wrong number in a results table.
+- **`LICENSE` was created** (MIT) because the README references it; the rest of DOC-009 — the secret scan and the pre-publication review — is still open.
 
 ### DOC-002 — Architecture document and corrected diagram
 
@@ -1315,12 +1318,14 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### DOC-004 — Limitations and honest scoping
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.25 h (TM drafts) · **Hat/agent:** U(D)+TM
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "write the README and limitations doc", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.25 h (TM drafts) · **Hat/agent:** U(D)+TM
 - **Objective:** Say plainly what the system does not do — §20 rewards exactly this.
 - **Refs:** §4.3, §4.4, §6.3, §20 · SR-06…SR-08, AR-17 · DF-07, DF-08, DF-09, DF-16, DF-24
 - **Depends:** design-findings.md, EVAL-004
 - **Steps:** list: single selected validator must be honest; collusion unsolved; content quality only for deterministic fixtures; trust anchors are per-buyer and hurt cold start; mocks unless REG-005/007 ran; fixtures are not upstream; blacklisted payee can strand funds; no multi-host seller; LLM layer absent if AGENT-005 was cut; attacks not evaluated.
-- **Acceptance:** every limitation traces to a DF or a measurement gap; nothing is hidden behind vague wording.
+- **Acceptance:** ✔ — `docs/LIMITATIONS.md`, eight sections, every entry naming its `DF-*`, `V-*` or the measurement that was not taken.
+- **Outcome:** it says the things that are least comfortable. The selected validator must be honest and **collusion is unaddressed**; "correct" means a deterministic fixture recomputes to the same bytes and generalises to **nothing** about answer quality; the reputation gate **refuses honest newcomers by design**; a trusted client with more than ~26 feedback entries is **silently dropped** from the gate at the deployed gas ceiling; `requestHash` squatting is **unbounded** against a mempool watcher; a blacklisted payee **strands the funds permanently** with no administrative sweep; "one execution per job" holds across processes on **one host** and not across hosts; and four of the six attacks were **not evaluated**, with a row each explaining what a faithful evaluation would have required.
+- It also states what would invalidate the headline number: the A3 zero means "bound" rather than "broken" **only because** the control — the correct request succeeding in all 100 rounds — held, and if that regresses the result stops meaning what it says.
 
 ### DOC-005 — Verified references list
 

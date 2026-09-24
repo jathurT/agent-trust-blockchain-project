@@ -1,0 +1,36 @@
+DOC-001 — README walkthrough check
+date:   2026-09-24T01:02:35Z
+commit: b9dd9470438b6f9715f6c9615b84aca1cc4a8c6c
+
+Every path, script and link referenced by README.md was checked to exist, and the
+quickstart was executed as written.
+
+== commands referenced ==
+  impl/scripts/install-deps.sh             present
+  impl/scripts/deploy.sh                   present
+  impl/scripts/e2e-happy.sh                present
+  impl/scripts/e2e-refund.sh               present
+  impl/scripts/report.sh                   present
+  impl/attacks/src/harness.ts              present
+
+== links ==
+  LICENSE                                  present
+  docs/LIMITATIONS.md                      present
+  docs/results.md                          present
+
+== quickstart executed ==
+  bash impl/scripts/e2e-happy.sh   -> exit 0, "ok": true
+  bash impl/scripts/report.sh --check -> tables and chart match the recorded runs
+
+== test counts, measured not quoted ==
+  impl/contracts      154 unit and boundary + 6 invariants
+  impl/packages/core   87
+  impl/agents/seller   76
+  impl/agents/buyer     8
+  impl/attacks         20
+  impl/validator       64  (pytest)
+
+== figures ==
+  Problem statement: V-12, V-13, V-24 — every figure cites a verification id.
+  Results table: cross-checked line by line against docs/results.tables.md,
+  which is generated from the 13 recorded runs.
