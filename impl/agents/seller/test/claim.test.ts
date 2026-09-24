@@ -143,6 +143,63 @@ describe("the store itself", () => {
   });
 });
 
+describe("totals across every job (AGENT-006)", () => {
+  const dir = mkdtempSync(join(tmpdir(), "agenttrust-totals-"));
+  const store = new ClaimStore({ path: join(dir, "claims.sqlite") });
+
+  afterAll(() => {
+    store.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("starts at zero rather than undefined", () => {
+    expect(store.totals()).toEqual({
+      jobs: 0,
+      executions_completed: 0,
+      distinct_results: 0,
+      http_2xx: 0,
+      replays_served: 0,
+      aborted_executions: 0,
+    });
+  });
+
+  it("counts a replay as a 2xx but not as an execution — the distinction the demo shows", () => {
+    const key = "31337:0xescrow:job-a";
+    store.acquire(key);
+    store.storeResult(key, Buffer.from("{}"), keccak256(toHex("{}")), "application/json");
+    store.markServed(key, false);
+    store.markServed(key, true);
+    store.markServed(key, true);
+
+    const t = store.totals();
+    expect(t.jobs).toBe(1);
+    expect(t.executions_completed).toBe(1);
+    expect(t.http_2xx).toBe(3);
+    expect(t.replays_served).toBe(2);
+    expect(t.distinct_results).toBe(1);
+  });
+
+  it("sums over jobs instead of reporting the last one", () => {
+    const key = "31337:0xescrow:job-b";
+    store.acquire(key);
+    store.storeResult(key, Buffer.from("[]"), keccak256(toHex("[]")), "application/json");
+    store.markServed(key, false);
+
+    const t = store.totals();
+    expect(t.jobs).toBe(2);
+    expect(t.executions_completed).toBe(2);
+    expect(t.http_2xx).toBe(4);
+    expect(t.distinct_results).toBe(2);
+  });
+
+  it("exposes its path, so a second process can open the same file to read it", () => {
+    expect(store.path).toBe(join(dir, "claims.sqlite"));
+    const reader = new ClaimStore({ path: store.path });
+    expect(reader.totals().jobs).toBe(2);
+    reader.close();
+  });
+});
+
 describe("persistence across a restart", () => {
   /** Acceptance (b), the recoverable half. */
   it("a result stored before a crash is replayed, never re-executed", () => {

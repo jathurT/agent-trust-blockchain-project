@@ -45,6 +45,16 @@ export interface Loaded {
   dir: string;
 }
 
+/**
+ * Every run under `resultsRoot` that is fit to report.
+ *
+ * A run recorded against a dirty working tree is **excluded**, loudly. The manifest
+ * already records `dirty`, but recording it is not enough: this function used to read
+ * every directory it found, so a one-off smoke run — say, a three-replay check that
+ * some command still works — would silently join the reported totals and move a
+ * published number. The commit hash in such a manifest does not describe the code that
+ * produced it, so the run cannot be reproduced and is not evidence (CLAUDE.md §12).
+ */
 export function load(resultsRoot: string): Loaded[] {
   if (!existsSync(resultsRoot)) return [];
   const out: Loaded[] = [];
@@ -53,9 +63,17 @@ export function load(resultsRoot: string): Loaded[] {
     const r = join(dir, "results.json");
     const m = join(dir, "manifest.json");
     if (!existsSync(r) || !existsSync(m)) continue;
+    const manifest = JSON.parse(readFileSync(m, "utf8")) as ManifestFile;
+    if (manifest.dirty) {
+      process.stderr.write(
+        `skipping ${entry}: recorded against a dirty working tree, so its commit hash ` +
+          `does not describe the code that produced it\n`,
+      );
+      continue;
+    }
     out.push({
       results: JSON.parse(readFileSync(r, "utf8")) as ResultsFile,
-      manifest: JSON.parse(readFileSync(m, "utf8")) as ManifestFile,
+      manifest,
       dir,
     });
   }

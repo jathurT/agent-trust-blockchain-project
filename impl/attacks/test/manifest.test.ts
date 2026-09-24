@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { load } from "../src/aggregate.js";
 import { captureVersions, captureChain, ManifestIncomplete } from "../src/manifest.js";
 import { summarise, wilson, seededRandom } from "../src/stats.js";
 import { join } from "node:path";
@@ -78,5 +81,54 @@ describe("summaries and seeding", () => {
     const first = [a(), a(), a()];
     expect([b(), b(), b()]).toEqual(first);
     expect([c(), c(), c()]).not.toEqual(first);
+  });
+});
+
+describe("what the report is allowed to read", () => {
+  // AGENT-006 found this the hard way: a three-replay smoke run to check that a
+  // command still worked landed in `results/` and would have joined the published
+  // totals. Its manifest said `dirty: true`, which is precisely the signal that its
+  // commit hash does not describe the code that produced it.
+  const fixtures = mkdtempSync(join(tmpdir(), "agenttrust-load-"));
+
+  const write = (name: string, dirty: boolean, executions: number[]) => {
+    const dir = join(fixtures, name);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "manifest.json"),
+      JSON.stringify({
+        gitCommit: "0".repeat(40),
+        dirty,
+        env: { chainId: 31337, blockNumber: "1", mode: "anvil" },
+        versions: {},
+        params: {},
+        notes: [],
+      }),
+    );
+    writeFileSync(
+      join(dir, "results.json"),
+      JSON.stringify({ attackId: "a2_replay", target: "fixture", config: name, metrics: { executions } }),
+    );
+  };
+
+  afterAll(() => rmSync(fixtures, { recursive: true, force: true }));
+
+  it("keeps a run recorded against a clean tree", () => {
+    write("clean-run", false, [1]);
+    expect(load(fixtures).map((l) => l.results.config)).toEqual(["clean-run"]);
+  });
+
+  it("drops a run recorded against a dirty tree", () => {
+    write("dirty-run", true, [50]);
+    expect(load(fixtures).map((l) => l.results.config)).toEqual(["clean-run"]);
+  });
+
+  it("ignores a directory that is not a run at all", () => {
+    mkdirSync(join(fixtures, "not-a-run"), { recursive: true });
+    expect(load(fixtures)).toHaveLength(1);
+  });
+
+  it("returns nothing for a results root that does not exist", () => {
+    expect(load(join(fixtures, "missing"))).toEqual([]);
   });
 });

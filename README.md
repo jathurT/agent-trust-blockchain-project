@@ -127,7 +127,34 @@ npx tsx src/harness.ts --id a3_cross_resource --target agenttrust --rounds 100
 ```
 
 Each run writes `manifest.json` (commit, tool versions, chain, block, parameters, seed),
-`results.json` and `raw.ndjson`. It **refuses to run** if any of that cannot be captured.
+`results.json` and `raw.ndjson`. It **refuses to run** if any of that cannot be captured,
+and a run recorded against a dirty working tree is excluded from the report: its commit
+hash does not describe the code that produced it.
+
+**The demo**, as three terminals — the commands are `docs/demo-script.md`:
+
+```bash
+cd impl
+npm run target:vanilla         # left pane: the labelled vulnerable fixture
+npm run target:agenttrust      # right pane: escrow + seller + Python validator
+npm run attack -- --id a2_replay --target agenttrust --runs 10 --replays 50
+```
+
+`target:vanilla` is blueprint §18's name for the baseline. It is kept so the documented
+command runs, and it prints a correction first: the target is a fixture written for this
+project, not upstream x402. `npm run target:fixture` is the same thing, named correctly.
+
+A single job from the buyer's side:
+
+```bash
+npm run buy    -- --resource /v1/summarise --amount 250000   # atomic units, never a decimal
+npm run status -- --job 0x…
+npm run refund -- --job 0x…
+```
+
+`buy` prints the HTTP status **and** the disposition, because they are different facts:
+a retry before settlement gets `200` and the stored bytes with disposition `replayed`,
+and the work does not run again.
 
 Regenerate the results tables and chart from recorded runs:
 
@@ -140,10 +167,10 @@ The tests:
 ```bash
 (cd impl/contracts     && forge test)          # 154 unit and boundary tests + 6 invariants
 (cd impl/packages/core && npx vitest run)      # 87
-(cd impl/agents/seller && npx vitest run)      # 76
-(cd impl/agents/buyer  && npx vitest run)      # 8
-(cd impl/attacks       && npx vitest run)      # 20
-(cd impl/validator     && uv run pytest)       # 64
+(cd impl/agents/seller && npx vitest run)      # 80
+(cd impl/agents/buyer  && npx vitest run)      # 21
+(cd impl/attacks       && npx vitest run)      # 32
+(cd impl/validator     && uv run pytest)       # 68
 ```
 
 The buyer, seller, attacks and validator suites drive a **live chain**, so they need the

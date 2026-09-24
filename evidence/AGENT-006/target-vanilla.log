@@ -1,0 +1,14 @@
+
+> @agenttrust/demo@0.1.0 target:vanilla
+> cd attacks && npx tsx src/serve.ts --target vanilla
+
+(node:2264284) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+NOTE: blueprint §18 calls this target "vanilla". It is not. Nothing upstream is running here, and no result from this target says anything about the @x402/* packages or about any third-party endpoint. Measuring upstream is API-009 (EXTENDED, not done). The correct name for this target is `fixture`.
+
+DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.
+
+vulnerable-fixture-v1 listening on http://127.0.0.1:4021  (chain 31337)
+
+  FIXTURE      grants:   0  |  settlements:   0

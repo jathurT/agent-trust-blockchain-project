@@ -1,0 +1,63 @@
+{
+  "runId": "a2_replay-fixture-original-3x1-1790215302248",
+  "startedAt": "2026-09-24T02:01:48.602Z",
+  "finishedAt": "2026-09-24T02:01:48.690Z",
+  "attackId": "a2_replay",
+  "target": "fixture",
+  "targetVersion": "vulnerable-fixture-v1",
+  "configName": "original-3x1",
+  "gitCommit": "6c2709c295428594ea38874ff485eaf2f05dad4d",
+  "dirty": true,
+  "env": {
+    "chainId": 31337,
+    "rpc": "http://127.0.0.1:8545",
+    "blockNumber": "103",
+    "blockTimestamp": 1790216107,
+    "mode": "anvil",
+    "confirmations": 0
+  },
+  "versions": {
+    "git": "6c2709c295428594ea38874ff485eaf2f05dad4d",
+    "dirty": true,
+    "node": "v22.17.0",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "foundry": "forge Version: 1.8.3",
+    "solc": "0.8.37",
+    "packages": {
+      "@agenttrust/core": "link:../packages/core",
+      "@agenttrust/seller": "link:../agents/seller",
+      "express": "5.2.1",
+      "viem": "2.56.8",
+      "@types/express": "5.0.6",
+      "@types/node": "26.6.2",
+      "@types/supertest": "6.0.3",
+      "supertest": "7.3.0",
+      "tsx": "4.23.15",
+      "typescript": "7.0.2",
+      "vitest": "5.0.1"
+    }
+  },
+  "contracts": {
+    "escrow": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "token": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "identity": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "reputation": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "validation": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+  },
+  "params": {
+    "runs": 1,
+    "replays": 3,
+    "rounds": 100,
+    "concurrency": 1,
+    "seed": 1,
+    "variant": "original",
+    "replayPolicy": "idempotent",
+    "sellerProcesses": 1
+  },
+  "notes": [
+    "DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.",
+    "WARNING: the working tree was dirty; the commit does not fully identify this build.",
+    "Local Anvil (chain 31337). These are devnet measurements: latencies, gas and confirmation behaviour do not transfer to Base Sepolia."
+  ]
+}

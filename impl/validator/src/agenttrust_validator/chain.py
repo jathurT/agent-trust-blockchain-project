@@ -29,6 +29,21 @@ class ChainUnavailable(RuntimeError):
     """The chain could not be read. Never confused with "no such job"."""
 
 
+#: Multiplier applied to `eth_estimateGas` before a transaction is sent.
+#:
+#: `estimate_gas` returns the *minimum* limit that succeeded against the pending state,
+#: and that is not the state the transaction executes in. `validationResponse` writes
+#: `lastUpdate = block.timestamp`: when the estimate is taken in the same second as the
+#: value already stored, the SSTORE is a no-op (100 gas), and a second later the real
+#: execution pays a reset (2,900) instead. The estimate is then exactly too small and
+#: the transaction runs out of gas — observed in AGENT-006 as a silently failed
+#: attestation (Anvil block 88, tx 0x03ce3487…, OutOfGas at the estimated 125,849).
+#:
+#: A buffer costs nothing: unused gas is refunded, and the validator pays for what it
+#: uses. Running out of gas costs the seller the payment.
+GAS_ESTIMATE_BUFFER = 1.5
+
+
 @dataclass(frozen=True)
 class Job:
     payer: str
@@ -115,11 +130,15 @@ class ChainClient:
 
     def _send(self, function: Any) -> str:
         try:
+            # Estimate explicitly rather than letting `build_transaction` do it, so the
+            # buffer above is applied to the result. See GAS_ESTIMATE_BUFFER.
+            estimate = function.estimate_gas({"from": self.address})
             tx = function.build_transaction(
                 {
                     "from": self.address,
                     "nonce": self.w3.eth.get_transaction_count(self.address),
                     "chainId": self.chain_id,
+                    "gas": int(estimate * GAS_ESTIMATE_BUFFER),
                 }
             )
             signed = self.w3.eth.account.sign_transaction(tx, private_key=self.account.key)

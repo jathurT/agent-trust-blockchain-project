@@ -1,0 +1,13 @@
+
+> @agenttrust/demo@0.1.0 status
+> cd agents/buyer && npx tsx src/demo/cli.ts status --job 0x214d110bed9961c459634352da2e75117f6e1453c11b12bb2b0a46e090315c9b
+
+job        0x214d110bed9961c459634352da2e75117f6e1453c11b12bb2b0a46e090315c9b
+state      Released
+amount     250000 atomic (0.250000 USDC)
+payer      0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+payee      0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+validator  0x90F79bf6EB2c4f870365E785982E1f101E93b906
+deadline   1790216297  (chain now 1790215398, 899s remaining)
+grace      900s, snapshotted at funding
+settled

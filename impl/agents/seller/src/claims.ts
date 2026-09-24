@@ -80,9 +80,12 @@ export class ClaimStore {
   private readonly leaseMs: number;
   private readonly maxAttempts: number;
   private readonly now: () => number;
+  /** Where this store lives, so a second process can open the same file to read it. */
+  readonly path: string;
 
   constructor(options: ClaimStoreOptions = {}) {
     const path = options.path ?? defaultClaimsPath();
+    this.path = path;
     this.leaseMs = options.leaseMs ?? 30_000;
     this.maxAttempts = options.maxAttempts ?? 3;
     this.now = options.now ?? (() => Date.now());
@@ -317,6 +320,43 @@ export class ClaimStore {
       http_2xx: row?.http2xx ?? 0,
       replays_served: row?.replaysServed ?? 0,
       aborted_executions: row?.abortedExecutions ?? 0,
+    };
+  }
+
+  /**
+   * The same counters, summed over every job this seller has served (AGENT-006).
+   *
+   * The demo shows these two numbers side by side, so they must come from the
+   * seller's own records rather than from counting HTTP responses: `http_2xx` is how
+   * many callers got bytes, `executions_completed` is how many times the work was
+   * actually done. On the fixture those diverge; here they must not.
+   */
+  totals(): {
+    jobs: number;
+    executions_completed: number;
+    distinct_results: number;
+    http_2xx: number;
+    replays_served: number;
+    aborted_executions: number;
+  } {
+    const row = this.db
+      .prepare(
+        `SELECT COUNT(*)                                        AS jobs,
+                COALESCE(SUM(executions_completed), 0)          AS executions_completed,
+                COALESCE(SUM(response_hash IS NOT NULL), 0)     AS distinct_results,
+                COALESCE(SUM(http_2xx), 0)                      AS http_2xx,
+                COALESCE(SUM(replays_served), 0)                AS replays_served,
+                COALESCE(SUM(aborted_executions), 0)            AS aborted_executions
+           FROM claims`,
+      )
+      .get() as Record<string, number>;
+    return {
+      jobs: Number(row["jobs"]),
+      executions_completed: Number(row["executions_completed"]),
+      distinct_results: Number(row["distinct_results"]),
+      http_2xx: Number(row["http_2xx"]),
+      replays_served: Number(row["replays_served"]),
+      aborted_executions: Number(row["aborted_executions"]),
     };
   }
 

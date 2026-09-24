@@ -964,12 +964,17 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### AGENT-006 — Buyer CLI and demo commands
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(C) · agents-backend
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(C) · agents-backend
 - **Objective:** The commands the demo and the harness call.
 - **Refs:** §18 · FR-18 · DF-13 · Depends: AGENT-002
 - **Steps:** 1) `buy --resource <path> --amount <atomic>`; `refund --job <id>`; `status --job <id>`. 2) npm scripts `target:vanilla`, `target:agenttrust`, `attack`. 3) Human-readable output with the counters the video shows (executions, payments).
-- **Acceptance:** the §18 command names work; output distinguishes executions from 2xx responses.
-- **Verify:** run each command against Anvil → `evidence/AGENT-006/`
+- **Acceptance:** ✔ both. All four §18 command names run (`evidence/AGENT-006/`), and the counter line separates the two facts: `executions: 1 | 2xx: 2 | replays served: 1` for one payment retried once. `buy` prints the HTTP status **and** the disposition (`executed` / `replayed`) for the same reason.
+- **Verify:** `evidence/AGENT-006/README.md` — the logs of every command against Anvil, plus the two defects below.
+- **Files:** `impl/package.json` (the §18 script names), `impl/agents/buyer/src/demo/{cli,serve}.ts`, `impl/attacks/src/serve.ts`, `docs/demo-script.md`; `ClaimStore.totals()` and `.path`, `Target.totals()`.
+- **`target:vanilla` is kept but corrected.** The blueprint's word for the baseline is wrong under CLAUDE.md §12, so the name runs and prints `VANILLA_CORRECTION` first; the correction lives in `fixture-label.ts` beside the label, and `--target vanilla` is rewritten to `fixture` before it can reach a manifest (verified: the smoke run's manifest says `"target": "fixture"`). `npm run target:fixture` is the same thing, named correctly.
+- **Defect found and fixed — the validator sent transactions with no gas headroom.** `build_transaction` took `gas` straight from `eth_estimateGas`, which returns the minimum that succeeded against the *pending* state. `validationResponse` writes `lastUpdate = block.timestamp`, so that SSTORE costs 100 gas when the estimate lands in the same second as the stored value and 2,900 when it does not — the estimate was then exactly too small and the transaction ran out of gas (Anvil block 88, tx `0x03ce3487…`, OutOfGas at the estimated 125,849). The attestation failed **silently**: delivered work, locked payment, no release until the refund window. Fixed with an explicit estimate and `GAS_ESTIMATE_BUFFER = 1.5`, pinned by `impl/validator/tests/test_gas.py` (4 tests). Timing-dependent, so INT-001 could pass while it was present.
+- **Defect found and fixed — a smoke run could have entered the published results.** `npm run attack` writes into `impl/attacks/results/` and `aggregate.ts` read every directory there, so the 3-replay run made while checking the alias would have joined the reported totals. `load()` now skips any run whose manifest says `dirty: true` and says so on stderr. All 13 frozen runs are clean, so `report.sh --check` is unchanged — confirmed before and after. The smoke run was moved into `evidence/AGENT-006/`.
+- **Not done here:** no attack run was repeated for measurement. A2/A3 stay frozen at `bd5b431d`.
 
 ### Phase 8 — Validator (VAL)
 
@@ -1689,6 +1694,7 @@ Eight further findings were fixed in the same change, three of them worth naming
 | API-002 | 402 quote in v2 shape, `payTo` resolved from the registry on every quote | `evidence/API-002/` |
 | API-003 | Funded-job verification against a live Anvil, 13 tests | `evidence/API-003/` |
 | API-004 | Payer-signature authentication, 8 tests | `evidence/API-004/` |
+| AGENT-006 | The four §18 demo commands, run against Anvil; two defects found and fixed | `evidence/AGENT-006/` |
 
 **Three corrections to the wire format and the protocol, all found by implementing them.**
 
@@ -1792,9 +1798,12 @@ testnet deployment was not done — which is a cut the gate list already anticip
 
 **Not blocked, and next in order:**
 
-1. **PRES-003** — the 45-second demo recording. `e2e-happy.sh` produces a clean run in
-   about 7 seconds, so the material exists; what is missing is the capture and the
-   narration.
+1. **PRES-003** — the 45-second demo recording. **AGENT-006 is done**, so the commands
+   the video runs exist and are written up in `docs/demo-script.md`: two target panes and
+   one attack pane, with the counters the crop has to show. What is missing is the screen
+   capture itself, which is yours to do — I cannot record video. Start both targets before
+   recording: module loading under `tsx` on this workspace takes about a minute per
+   service, and that is not part of a 45-second shot.
 2. **PRES-001/002** — the five slides. The deck can now be assembled entirely from
    `docs/results.md` and `docs/LIMITATIONS.md`; no figure needs to be invented.
 3. **SEC-012** (P1) — the claims audit. Everything measured is in `docs/results.md`, and

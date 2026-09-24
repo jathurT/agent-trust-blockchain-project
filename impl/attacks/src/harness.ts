@@ -15,7 +15,7 @@ import { buildManifest, ManifestIncomplete } from "./manifest.js";
 import { startAgentTrust, startFixture, type Deployment, type Target } from "./targets.js";
 import { runA2, summariseA2, type A2RunResult, type Variant } from "./attacks/a2-replay.js";
 import { runA3Round, summariseA3, type A3RoundResult } from "./attacks/a3-cross-resource.js";
-import { FIXTURE_LABEL } from "./fixture-label.js";
+import { FIXTURE_LABEL, VANILLA_CORRECTION } from "./fixture-label.js";
 import { seededRandom } from "./stats.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -44,7 +44,14 @@ function parseArgs(argv: string[]): Args {
   };
   const id = get("id") as Args["id"];
   if (id !== "a2_replay" && id !== "a3_cross_resource") throw new Error(`unknown attack: ${id}`);
-  const target = get("target") as Args["target"];
+  // Blueprint §18 spells the baseline `vanilla`. The spelling is accepted so the
+  // documented commands run, but it is corrected on the way in and never reaches a
+  // manifest or a result file: nothing upstream runs here (CLAUDE.md §12).
+  let target = get("target") as Args["target"] | "vanilla";
+  if (target === "vanilla") {
+    console.warn(`\n${VANILLA_CORRECTION}\n`);
+    target = "fixture";
+  }
   if (target !== "fixture" && target !== "agenttrust") throw new Error(`unknown target: ${target}`);
 
   return {

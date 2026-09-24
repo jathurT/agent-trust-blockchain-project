@@ -84,6 +84,12 @@ export interface Target {
   request(path: string, body: string, header: string | undefined): Promise<{ status: number; text: string }>;
   /** Counters read from the system's own records, not inferred from responses. */
   counters(ticket: PaymentTicket): Promise<Counters>;
+  /**
+   * The same counters summed over everything this target has served (AGENT-006).
+   * The demo puts two of them on screen; they are read from the target's own
+   * records for the same reason `counters` is.
+   */
+  totals(): Promise<Counters>;
   stop(): Promise<void>;
 }
 
@@ -276,6 +282,17 @@ export async function startFixture(opts: {
         http_2xx: grants.length,
         replays_served: 0,
         settlements: settled,
+      };
+    },
+
+    async totals() {
+      await fixture.settled();
+      return {
+        executions_completed: fixture.grants.length,
+        distinct_results: new Set(fixture.grants.map((g) => g.responseHash)).size,
+        http_2xx: fixture.grants.length,
+        replays_served: 0,
+        settlements: fixture.settlements.filter((s) => s.ok).length,
       };
     },
 
@@ -487,6 +504,19 @@ export async function startAgentTrust(opts: {
         replays_served: m.replays_served,
         // The escrow *is* the settlement: one fund() per job, enforced by the nonce.
         settlements: 1,
+      };
+    },
+
+    async totals() {
+      const t = claims.totals();
+      return {
+        executions_completed: t.executions_completed,
+        distinct_results: t.distinct_results,
+        http_2xx: t.http_2xx,
+        replays_served: t.replays_served,
+        // One funded job is one settlement, and a job cannot be funded twice: the
+        // payer-scoped nonce is burned in `fund()`.
+        settlements: t.jobs,
       };
     },
 

@@ -19,6 +19,17 @@ export const FIXTURE_LABEL =
 export const FIXTURE_ID = "vulnerable-fixture-v1";
 
 /**
+ * Blueprint §18 names the baseline terminal "vanilla control" and the npm script
+ * `target:vanilla`. The command names are kept so the documented demo runs, but the
+ * word is wrong, so every entry point that accepts it prints this first (AGENT-006).
+ */
+export const VANILLA_CORRECTION =
+  'NOTE: blueprint §18 calls this target "vanilla". It is not. Nothing upstream is ' +
+  "running here, and no result from this target says anything about the @x402/* " +
+  "packages or about any third-party endpoint. Measuring upstream is API-009 " +
+  "(EXTENDED, not done). The correct name for this target is `fixture`.";
+
+/**
  * The header form: plain ASCII and short. The full label contains an em dash, which is
  * not a legal character in an HTTP header value — Node rejects it outright, which is
  * how this was found. The long text still travels in every JSON body and log line.

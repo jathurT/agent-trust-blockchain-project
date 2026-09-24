@@ -1,0 +1,39 @@
+
+> @agenttrust/demo@0.1.0 attack
+> cd attacks && npx tsx src/harness.ts --id a2_replay --target vanilla --runs 1 --replays 3
+
+(node:2265392) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+NOTE: blueprint §18 calls this target "vanilla". It is not. Nothing upstream is running here, and no result from this target says anything about the @x402/* packages or about any third-party endpoint. Measuring upstream is API-009 (EXTENDED, not done). The correct name for this target is `fixture`.
+
+  run 1/1: executions=3 distinct=1 unauthorized2xx=0
+{
+  "runId": "a2_replay-fixture-original-3x1-1790215302248",
+  "outDir": "/mnt/d/8th Sem/Blockchain_Project/impl/attacks/results/a2_replay-fixture-original-3x1-1790215302248",
+  "metrics": {
+    "runs": 1,
+    "requests_per_run": 3,
+    "replays_per_run": 2,
+    "executions": [
+      3
+    ],
+    "distinct_results": [
+      1
+    ],
+    "settlements": [
+      1
+    ],
+    "extra_executions_total": 2,
+    "replay_success_rate": {
+      "metric": "replays that became a second execution",
+      "n": 2,
+      "successes": 2,
+      "proportion": 1,
+      "lower": 0.3423802275066531,
+      "upper": 1,
+      "method": "wilson-95"
+    },
+    "unauthorized_2xx_total": 0
+  }
+}

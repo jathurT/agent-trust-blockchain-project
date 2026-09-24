@@ -1,0 +1,40 @@
+
+> @agenttrust/demo@0.1.0 buy
+> cd agents/buyer && npx tsx src/demo/cli.ts buy --resource /v1/summarise --amount 250000
+
+buy  /v1/summarise  up to 250000 atomic (0.250000 USDC)
+     seller agent 11 at http://127.0.0.1:4022
+     payer nonce  0x4acc2fba18ebf55d786209cf51bfd5b3e45d05963856e0269cb3dfea7dfe7818  (derived from the request, so a retry is the same job)
+
+     job          0x214d110bed9961c459634352da2e75117f6e1453c11b12bb2b0a46e090315c9b
+     fund tx      0x6d8d13a565ea11badf50b5b53a0168e43cfe0cd70724ad16e15197e672214e13
+     HTTP         200  ·  disposition: executed
+                  the seller ran the work once for this payment
+     response     0x72ae6271d4922cb72bc0fabecb201afadcffe727bf060f61bc5e525428530709  (hashed by the buyer, matched against PAYMENT-RESPONSE)
+     elapsed      823 ms  (local devnet, not a testnet figure)
+
+     status with: npm run status -- --job 0x214d110bed9961c459634352da2e75117f6e1453c11b12bb2b0a46e090315c9b
+
+> @agenttrust/demo@0.1.0 buy
+> cd agents/buyer && npx tsx src/demo/cli.ts buy --resource /v1/summarise --amount 250000
+
+buy  /v1/summarise  up to 250000 atomic (0.250000 USDC)
+     seller agent 11 at http://127.0.0.1:4022
+     payer nonce  0x4acc2fba18ebf55d786209cf51bfd5b3e45d05963856e0269cb3dfea7dfe7818  (derived from the request, so a retry is the same job)
+aborted: job 0x214d110bed9961c459634352da2e75117f6e1453c11b12bb2b0a46e090315c9b is not funded
+
+> @agenttrust/demo@0.1.0 buy
+> cd agents/buyer && npx tsx src/demo/cli.ts buy --resource /v1/classify --amount 250000
+
+buy  /v1/classify  up to 250000 atomic (0.250000 USDC)
+     seller agent 11 at http://127.0.0.1:4022
+     payer nonce  0x8006e8b0d4586cec1f02ea1f8e3b6b4260b147ceffce683fdeb18b47097421c1  (derived from the request, so a retry is the same job)
+
+     job          0x19d34356bea32861e607aaa7d65e5a68ffd230f85d285cdfc2031543f7089b06
+     fund tx      0x5ce28548b786c344e64a24c4cef5bad07f27cea69fafa135383cc8cbbe704576
+     HTTP         200  ·  disposition: executed
+                  the seller ran the work once for this payment
+     response     0x1c57f1cd360bdefcf81a30f387b063641f07209b1017f58a89e86206bae7b03f  (hashed by the buyer, matched against PAYMENT-RESPONSE)
+     elapsed      626 ms  (local devnet, not a testnet figure)
+
+     status with: npm run status -- --job 0x19d34356bea32861e607aaa7d65e5a68ffd230f85d285cdfc2031543f7089b06

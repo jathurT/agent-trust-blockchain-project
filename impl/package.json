@@ -1,0 +1,15 @@
+{
+  "name": "@agenttrust/demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AGENT-006 — the demo command names from blueprint §18. No dependencies of its own; every script runs inside the package that owns the code.",
+  "scripts": {
+    "target:vanilla": "cd attacks && npx tsx src/serve.ts --target vanilla",
+    "target:fixture": "cd attacks && npx tsx src/serve.ts --target fixture",
+    "target:agenttrust": "cd agents/buyer && npx tsx src/demo/serve.ts",
+    "attack": "cd attacks && npx tsx src/harness.ts",
+    "buy": "cd agents/buyer && npx tsx src/demo/cli.ts buy",
+    "status": "cd agents/buyer && npx tsx src/demo/cli.ts status",
+    "refund": "cd agents/buyer && npx tsx src/demo/cli.ts refund"
+  }
+}

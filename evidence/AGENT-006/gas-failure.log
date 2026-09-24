@@ -1,0 +1,19 @@
+# AGENT-006 — the gas defect, reproduced from the chain that recorded it.
+# Anvil 31337, still running from the AGENT-006 session.
+
+$ cast receipt <validationResponse tx> --rpc-url http://127.0.0.1:8545
+blockNumber          88
+gasUsed              125849
+status               0 (failed)
+transactionHash      0x03ce3487ab15a23de5d857ec457a1f5799e0e68745f7459c9bd836f1a2ecd58d
+to                   0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+
+$ cast run <same tx> --rpc-url http://127.0.0.1:8545
+Executing previous transactions from the block.
+Traces:
+  [101529] 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0::validationResponse(0xed2f0ab83a9cdd9717cc575b526600d3d2e229859b0ea238e4d7a6e35078e364, 100, "evidence://72ae6271d4922cb72bc0fabecb201afadcffe727bf060f61bc5e525428530709", 0x72ae6271d4922cb72bc0fabecb201afadcffe727bf060f61bc5e525428530709, "agenttrust")
+    └─ ← [OutOfGas] EvmError: OutOfGas
+
+
+Error: Transaction failed.
+Gas used: 125849
