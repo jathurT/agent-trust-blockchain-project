@@ -1244,13 +1244,16 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-012 — Claims audit
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P1 · **Est:** 0.25 h · **Hat/agent:** U(D)+TM
+- [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P1 · **Est:** 0.25 h · **Hat/agent:** U(D)+TM
 - **Objective:** Check every public sentence against what was actually measured and built.
 - **Refs:** §0.4, §1, §7.2, §13, §17, §21, App. A · ER-10, AR-04, AR-13 · DF-08, DF-18, DF-19
 - **Depends:** EVAL-004, EVAL-005
 - **Steps:** 1) Walk the README, slides, glossary, CV wording and demo narration. 2) For each claim, find its evidence (V-ID, results row, or task). 3) Fix or delete anything unsupported. 4) Confirm every baseline is labelled a fixture and the delivery wording matches whether VAL-006 shipped.
-- **Acceptance:** a checklist where every claim maps to evidence; zero unsupported numbers; the novelty sentence matches DF-19.
-- **Verify:** the completed checklist → `evidence/SEC-012/`
+- **Acceptance:** ✔ all three. `evidence/SEC-012/claims-audit.md` maps every claim to its evidence. **Zero unsupported numbers**: each measured figure was *recomputed* from the recorded runs rather than re-read — 3,460/3,950 and 0/4,440 were summed from the manifests, not trusted. The novelty sentence matches DF-19: the README says the x402 specification already defines `auth-capture` (V-143) and that what differs is the gate plus validator-attested release; the slide script makes no priority claim at all.
+- **Verify:** `evidence/SEC-012/claims-audit.md`.
+- **One fix.** Slide 3's notes had no novelty caveat — it lived in the README and in the outline's delivery notes at the very end, which is the wrong place to find it when an examiner asks during slide 3. Moved onto the slide.
+- **Nothing else needed changing, and one thing deliberately did not.** "x402-compliant" appears in the HTTP spec and on the agent card, inside *"Nothing here should be described as x402-compliant"*. A grep flags it; reading it shows it is the denial. A REG-006 test asserted the string was absent and was wrong to.
+- **The gap this audit leaves open:** the **deck does not exist yet**. The script is audited; the slides are not. When PRES-002 is built, its text must be walked against the same checklist. DOC-007 (CV wording) is P1 and unwritten.
 
 ### SEC-013 — A3 seller-side substitution via the validator
 

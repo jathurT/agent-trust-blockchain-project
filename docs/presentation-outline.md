@@ -79,6 +79,12 @@ presenter knows why a familiar number is missing.
 - The third clause is **DF-08's wording**: attested, validator-escrowed delivery of a
   correct *deterministic* result. Not "proof of delivery", and not a judgement of
   quality — the honesty beat on slide 5 says so.
+- **Nothing on this slide claims to be first, and the script must not start.** The x402
+  specification already defines an escrow scheme with capture and refund deadlines
+  (`auth-capture`, V-143), and ERC-8183 defines job escrow with an evaluator and expiry
+  refund. "AgentTrust adds three things" describes the system; it is not a priority
+  claim. If asked, the answer is: the escrow is not the new part — the **reputation gate
+  at funding time** and **release against a validator attestation** are (DF-19).
 - The "why a blockchain" answer, kept verbatim from blueprint §6.2 for the viva:
   *a Postgres audit log can record a dispute between two parties who distrust each
   other; it cannot arbitrate one, because someone has to own the database, and whoever
