@@ -184,6 +184,8 @@ export interface FundedJob {
   jobId: Hex;
   txHash: Hex;
   nonce: Hex;
+  /** Read back from the escrow, so it is the chain's value and not a local guess. */
+  deadline: bigint;
 }
 
 export async function fundJob(
@@ -224,7 +226,8 @@ export async function fundJob(
     args: [accounts.buyer.address, world.verifyConfig.payee, resourceHash, nonce],
   })) as Hex;
 
-  return { jobId, txHash, nonce };
+  const job = (await world.chain.getJob(jobId))!;
+  return { jobId, txHash, nonce, deadline: job.deadline };
 }
 
 /** Build the PAYMENT-SIGNATURE header a buyer would send. */
@@ -252,7 +255,14 @@ export async function signedHeader(
       args: [ref, UNIT_PRICE, deployment.token],
     })) as Hex);
 
-  const expiry = overrides.expiry ?? Math.floor(Date.now() / 1000) + 300;
+  // The job's own deadline, which is what the real buyer signs (`buyer.ts`). It was
+  // `Date.now()/1000 + 300`, a **wall-clock** value compared by the seller against a
+  // **chain** deadline — so the fixture only worked while the two clocks happened to
+  // agree. On a devnet 1070 s behind wall time the expiry outlived the deadline and
+  // thirteen tests failed at once, for a reason that had nothing to do with what they
+  // were testing. Same defect class as the seller, validator and buyer had; a test
+  // helper is no more entitled to guess the chain's clock than production code is.
+  const expiry = overrides.expiry ?? Number(job.deadline);
   const clientNonce = overrides.clientNonce ?? nextNonce();
   const signature = await signer.signTypedData({
     domain: eip712Domain({ chainId: deployment.chainId, verifyingContract: deployment.escrow }),

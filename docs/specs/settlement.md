@@ -235,6 +235,42 @@ registry alone — cannot be evaluated on the real ERC-8004 ABI: `getSummary` re
 distinct-attester count (DF-09). It survives only as a mock-only comparison model for
 the A6 evaluation, which is EXTENDED-E2 and **was not run**.
 
+## 6a. Every deadline is a chain timestamp
+
+`deadline`, `grace`, the attestation's `lastUpdate` and the delivery signature's
+`expiry` are all **chain** timestamps. The escrow writes `deadline` from
+`block.timestamp` at funding, and `release()` compares `lastUpdate <= deadline` in that
+same clock. **Nothing may compare one of them against a local clock.**
+
+This is not a style rule. The two clocks are only incidentally related, and the failure
+is silent in both directions:
+
+- **chain behind the local clock** — a component believes a window has closed while it
+  is still open. The validator refuses to attest, or the seller refuses a valid
+  signature, and delivered work goes unpaid.
+- **chain ahead** — a component believes there is time left when the deadline has
+  passed on-chain. The validator posts an attestation the escrow rejects as late. The
+  work still goes unpaid.
+
+Either way **the seller pays**, and on a real chain the drift is small enough that it
+misfires rarely and unreproducibly.
+
+Five instances of this were found and fixed (2026-09-23 and 2026-09-25): the seller's
+deadline margin, the seller's signature-expiry check, the validator's attestation
+deadline, the validator's binding wait — and, instructively, **two in test code**: the
+fixture that built signatures from `Date.now()`, and the test asserting a signature was
+"already expired" using a wall-clock value that was a thousand seconds in the chain's
+future. The test-side ones could not catch the production ones, because they shared the
+defect.
+
+They were invisible while the clocks agreed. What exposed them was a devnet whose chain
+ran **1070 s behind** wall time after `anvil_reorg` rewound its timestamps.
+
+The one deliberate exception is the seller's *pre-filter* at SPEC-002 §7 step 4. It runs
+before any chain read, so it can only use a local clock; it is therefore given a
+`MAX_CLOCK_SKEW_SECONDS` allowance and may only reject signatures that are stale beyond
+any plausible drift. The authoritative comparison happens at step 11, in chain time.
+
 ## 7. What this does not cover
 
 - **Feedback lifecycle** — who writes feedback, with what value and URI — is SPEC-004

@@ -128,6 +128,23 @@ class ChainClient:
             raise ChainUnavailable(f"getValidationStatus failed: {exc}") from exc
         return (raw[0], int(raw[1]), int(raw[2]), bytes(raw[3]), raw[4], int(raw[5]))
 
+    def block_timestamp(self) -> int:
+        """The chain's clock.
+
+        Every deadline in this system is a **chain** timestamp: the escrow sets
+        `deadline` from `block.timestamp` at funding, and `release()` compares the
+        attestation's `lastUpdate` against it. Reasoning about those in wall-clock time
+        is comparing two clocks that are only incidentally related — they drift, and on
+        a devnet they diverge violently (`evm_increaseTime`, or a reorg that rewinds
+        timestamps). A validator that gets this wrong either refuses to attest inside a
+        window that is still open, leaving the seller unpaid for delivered work, or
+        posts an attestation the escrow will reject as late. Both cost the seller.
+        """
+        try:
+            return int(self.w3.eth.get_block("latest")["timestamp"])
+        except Exception as exc:  # noqa: BLE001
+            raise ChainUnavailable(f"could not read the chain clock: {exc}") from exc
+
     def _send(self, function: Any) -> str:
         try:
             # Estimate explicitly rather than letting `build_transaction` do it, so the
@@ -177,7 +194,8 @@ class ChainClient:
             job = self.get_job(job_id)
             if job is not None and job.request_hash == expected:
                 return True
-            if time.time() > deadline_unix:
+            # Chain time, not `time.time()`: `deadline_unix` came from the escrow.
+            if self.block_timestamp() > deadline_unix:
                 return False
             if time.monotonic() >= stop_at:
                 return False

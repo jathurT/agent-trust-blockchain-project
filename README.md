@@ -126,6 +126,12 @@ npx tsx src/harness.ts --id a2_replay --target agenttrust --runs 10 --replays 50
 npx tsx src/harness.ts --id a3_cross_resource --target agenttrust --rounds 100
 ```
 
+**A1 rewinds the chain past the deployment.** Its reorgs are real, so after an
+`a1_revert_grant` run the escrow address has no code and every other suite fails for an
+unrelated-looking reason. Re-run `bash impl/scripts/deploy.sh local` before anything
+else. The reorgs also skew the chain clock — which is a feature, not a nuisance: it is
+what surfaced five wall-clock-versus-chain-clock bugs (SPEC-003 §6a).
+
 Each run writes `manifest.json` (commit, tool versions, chain, block, parameters, seed),
 `results.json` and `raw.ndjson`. It **refuses to run** if any of that cannot be captured,
 and a run recorded against a dirty working tree is excluded from the report: its commit

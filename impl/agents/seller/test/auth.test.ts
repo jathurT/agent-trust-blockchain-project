@@ -83,10 +83,16 @@ describe("a signature from someone who is not the payer", () => {
 });
 
 describe("expiry", () => {
-  it("refuses a signature that has already expired", async () => {
+  it("refuses a signature that has already expired, measured against the chain", async () => {
     const job = await fundJob(world, "/v1/summarise", BODY);
+    // Chain time, not `Date.now()`. "Expired" is a statement about the clock the escrow
+    // keeps, and this test previously said `Date.now() - 1` — which, on a devnet 1070 s
+    // behind wall time, was over a thousand seconds in the chain's *future*. The
+    // signature was not expired at all and the seller was right to serve it; the test
+    // was asserting the bug it was supposed to be guarding against.
+    const chainNow = await world.chain.blockTimestamp();
     const header = await signedHeader(world, job, "/v1/summarise", BODY, {
-      expiry: Math.floor(Date.now() / 1000) - 1,
+      expiry: chainNow - 1,
     });
     const res = await request(app)
       .post("/v1/summarise")

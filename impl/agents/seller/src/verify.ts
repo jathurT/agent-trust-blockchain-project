@@ -106,6 +106,17 @@ export interface VerifyDeps {
   now?: () => number;
 }
 
+/**
+ * How far the seller's clock may sit ahead of the chain's before the cheap local expiry
+ * filter is allowed to refuse anything.
+ *
+ * Block timestamps are producer-set and lag real time; on a devnet `evm_increaseTime`
+ * and reorgs move them by far more. The filter exists to drop obviously stale
+ * signatures without a chain read, not to adjudicate the deadline — so it is
+ * deliberately generous, and the chain-time check at step 11 is what actually decides.
+ */
+export const MAX_CLOCK_SKEW_SECONDS = 3600;
+
 export async function verifyRequest(deps: VerifyDeps, req: RawRequest): Promise<VerifiedRequest> {
   const { config } = deps;
   const nowSeconds = Math.floor((deps.now?.() ?? Date.now()) / 1000);
@@ -130,7 +141,21 @@ export async function verifyRequest(deps: VerifyDeps, req: RawRequest): Promise<
 
   // 4. Origin and expiry: local, and cheap to refuse.
   const { expiry, clientNonce } = payload.payload.deliveryRequest;
-  if (expiry <= nowSeconds) throw new SellerError("signature_expired", "the signature has expired");
+  // `expiry` is a **chain** timestamp — the buyer sets it from `job.deadline`, which the
+  // escrow wrote from `block.timestamp`. Comparing it to a local clock is comparing two
+  // clocks that only incidentally agree, and on a chain running behind the seller it
+  // refuses work that is still perfectly valid. That is a liveness failure the seller
+  // pays for, and it was observed: a devnet 1070 s behind wall time made every delivery
+  // fail `signature_expired`.
+  //
+  // The check stays here rather than moving after the chain read, because SPEC-002 §7
+  // puts locally-decidable refusals first and an offline seller must still answer 403
+  // rather than 503. It is now a **cheap filter with a skew allowance** — it can only
+  // reject a signature that is stale by more than any plausible clock difference — and
+  // the authoritative comparison happens in chain time at step 11.
+  if (expiry <= nowSeconds - MAX_CLOCK_SKEW_SECONDS) {
+    throw new SellerError("signature_expired", "the signature has expired");
+  }
 
   // 5. Recover the signer. The message is rebuilt from **our** values, not the
   //    buyer's: a buyer that lied about the origin or the resource recovers to the
@@ -208,6 +233,12 @@ export async function verifyRequest(deps: VerifyDeps, req: RawRequest): Promise<
     if (error instanceof ChainUnavailable) throw new SellerError("chain_unavailable", error.message);
     throw error;
   }
+  // The authoritative expiry comparison, in the same clock the escrow uses. Step 4's
+  // version is only a coarse pre-filter; this is the one that decides.
+  if (expiry <= chainNow) {
+    throw new SellerError("signature_expired", `the signature expired at ${expiry}, chain time is ${chainNow}`);
+  }
+
   const remaining = Number(job.deadline) - chainNow;
   if (remaining < config.minDeadlineMargin) {
     throw new SellerError("deadline_margin", `${remaining}s left, ${config.minDeadlineMargin}s needed`);

@@ -144,6 +144,13 @@ an implementation can be wrong while the arithmetic stays right.
 **k=0 — serving optimistically — loses the payment at every depth tested.** That is the
 baseline, and it is read from chain state directly.
 
+**Running A1 destroys the devnet deployment.** The reorgs rewind past the blocks the
+contracts were deployed in, so afterwards `cast code` on the escrow returns `0x` and
+every other suite fails for a reason that has nothing to do with it. That is the attack
+working, not a fault — but anything run after A1 needs `deploy.sh local` first. The
+reorgs also move the chain's clock: ours ended up 1070 s behind wall time, which is how
+five wall-clock-versus-chain-clock comparisons came to light (SPEC-003 §6a).
+
 **One set of numbers from this attack is deliberately not reported.** The fixture
 delivered 20/20 in every cell, which is the A1 condition and is clean. But its
 *settlement survival* figures alternate survived/gone in lockstep with trial parity,

@@ -238,7 +238,13 @@ def attest(
     makes that window small rather than open-ended.
     """
     job = evidence.job
-    clock = now if now is not None else time.time()
+    # Chain time, never the wall clock. `job.deadline` is a chain timestamp and
+    # `release()` compares the attestation's `lastUpdate` against it, so the only clock
+    # that predicts the escrow's answer is the chain's own. `now` stays injectable for
+    # tests. (The seller had this same defect and it was fixed there first; this is the
+    # same class of bug, found on a devnet whose chain ran 1070 s behind wall time
+    # after a reorg.)
+    clock = now if now is not None else chain.block_timestamp()
 
     # Wait for the payee to bind the hash we derived. Without the binding the escrow is
     # not looking at this requestHash at all.

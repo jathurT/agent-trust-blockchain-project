@@ -195,7 +195,14 @@ describe("failing closed", () => {
   }, 30_000);
 
   it("refuses a job that does not exist", async () => {
-    const fake = { jobId: `0x${"ab".repeat(32)}`, txHash: `0x${"cd".repeat(32)}`, nonce: `0x${"ef".repeat(32)}` } as const;
+    // A job that was never funded, so there is no chain deadline to read; a far-future
+    // one keeps the expiry check out of the way of what this test is actually about.
+    const fake = {
+      jobId: `0x${"ab".repeat(32)}`,
+      txHash: `0x${"cd".repeat(32)}`,
+      nonce: `0x${"ef".repeat(32)}`,
+      deadline: 4_102_444_800n,
+    } as const;
     const res = await request(app)
       .post("/v1/summarise")
       .set("Content-Type", "application/json")
