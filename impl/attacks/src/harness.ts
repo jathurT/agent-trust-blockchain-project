@@ -451,32 +451,41 @@ async function runA6Experiment(
     return last;
   };
 
-  const fundGasOf = async (agentId: bigint, trustedClients: Address[]): Promise<bigint> => {
+  const fundGasOf = async (
+    agentId: bigint,
+    trustedClients: Address[],
+  ): Promise<{ gas: bigint | null; revert: string | null }> => {
     const ref = {
       methodHash: keccak256(toHex("POST")),
       uriHash: keccak256(toHex(`https://a6.invalid/v1/summarise?gas=${agentId}-${nonceCounter}`)),
       bodyHash: keccak256(toHex('{"text":"A6"}')),
     };
     const nonce = `0x${(nonceCounter++).toString(16).padStart(64, "0")}` as Hex;
-    const hash = await wallet(buyer).writeContract({
-      address: deployment.escrow,
-      abi: escrowAbi,
-      functionName: "fund",
-      args: [
-        agentId,
-        deployment.token,
-        250_000n,
-        ref,
-        nonce,
-        900n,
-        validator,
-        { trustedClients, minDistinct: 1, minCount: 1n, minAvgValue: 0n },
-      ],
-      account: buyer,
-      chain: null,
-    });
-    const receipt = await chain.client.waitForTransactionReceipt({ hash });
-    return receipt.gasUsed;
+    try {
+      const hash = await wallet(buyer).writeContract({
+        address: deployment.escrow,
+        abi: escrowAbi,
+        functionName: "fund",
+        args: [
+          agentId,
+          deployment.token,
+          250_000n,
+          ref,
+          nonce,
+          900n,
+          validator,
+          { trustedClients, minDistinct: 1, minCount: 1n, minAvgValue: 0n },
+        ],
+        account: buyer,
+        chain: null,
+      });
+      const receipt = await chain.client.waitForTransactionReceipt({ hash });
+      return { gas: receipt.gasUsed, revert: null };
+    } catch (error) {
+      const message = (error as Error)?.message ?? String(error);
+      const named = /(ReputationTooLow|InsufficientGasForReputationRead|\w+Error)\s*\(/.exec(message);
+      return { gas: null, revert: named?.[1] ?? message.split("\n")[0] ?? "reverted" };
+    }
   };
 
   process.stderr.write(`  running ${args.rounds} selection rounds per configuration\n`);

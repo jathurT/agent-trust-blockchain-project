@@ -77,7 +77,12 @@ export interface A6Result {
   /** `fund()` actually sent for gate v2 — the only configuration the chain can enforce. */
   onChain: { agentId: string; kind: AgentKind; funded: boolean; revert: string | null }[];
   honestThenDefect: HonestThenDefect | null;
-  gasVsHistory: { entries: number; fundGas: string }[];
+  gasVsHistory: GasPoint[];
+  /**
+   * The largest history at which the seller could still be funded, and the smallest at
+   * which it could not. Null when the sweep never crossed the boundary.
+   */
+  fundableHistoryBound: { lastFundable: number | null; firstRefused: number | null; refusal: string | null };
 }
 
 // ------------------------------------------------------------------ reading state
@@ -178,6 +183,14 @@ export function select(
 
 // --------------------------------------------------------------- the experiment
 
+export interface GasPoint {
+  entries: number;
+  /** Gas the `fund()` used, or null when it was refused. */
+  fundGas: string | null;
+  /** The revert, when the gate refused at this history length. */
+  refused: string | null;
+}
+
 export interface HonestThenDefect {
   agentId: string;
   /** Admitted once it had genuinely earned trusted feedback. */
@@ -215,8 +228,11 @@ export interface A6Deps {
    * reverts, which is how this was found.
    */
   revokeAllFromTrusted: (agentId: bigint, clientIndex: number) => Promise<number>;
-  /** Funds one job and reports the gas the transaction used. */
-  fundForGas: (agentId: bigint, trustedClients: Address[]) => Promise<bigint>;
+  /** Funds one job, reporting the gas used or the revert if the gate refused. */
+  fundForGas: (
+    agentId: bigint,
+    trustedClients: Address[],
+  ) => Promise<{ gas: bigint | null; revert: string | null }>;
 }
 
 /**
@@ -274,32 +290,53 @@ async function runHonestThenDefect(
 }
 
 /**
- * `fund()` gas as an agent's feedback history grows.
+ * `fund()` against an honest seller whose feedback history keeps growing.
  *
- * `getSummary` loops over every entry an agent has, so the gate's cost is a function of
- * history the *seller* controls (V-99). The escrow bounds this with a per-read gas
- * ceiling and a `gasleft()` pre-check, so the failure mode is a clean revert rather
- * than a skipped gate — but the cost still climbs, and a number is worth more than the
- * assurance.
+ * `getSummary` walks every entry, so the gate's read cost is a function of history the
+ * *seller* accumulates (V-99). The escrow calls it under a per-read gas ceiling and
+ * catches the failure, so an over-long history does not brick `fund()` — it reads as
+ * **`count = 0`**, which the gate treats as no reputation at all. Fail-closed, and
+ * therefore safe; but it means an honest seller becomes unfundable once it has been
+ * rated enough times, and its trusted client's opinion stops counting silently.
+ *
+ * CONTRACT-005 measured the read itself at ~19,500 gas fixed plus ~8,589 per entry,
+ * which puts the boundary near 26 entries at the deployed 250,000 ceiling. This sweep
+ * approaches it from the other side — whether `fund()` actually succeeds — so the two
+ * are independent. Checkpoints straddle the predicted cliff on purpose; an earlier
+ * version stepped 1, 5, 20, 50 and simply crashed past it, which measured nothing.
+ *
+ * Refusal is recorded, never thrown: the boundary is the result.
  */
 async function measureGasVsHistory(
   deps: A6Deps,
   population: Population,
   checkpoints: number[],
-): Promise<{ entries: number; fundGas: string }[]> {
+): Promise<{ points: GasPoint[]; bound: A6Result["fundableHistoryBound"] }> {
   const agentId = await deps.registerAgent("https://history.invalid/.well-known/agent-card", 901);
-  const out: { entries: number; fundGas: string }[] = [];
+  const points: GasPoint[] = [];
   let written = 0;
+  let lastFundable: number | null = null;
+  let firstRefused: number | null = null;
+  let refusal: string | null = null;
 
   for (const target of checkpoints) {
     while (written < target) {
       await deps.rateFromTrusted(agentId, 0, 9000);
       written += 1;
     }
-    const gas = await deps.fundForGas(agentId, population.trustedClients);
-    out.push({ entries: written, fundGas: gas.toString() });
+    const attempt = await deps.fundForGas(agentId, population.trustedClients);
+    if (attempt.gas !== null) {
+      points.push({ entries: written, fundGas: attempt.gas.toString(), refused: null });
+      lastFundable = written;
+    } else {
+      points.push({ entries: written, fundGas: null, refused: attempt.revert });
+      if (firstRefused === null) {
+        firstRefused = written;
+        refusal = attempt.revert;
+      }
+    }
   }
-  return out;
+  return { points, bound: { lastFundable, firstRefused, refusal } };
 }
 
 export async function runA6(
@@ -367,6 +404,15 @@ export async function runA6(
     falseRefusals,
     onChain,
     honestThenDefect: await runHonestThenDefect(deps, population),
-    gasVsHistory: await measureGasVsHistory(deps, population, [1, 5, 20, 50, 100]),
+    ...(await (async () => {
+      const { points, bound } = await measureGasVsHistory(
+        deps,
+        population,
+        // Dense around the ~26 CONTRACT-005 predicts, so the boundary is located
+        // rather than bracketed by a factor of two.
+        [1, 5, 10, 20, 24, 26, 28, 30, 40],
+      );
+      return { gasVsHistory: points, fundableHistoryBound: bound };
+    })()),
   };
 }
