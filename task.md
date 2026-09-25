@@ -329,7 +329,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### PLAN-007 — User sign-off on the six blocking decisions (D1–D6)
 
-- [ ] **Status:** TODO · **Authorized:** n/a (user action) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U + TM
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** n/a (user action) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U + TM
 - **Objective:** Accept, amend or reject D1–D6 before the code they govern is written.
 - **Refs:** §2 · DF-01…DF-06, DF-09, DF-18, DF-19, DF-21, DF-22
 - **Depends:** —
@@ -337,6 +337,8 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - **Acceptance:** each of D1–D6 has an explicit outcome recorded in §14; any amendment is reflected in the DF and in the dependent task entries.
 - **Verify:** §14 shows six outcomes with a date. **Deadline:** Wed 23 Sep 12:00, else defaults apply and that fact is logged.
 - **Risks:** silence blocks nothing (defaults apply), but a late reversal invalidates work already done — hence the deadline.
+- **Outcome (2026-09-25): all six ACCEPTED as built.** The Wed 23 Sep deadline passed without an objection, so the defaults applied and D1–D6 were implemented on them. This sign-off therefore **ratifies working code rather than choosing a design** — every one of the six is covered by passing tests, and D2/D3 are what the published A2 and A3 results rest on. Recorded late and labelled as late rather than back-dated.
+- **What ratification costs if it were ever reversed**, so the record is not a rubber stamp: D1 → SPEC-002 and the whole wire format; D2 → the claim store and the A2 result; D3 → the on-chain `resourceHash` and the A3 result; D4 → `bindValidation`/`release`/`refund` and SPEC-003; D5 → the gate and CONTRACT-005; D6 → the fixture labelling and every "not upstream x402" sentence, i.e. reversing it would mean overclaiming.
 
 ### PLAN-008 — Final consistency checks of the planning package
 
@@ -1146,7 +1148,11 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 ### DEPLOY-001 — Deploy to Base Sepolia
 
 - [ ] **Status:** TODO · **Authorized:** no (**needs explicit user authorization**) · **Tier:** CORE-P0 · **Est:** 0.5 h · **Hat/agent:** U(A) · contracts-protocol
-- **Objective:** Put the escrow and the same-ABI mocks on testnet, so the deck can show a real address.
+- **Objective:** Put the escrow on testnet **against the live ERC-8004 registries**, so the deck can show a real address.
+- **Registry decision (2026-09-25, user):** the escrow points at the live registries — Identity `0x8004A818…`, Reputation `0x8004B663…`, Validation `0x8004Cb1B…` — not at mocks. This resolves a contradiction that would have surfaced on deploy night: the objective said "escrow **and the same-ABI mocks**", but `deploy.sh testnet` requires `IDENTITY_REGISTRY` to be set and `Deploy.s.sol` only deploys mocks when that address is zero, so the testnet path could never have deployed them. No new code is needed, and `check-erc8004-abi.sh` already passes against those addresses (18/18 and 15/15 selectors, re-run 2026-09-25).
+- **The cost of that choice, stated rather than buried:** the live registries are UUPS proxies owned by a single EOA (V-97), so a malicious upgrade could forge an attestation. That becomes an explicit trust assumption in `docs/LIMITATIONS.md`, not a defended case. `mockRegistries` must be **false** in `deployments/84532.json`.
+- **Gas:** escrow alone is **3,033,709** gas (measured), ~0.0000182 ETH at the 0.006 gwei seen on 2026-09-25 — not the ~8M a mocks-included deployment would have cost.
+- **Note:** a full testnet end-to-end (INT-003) would additionally need REG-007, live agent registration and feedback. DEPLOY-001/002/003 do not: the smoke test only reads the escrow's own configuration.
 - **Refs:** §16, §20 · OR-06 · V-85, V-86 · Gate: **DEPLOY (Thu evening)**
 - **Depends:** CONTRACT-017, ENV-007 (funds), G1 passed
 - **Steps:** 1) Confirm the deployer balance. 2) `forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast` with keystore signing. 3) Token = the real Circle USDC (V-81) on the allowlist. 4) Record addresses, block and commit.
@@ -1831,6 +1837,8 @@ Eight further findings were fixed in the same change, three of them worth naming
 | 2026-09-23 | The evaluation ("do the evaluation") | user | SEC-002/003/004, EVAL-004/005 |
 | 2026-09-24 | README and limitations ("write the README and limitations doc") | user | DOC-001, DOC-004; LICENSE created because the README references it |
 | 2026-09-24 | The next work in §16 ("continue") | user | AGENT-006, PRES-001, SPEC-003, SEC-011 (partial), EVAL-001, EVAL-006, API-007, REG-006, SEC-012. **Read as a batch authorization for the tasks §16 listed as next.** No testnet transaction, deployment, faucet request or publication was performed — all of those remain unauthorized and blocked on ENV-006/007 |
+
+| 2026-09-25 | Ratify D1–D6; deploy against the **live** ERC-8004 registries; run **A6** before the deck | user | PLAN-007 accepted as built; DEPLOY-001 registry question settled; SEC-007 + REG-009 authorized |
 
 **Never authorized, and not done:** any Base Sepolia transaction, any deployment, any
 faucet request, any contract verification, any publication, any contact with anyone.
