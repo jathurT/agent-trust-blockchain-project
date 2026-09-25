@@ -115,7 +115,8 @@ export interface VulnerableFixture {
   draws: DrawRecord[];
   /** Grants per authorization nonce: the A2 number. */
   grantsByAuthorization(): Record<string, number>;
-  settled(): Promise<void>;
+  /** Bounded: a settlement a reorg dropped never lands, and must not hang the caller. */
+  settled(timeoutMs?: number): Promise<void>;
 }
 
 const HANDLERS: Record<string, (body: unknown) => unknown> = {
@@ -323,8 +324,24 @@ export function createVulnerableFixture(options: VulnerableFixtureOptions): Vuln
     settlements,
     draws,
     grantsByAuthorization: () => Object.fromEntries(grantCounts),
-    settled: async () => {
-      await Promise.allSettled(pending);
+    /**
+     * Wait for the out-of-band settlements, but not forever.
+     *
+     * A1 reorgs the chain out from under these. A settlement transaction that was
+     * dropped by the reorg leaves a nonce gap, so every later one from the same wallet
+     * sits **queued** and is never mined, and `waitForTransactionReceipt` waits for a
+     * receipt that will never exist. Without a bound this hangs — it did, for 34
+     * minutes, on the last cell of the A4/A5/A1 matrix.
+     *
+     * The timeout is not papering over that: a settlement the chain has forgotten *is*
+     * unsettled, and for A1 that is precisely the measurement. Counting it as settled
+     * because the promise never resolved would be the wrong answer, not a slower one.
+     */
+    settled: async (timeoutMs = 15_000) => {
+      await Promise.race([
+        Promise.allSettled(pending),
+        new Promise((resolve) => setTimeout(resolve, timeoutMs)),
+      ]);
     },
   };
 }
