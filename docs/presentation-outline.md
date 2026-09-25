@@ -137,6 +137,17 @@ upstream x402"**. Right pane: AgentTrust.
   blocked on testnet funds (ENV-006/007); if it lands before the talk, the address and
   explorer link replace the QR's second line, and if it does not, the slide says
   "local devnet" and the presenter says so.
+- **Where each slide-5 number comes from**, in case one is challenged. All from
+  `docs/results.md`, generated from the recorded runs, never typed:
+  - A6 gate comparison — v1 admits **5/5** Sybils and
+    **0/10** newcomers; v2 admits
+    **0/5** and **10/10** honest sellers.
+    Gate v2's verdict came from a real `fund()`, which reverted `ReputationTooLow`.
+  - A1 — **0/20** revert-grants at k=3, d=3;
+    **20/20** at d=5. 20 trials per cell.
+  - A4 — fixture duplicated in **50/50** rounds at every concurrency level; AgentTrust
+    **0/150**.
+  - A5 — ρ **0.98** against **0.00**, 50-request burst.
 - The closing honesty beat is blueprint §6.3, and it is deliberately the last thing
   said.
 - **The ethics line goes on this slide, not in the script** (SEC-011): *testnet only,
@@ -167,11 +178,58 @@ and that alone buys about twelve seconds.
 The implied timings assume 129 wpm. **Rehearse with a timer (PRES-004)** — if the
 measured pace is slower, cut slide 2 first, then the second sentence of slide 5.
 
+## Questions to expect, and the honest answer to each (PRES-004)
+
+The three attacks measured last are where the sharp questions live, because each has a
+qualifier a careful examiner will go looking for. Volunteering the qualifier is stronger
+than being caught by it.
+
+**"A4 and A5 look like free wins. Did you actually defend anything?"**
+> No, and the write-up says so. AgentTrust has no verify→settle window for A4 to race,
+> and no shared allowance for A5 to exhaust, because each job is pre-funded at an exact
+> price. Both are blocked by construction rather than by a defence that could have
+> failed. A2 and A6 are the ones where the mechanism was under real pressure.
+
+**"Your A5 number is suspiciously close to the paper's 97.76%."**
+> It is a consequence of the allowance we chose — one job's worth against a fifty-request
+> burst — not an independent reproduction of their figure. What is reproduced is the
+> condition, not the number.
+
+**"Doesn't pre-funding just move the risk?"**
+> Yes, and that is the honest framing. The seller's exposure moves from "the buyer ran
+> out of allowance" to "the validator did not answer": a job whose validator never
+> attests is delivered and then refunded. We exercise that path in INT-002; we did not
+> measure its rate.
+
+**"Why isn't A1 blocked?"**
+> Because no confirmation policy can block it. A reorg deeper than k defeats any k, so
+> the only claim available is *mitigated up to depth k*, and we report the bound. The
+> cliff at `d > k` is arithmetic; what the runs establish is that the implementation
+> matches it — the seller counts confirmations against the funding block rather than
+> the chain tip or its own clock.
+
+**"Your A4 baseline duplicates 100% of the time. The paper said 6%."**
+> Different verify windows. Ours is a parameter, set to 5 ms and recorded in the result.
+> We reproduce the condition — a check-then-act race — not their rate, and we do not
+> present it as reproducing their rate.
+
+**"If the gate refuses honest newcomers, is it usable?"**
+> That is the cost, and it is measured: ten of ten newcomers refused. The gate is a
+> per-buyer trust policy, not a global reputation score — a buyer with no trusted
+> attesters in common with a seller cannot use it, and that limits it to parties with
+> some shared history. It also cannot stop an attacker patient enough to earn real
+> feedback, which we measured too.
+
+**"Did you attack real x402?"**
+> No. Every run is against a fixture we wrote, on a local chain, reproducing conditions
+> two published papers describe. Nothing was run against the `@x402/*` packages or any
+> third-party endpoint, and measuring upstream is a task we did not do.
+
 ## Delivery notes
 
 - One presenter; a handover costs ten seconds there is no room for.
-- Say the numbers rather than reading the slide: 248 against 1, 100 out of 100, 50 to 1,
-  two of six.
+- Say the numbers rather than reading the slide: **248 against 1**, **100 out of 100**,
+  **50 to 1**, **five of five Sybils admitted by the original gate**, **six of six**.
 - No live network calls. The demo is recorded.
 - Backup slides: architecture, threat model, the results detail, the limitations, and
   related work — including ERC-8183 and the x402 `auth-capture` scheme, which is where
