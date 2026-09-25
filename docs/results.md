@@ -213,10 +213,12 @@ registry and the rule, and for v2 it was confirmed by a transaction.
   confirmation behaviour do not transfer, and no transaction has been sent to a public
   chain.
 - **Nothing about upstream x402.** See above; API-009 was not run.
-- **Four of the six defined attacks were not evaluated.** A1 (reorg), A4 (concurrent
-  duplication), A5 (allowance overdraft) and A6 (Sybil selection) are EXTENDED-E2 and
-  were not run. They are reported as "Not evaluated" rather than omitted, and the
-  coverage figure carries its denominator.
+- **Two of the six are bounded, not blocked, and two of the "blocked" are structural.**
+  All six were evaluated, but that is not the same as all six being defended. A1 holds
+  only to the confirmation depth chosen; A6 only against a ring that has not earned real
+  feedback. A4 and A5 are blocked *by construction* — there is no verify→settle window
+  to race and no allowance to exhaust — rather than by a defence that could have failed
+  under pressure. The qualifiers travel with the outcomes in the coverage table.
 - **"Blocked (structural)" is a claim about a mechanism, not a guarantee.** For A2 the
   mechanism is the claim store keyed by `(chainId, escrow, jobId)` together with the
   payer-signed retry; for A3 it is the `resourceHash` the escrow computes on-chain. Both

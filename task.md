@@ -1380,7 +1380,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - [x] **Status:** DONE (2026-09-23) · **Authorized:** yes (user, "do the evaluation", 2026-09-23) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(D)
 - **Objective:** State coverage honestly, with its denominator and outcome categories.
 - **Refs:** §12.3, §13(1) · ER-01 · DF-18, DF-19 · Depends: EVAL-004
-- **Acceptance:** ✔ — generated as part of `docs/results.tables.md`. It states "**2 of the 6 defined attacks evaluated**", uses the plan's categories, and names the mechanism for each blocked row: the atomic claim store keyed by `(chainId, escrow, jobId)` plus payer-signed delivery for A2, and the on-chain `resourceHash` for A3. A1, A4, A5 and A6 are listed as **Not evaluated** rather than omitted.
+- **Acceptance:** ✔ — generated as part of `docs/results.tables.md`. It stated "**2 of the 6 defined attacks evaluated**" when EVAL-005 was accepted; the footer is computed from the runs, so it now reads **6 of 6** and the "not run" list is derived rather than hard-coded, uses the plan's categories, and names the mechanism for each blocked row: the atomic claim store keyed by `(chainId, escrow, jobId)` plus payer-signed delivery for A2, and the on-chain `resourceHash` for A3. A1, A4, A5 and A6 are listed as **Not evaluated** rather than omitted.
 
 ### EVAL-006 — Per-stage timestamps in E2E runs
 

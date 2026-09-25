@@ -142,7 +142,7 @@ slide** and not hidden in the notes:
 
 | attack | outcome |
 |---|---|
-| A1 revert-grant (reorg) | **Mitigated to depth k** — a deeper reorg still wins |
+| A1 revert-grant (reorg) | **Mitigated to reorg depth 3** (at confirmation policy k=3) |
 | A2 replay | **Blocked (structural)** |
 | A3 cross-resource substitution | **Blocked (structural)** |
 | A4 concurrent duplication | **Blocked (structural)** |
@@ -164,8 +164,35 @@ vulnerabilities, no third-party targets.*
 
 # The measured results, in full
 
-All on a local devnet (Anvil, chain 31337). 14 recorded runs, each with a committed
-manifest recording commit hash, tool versions, chain, block, parameters and seed.
+Six attacks, all evaluated. Four blocked, **two bounded** — and the bounds are part of
+the result, not a footnote.
+
+| | outcome | the number |
+|---|---|---|
+| **A1** revert-grant under reorg | Mitigated to depth 3 | k=3 holds at d≤3, fails at d=5 |
+| **A2** replay | Blocked (structural) | 50→50 vs **50→1** |
+| **A3** cross-resource substitution | Blocked (structural) | 100/100 vs **0/100** |
+| **A4** concurrent duplication | Blocked (structural) | 50/50 rounds vs **0/150** |
+| **A5** allowance overdraft | Blocked, measured direction | ρ 0.98 vs **0.00** |
+| **A6** Sybil selection | Mitigated | v1 admits **5/5**, v2 admits **0/5** |
+
+All on a local devnet (Anvil, chain 31337). **22 recorded runs**, each with a
+committed manifest fixing the commit hash, tool versions, chain, block, parameters and
+seed.
+
+## A1 — revert-grant under reorg
+
+Work delivered for a payment a reorg then removed, 20 trials per cell:
+
+| policy | d=1 | d=2 | d=3 | d=5 | mitigated up to |
+|---|---|---|---|---|---|
+| k=0 | 20/20 | 20/20 | 20/20 | 20/20 | **nothing** |
+| k=1 | **0/20** | 20/20 | 20/20 | 20/20 | **depth 1** |
+| k=3 | **0/20** | **0/20** | **0/20** | 20/20 | **depth 3** |
+
+**This can never be called "blocked."** A reorg deeper than k defeats any k. The cliff
+at `d > k` is arithmetic; what the runs establish is that the implementation matches it
+— the seller counts confirmations against the funding block, not the tip or the clock.
 
 ## A2 — replay
 
@@ -202,6 +229,34 @@ rounds.
 
 **Mechanism:** the escrow derives `resourceHash` on-chain from method, URI, body,
 amount, token and chain.
+
+## A4 — concurrent duplication
+
+One payment, N requests fired together, 50 rounds per level.
+
+| target | rounds with a duplicate execution (c=10 / 20 / 50) | max executions in one round |
+|---|---|---|
+| fixture | **50/50 · 50/50 · 50/50** | 10, 20, 50 |
+| AgentTrust | **0/50 · 0/50 · 0/50** | 1 |
+
+**Own the weakness if asked:** AgentTrust has no verify→settle window to race, so zero
+was expected *by construction*, not won under pressure. And the fixture's 100% rate is a
+function of its 5 ms verify window — it is **not** a reproduction of the published 6%.
+
+## A5 — leakage under `upto` pricing
+
+| target | delivered | settled | **ρ** | seller over-draw |
+|---|---|---|---|---|
+| fixture | 50 | 1 | **0.98** | succeeded |
+| AgentTrust | 50 | 50 | **0.00** | structurally unavailable |
+
+**The original design had this backwards** — its defence capped the *seller's* draw, but
+the published loss is the *seller* delivering work that never settles.
+
+**AgentTrust's zero is a refusal, not a defence:** it does not price `upto` at all. And
+the exposure does not vanish — a job whose validator never answers is delivered and then
+refunded, so the seller carries the same loss by another route. Pre-funding moves the
+risk from "the buyer ran out of allowance" to "the validator did not answer".
 
 ## A6 — Sybil ring vs the reputation gate
 
@@ -244,52 +299,10 @@ under either. The spread between the two rules is the honest measure of how much
 rule is doing. **None of these is comparable to the 60.2% figure in the literature** —
 that came from an LLM discovery-ranking experiment, not an escrow gate.
 
-## A4 — concurrent duplication
-
-One payment, N requests fired together, 50 rounds per level.
-
-| target | rounds with a duplicate execution (c=10 / 20 / 50) | max executions in one round |
-|---|---|---|
-| fixture | **50/50 · 50/50 · 50/50** | 10, 20, 50 |
-| AgentTrust | **0/50 · 0/50 · 0/50** | 1 |
-
-**Own the weakness if asked:** AgentTrust has no verify→settle window to race, so zero
-was expected *by construction*, not won under pressure. And the fixture's 100% rate is a
-function of its 5 ms verify window — it is **not** a reproduction of the published 6%.
-
-## A5 — leakage under `upto` pricing
-
-| target | delivered | settled | **ρ** | seller over-draw |
-|---|---|---|---|---|
-| fixture | 50 | 1 | **0.98** | succeeded |
-| AgentTrust | 50 | 50 | **0.00** | structurally unavailable |
-
-**The original design had this backwards** — its defence capped the *seller's* draw, but
-the published loss is the *seller* delivering work that never settles.
-
-**AgentTrust's zero is a refusal, not a defence:** it does not price `upto` at all. And
-the exposure does not vanish — a job whose validator never answers is delivered and then
-refunded, so the seller carries the same loss by another route. Pre-funding moves the
-risk from "the buyer ran out of allowance" to "the validator did not answer".
-
-## A1 — revert-grant under reorg
-
-Work delivered for a payment a reorg then removed, 20 trials per cell:
-
-| policy | d=1 | d=2 | d=3 | d=5 | mitigated up to |
-|---|---|---|---|---|---|
-| k=0 | 20/20 | 20/20 | 20/20 | 20/20 | **nothing** |
-| k=1 | **0/20** | 20/20 | 20/20 | 20/20 | **depth 1** |
-| k=3 | **0/20** | **0/20** | **0/20** | 20/20 | **depth 3** |
-
-**This can never be called "blocked."** A reorg deeper than k defeats any k. The cliff
-at `d > k` is arithmetic; what the runs establish is that the implementation matches it
-— the seller counts confirmations against the funding block, not the tip or the clock.
-
 ## Engineering evidence, if a slide or a question needs it
 
-- **469 tests** across six packages, all passing: Solidity 154 + 6 invariants, shared
-  core 87, seller 96, buyer 21, attack harness 32, validator 73
+- **472 tests** across six packages, all passing: Solidity 154 + 6 invariants,
+  shared core 87, seller 96, buyer 21, attack harness 32, validator 76
 - **98.14%** line coverage on the escrow contract
 - One paid job end to end on the devnet: **median 1090 ms** over 10 runs
 - The validator re-implements the canonical request hash **independently in Python**
