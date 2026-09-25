@@ -15,6 +15,9 @@ import { buildManifest, ManifestIncomplete } from "./manifest.js";
 import { startAgentTrust, startFixture, type Deployment, type Target } from "./targets.js";
 import { runA2, summariseA2, type A2RunResult, type Variant } from "./attacks/a2-replay.js";
 import { runA3Round, summariseA3, type A3RoundResult } from "./attacks/a3-cross-resource.js";
+import { runA4Round, summariseA4, type A4RoundResult } from "./attacks/a4-duplication.js";
+import { runA5, summariseA5 } from "./attacks/a5-overdraft.js";
+import { runA1Trial, summariseA1, type A1Trial } from "./attacks/a1-revert-grant.js";
 import { FIXTURE_LABEL, VANILLA_CORRECTION } from "./fixture-label.js";
 import { seededRandom } from "./stats.js";
 import {
@@ -34,7 +37,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..", "..", "..");
 
 interface Args {
-  id: "a2_replay" | "a3_cross_resource" | "a6_sybil";
+  id: "a2_replay" | "a3_cross_resource" | "a6_sybil" | "a4_duplication" | "a5_overdraft" | "a1_revert_grant";
   target: "fixture" | "agenttrust";
   runs: number;
   replays: number;
@@ -43,6 +46,17 @@ interface Args {
   seed: number;
   variant: Variant;
   rpc: string;
+  /** A4: the concurrency levels to sweep. */
+  concurrencyLevels: number[];
+  /** A4: the fixture's verify->settle window. The duplicate rate is a function of it. */
+  verifyWindowMs: number;
+  /** A5: requests in the burst, and the allowance they share on the fixture. */
+  requests: number;
+  allowance: bigint;
+  /** A1: the seller's confirmation policy, the reorg depths to sweep, trials per cell. */
+  policy: number;
+  depths: number[];
+  trials: number;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -55,7 +69,7 @@ function parseArgs(argv: string[]): Args {
     return argv[i + 1]!;
   };
   const id = get("id") as Args["id"];
-  if (id !== "a2_replay" && id !== "a3_cross_resource" && id !== "a6_sybil") {
+  if (!["a2_replay", "a3_cross_resource", "a6_sybil", "a4_duplication", "a5_overdraft", "a1_revert_grant"].includes(id)) {
     throw new Error(`unknown attack: ${id}`);
   }
   // A6 is not a two-target comparison: it compares gate *configurations* against one
@@ -72,6 +86,13 @@ function parseArgs(argv: string[]): Args {
       seed: Number(get("seed", "1")),
       variant: "original" as Variant,
       rpc: get("rpc", process.env["RPC_URL"] ?? "http://127.0.0.1:8545"),
+      concurrencyLevels: [],
+      verifyWindowMs: 0,
+      requests: 0,
+      allowance: 0n,
+      policy: 0,
+      depths: [],
+      trials: 0,
     };
   }
 
@@ -95,6 +116,19 @@ function parseArgs(argv: string[]): Args {
     seed: Number(get("seed", "1")),
     variant: get("variant", "original") as Variant,
     rpc: get("rpc", process.env["RPC_URL"] ?? "http://127.0.0.1:8545"),
+    concurrencyLevels: get("concurrency-levels", "10,20,50")
+      .split(",")
+      .map((x) => Number(x.trim()))
+      .filter((x) => x > 0),
+    verifyWindowMs: Number(get("verify-window-ms", "5")),
+    requests: Number(get("requests", "50")),
+    // Enough for one job, against a burst of fifty. The published condition is a
+    // buyer whose allowance runs out mid-burst, so the interesting number is how much
+    // work the seller does after that point.
+    allowance: BigInt(get("allowance", "250000")),
+    policy: Number(get("policy", "0")),
+    depths: get("depths", "1,2,3,5").split(",").map((x) => Number(x.trim())).filter((x) => x > 0),
+    trials: Number(get("trials", "20")),
   };
 }
 
@@ -107,7 +141,13 @@ async function main(): Promise<void> {
       ? `${args.variant}-${args.replays}x${args.concurrency}`
       : args.id === "a6_sybil"
         ? `ring5-${args.rounds}`
-        : `siblings-${args.rounds}`;
+        : args.id === "a4_duplication"
+          ? `burst-${args.rounds}x${args.concurrencyLevels.join("_")}`
+          : args.id === "a5_overdraft"
+            ? `upto-burst-${args.requests}`
+            : args.id === "a1_revert_grant"
+              ? `k${args.policy}-d${args.depths.join("_")}-${args.trials}`
+              : `siblings-${args.rounds}`;
   const runId = `${args.id}-${args.target}-${configName}-${Date.now()}`;
   const outDir = join(ROOT, "impl", "attacks", "results", runId);
 
@@ -193,8 +233,27 @@ async function main(): Promise<void> {
 
   const target: Target =
     args.target === "fixture"
-      ? await startFixture({ rpc: args.rpc, deployment, port: 8701 })
-      : await startAgentTrust({ rpc: args.rpc, deployment, sellerPorts: [8711, 8712], root: ROOT });
+      ? await startFixture({
+          rpc: args.rpc,
+          deployment,
+          port: 8701,
+          // A4 needs the fixture that *has* a verify->settle window; the default
+          // fixture has no idempotency at all, which would make the comparison
+          // meaningless (it would duplicate for a different reason).
+          ...(args.id === "a4_duplication"
+            ? { mode: "check-then-act" as const, verifyWindowMs: args.verifyWindowMs }
+            : {}),
+          ...(args.id === "a5_overdraft"
+            ? { mode: "upto" as const, allowance: args.allowance }
+            : {}),
+        })
+      : await startAgentTrust({
+          rpc: args.rpc,
+          deployment,
+          sellerPorts: [8711, 8712],
+          root: ROOT,
+          confirmations: args.id === "a1_revert_grant" ? args.policy : 0,
+        });
 
   let results: Record<string, unknown>;
   try {
@@ -215,6 +274,47 @@ async function main(): Promise<void> {
         );
       }
       results = summariseA2(runResults, args.replays) as unknown as Record<string, unknown>;
+    } else if (args.id === "a1_revert_grant") {
+      const trials: A1Trial[] = [];
+      const deps = {
+        chain: createChainClient({
+          rpcUrl: args.rpc,
+          chainId: deployment.chainId,
+          escrow: deployment.escrow,
+          pollIntervalMs: 200,
+        }),
+        escrow: deployment.escrow,
+        rpcUrl: args.rpc,
+      };
+      for (const depth of args.depths) {
+        for (let t = 1; t <= args.trials; t++) {
+          const r = await runA1Trial(target, deps, { depth, policy: args.policy, path: "/v1/summarise", body }, t);
+          raw(r);
+          trials.push(r);
+        }
+        process.stderr.write(
+          `  k=${args.policy} d=${depth}: ` +
+            `${trials.filter((x) => x.depth === depth && x.revertGrant).length}/${args.trials} revert-grants\n`,
+        );
+      }
+      results = summariseA1(trials) as unknown as Record<string, unknown>;
+    } else if (args.id === "a5_overdraft") {
+      const r = await runA5(target, { requests: args.requests, path: "/v1/summarise", body });
+      raw(r);
+      results = summariseA5(r, args.requests) as unknown as Record<string, unknown>;
+      results["allowance"] = args.allowance.toString();
+    } else if (args.id === "a4_duplication") {
+      const rounds: A4RoundResult[] = [];
+      for (const level of args.concurrencyLevels) {
+        for (let round = 1; round <= args.rounds; round++) {
+          const r = await runA4Round(target, { concurrency: level, path: "/v1/summarise", body }, round);
+          raw(r);
+          rounds.push(r);
+          if (round % 10 === 0) process.stderr.write(`  c=${level} round ${round}/${args.rounds}\n`);
+        }
+      }
+      results = summariseA4(rounds) as unknown as Record<string, unknown>;
+      results["verify_window_ms"] = args.verifyWindowMs;
     } else {
       const rounds: A3RoundResult[] = [];
       for (let round = 1; round <= args.rounds; round++) {
@@ -246,7 +346,26 @@ async function main(): Promise<void> {
     // Deliberately left null here. The category is a judgement about what the numbers
     // mean, and it is assigned in EVAL-004 from the aggregate, not guessed per run.
     outcome: null,
-    hypothesis: args.id === "a2_replay" ? (args.target === "fixture" ? "H-A2-1" : "H-A2-2") : args.target === "fixture" ? "H-A3-1" : "H-A3-2",
+    hypothesis:
+      args.id === "a2_replay"
+        ? args.target === "fixture"
+          ? "H-A2-1"
+          : "H-A2-2"
+        : args.id === "a4_duplication"
+          ? args.target === "fixture"
+            ? "H-A4-1"
+            : "H-A4-2"
+          : args.id === "a5_overdraft"
+            ? args.target === "fixture"
+              ? "H-A5-1"
+              : "H-A5-2/3"
+            : args.id === "a1_revert_grant"
+              ? args.target === "fixture"
+                ? "H-A1-1"
+                : "H-A1-2"
+              : args.target === "fixture"
+                ? "H-A3-1"
+                : "H-A3-2",
     hypothesisHeld: null,
     rawLogs: ["raw.ndjson"],
   };

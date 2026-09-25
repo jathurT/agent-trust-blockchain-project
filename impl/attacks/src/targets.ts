@@ -39,7 +39,11 @@ import {
   type Hex,
 } from "viem";
 import { mnemonicToAccount, type HDAccount } from "viem/accounts";
-import { createVulnerableFixture, type VulnerableAuthorization } from "./vulnerable-server.js";
+import {
+  createVulnerableFixture,
+  type FixtureMode,
+  type VulnerableAuthorization,
+} from "./vulnerable-server.js";
 import { FIXTURE_ID, FIXTURE_LABEL } from "./fixture-label.js";
 
 export const TEST_MNEMONIC = "test test test test test test test test test test test junk";
@@ -128,6 +132,10 @@ export async function startFixture(opts: {
   rpc: string;
   deployment: Deployment;
   port: number;
+  /** API-010. Omitted, the A2/A3 fixture — which is what the frozen runs used. */
+  mode?: FixtureMode;
+  verifyWindowMs?: number;
+  allowance?: bigint;
 }): Promise<Target> {
   const wallet = createWalletClient({
     account: accounts.deployer,
@@ -152,6 +160,9 @@ export async function startFixture(opts: {
   const fixture = createVulnerableFixture({
     price: PRICE,
     payTo: accounts.seller.address,
+    mode: opts.mode,
+    verifyWindowMs: opts.verifyWindowMs,
+    allowance: opts.allowance,
     log: () => {},
     settle: async (auth: VulnerableAuthorization) => {
       // A real transfer against MockUSDC. The second use of an authorization reverts
@@ -271,9 +282,12 @@ export async function startFixture(opts: {
       await fixture.settled();
       const grants = fixture.grants.filter((g) => g.authorizationNonce === ticket.counterKey);
       const distinct = new Set(grants.map((g) => g.responseHash)).size;
-      const settled = fixture.settlements.filter(
-        (s) => s.authorizationNonce === ticket.counterKey && s.ok,
-      ).length;
+      // Under `upto` the countable settlement is the draw, not the out-of-band
+      // EIP-3009 transfer: A5 is about work delivered that was never drawn for.
+      const settled =
+        fixture.mode === "upto"
+          ? fixture.draws.filter((d) => d.authorizationNonce === ticket.counterKey && d.settled).length
+          : fixture.settlements.filter((s) => s.authorizationNonce === ticket.counterKey && s.ok).length;
       return {
         // Every grant is an execution here: the fixture has no claim store, so it
         // recomputes the answer each time.
@@ -309,6 +323,13 @@ export async function startAgentTrust(opts: {
   deployment: Deployment;
   sellerPorts: number[];
   root: string;
+  /**
+   * SEC-008 sweeps this. It is the seller's confirmation policy: how many blocks it
+   * requires on the funding transaction before it will execute. 0 is the optimistic
+   * baseline and is what every other attack uses, because A2/A3/A4 are decided before
+   * finality matters.
+   */
+  confirmations?: number;
 }): Promise<Target> {
   const dir = mkdtempSync(join(tmpdir(), "agenttrust-harness-"));
   const chain = createChainClient({
@@ -405,7 +426,7 @@ export async function startAgentTrust(opts: {
             escrow: opts.deployment.escrow,
             acceptedValidators: [accounts.validator.address],
             minDeadlineMargin: 60,
-            confirmations: 0,
+            confirmations: opts.confirmations ?? 0,
           },
           nonces: {
             seen: (jobId: Hex, nonce: Hex) => claims.seenNonce(jobId, nonce),
