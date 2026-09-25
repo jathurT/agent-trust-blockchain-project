@@ -368,11 +368,12 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### ADMIN-002 — Confirm the group number and required file format
 
-- [ ] **Status:** TODO · **Authorized:** n/a · **Tier:** CORE-P0 · **Est:** 0.1 h · **Hat/agent:** TM
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** n/a · **Tier:** CORE-P0 · **Est:** 0.1 h · **Hat/agent:** TM
 - **Objective:** Resolve `GP_XX` and whether `.ppt` or `.pptx` is required.
 - **Refs:** §0.2 · AR-02 · V-03
-- **Acceptance:** the exact filename is recorded in §13 and used by PRES-002/005.
-- **Risks:** `.ppt` (legacy binary) may need an export step from the generated `.pptx` — PRES-002 covers it.
+- **Acceptance:** ✔. **Group number is 20** (user, 2026-09-25), so the file is **`GP_20_AgentTrust`**.
+- **Format:** the assignment PDF writes `.ppt` (§0.2, e.g. `GP_01_Gem_Fraud_Detection.ppt`), which is almost certainly generic for "a PowerPoint file" rather than a demand for the 1997 binary format. `.pptx` is the sane default. **No conversion tooling exists on this machine** — LibreOffice, soffice and unoconv are all absent — so if the coordinator does insist on the legacy format, it is PowerPoint's *Save As → PowerPoint 97-2003*, one step, on the submitting machine. Not worth blocking on.
+- **PRES-002 is unblocked.**
 
 ### ADMIN-003 — Register the topic in the class sheet
 
@@ -1908,11 +1909,15 @@ testnet deployment was not done — which is a cut the gate list already anticip
    capture itself, which is yours to do — I cannot record video. Start both targets before
    recording: module loading under `tsx` on this workspace takes about a minute per
    service, and that is not part of a 45-second shot.
-2. **PRES-002** — build the deck. **PRES-001 is done**: `docs/presentation-outline.md`
-   has the 386-word script, the per-slide timings and the five corrections to blueprint
-   §17. The deck is assembled from it plus `docs/results.md`; no figure needs inventing.
-   It is **blocked on ADMIN-002** for the group number and whether `.ppt` or `.pptx` is
-   required — the filename is `GP_XX_AgentTrust` until that is answered.
+2. **PRES-002** — build the deck, as **`GP_20_AgentTrust`**. Unblocked: ADMIN-002 is
+   answered. Two inputs exist, and they serve different purposes:
+   `docs/presentation-outline.md` is the internal working script (391 words, per-slide
+   timings, and the corrections to blueprint §17 with their V-IDs), while
+   `docs/presentation-brief.md` is **self-contained** — every figure, the design
+   direction, the backup slides and the eight hard "do not claim" rules, written so a
+   tool with no access to this repository can build the deck from it alone. Every
+   number in the brief was verified against the recorded runs by script, not
+   transcribed.
 3. **SEC-012** (P1) — the claims audit. Everything measured is in `docs/results.md`, and
    the README, limitations, specs and slide script are written; this checks that no
    sentence anywhere claims more than the runs show. Four phrasings to watch: "not
