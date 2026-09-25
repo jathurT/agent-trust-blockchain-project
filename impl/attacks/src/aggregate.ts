@@ -263,22 +263,55 @@ export function render(loaded: Loaded[]): string {
           }
         : (rows[0]?.results.metrics ?? {});
     const { outcome } =
-      id === "a2_replay" ? classifyA2(merged as Record<string, unknown>) : classifyA3(merged);
+      id === "a2_replay"
+        ? classifyA2(merged as Record<string, unknown>)
+        : id === "a6_sybil"
+          ? classifyA6(merged)
+          : classifyA3(merged);
     const mechanism =
       id === "a2_replay"
         ? "atomic claim store keyed by (chainId, escrow, jobId), plus payer-signed delivery"
         : id === "a3_cross_resource"
           ? "on-chain `resourceHash` over method, URI, body, amount, token and chain"
-          : "—";
-    lines.push(`| ${name} | ${outcome} | ${outcome === "Blocked (structural)" ? mechanism : "—"} |`);
+          : id === "a6_sybil"
+            ? "`getSummary` over a bounded list of buyer-named trusted clients, enforced in `fund()`"
+            : "—";
+    lines.push(
+      `| ${name} | ${outcome} | ${outcome.startsWith("Blocked") || outcome.startsWith("Mitigated") ? mechanism : "—"} |`,
+    );
   }
   lines.push("");
+  const notRun = all.filter(([, id]) => !evaluated.has(id)).map(([name]) => name.split(" ")[0]);
   lines.push(
-    `**${evaluated.size} of the 6 defined attacks evaluated.** A1, A4, A5 and A6 are EXTENDED-E2 ` +
-      "and were not run; \"Not evaluated\" is reported rather than omitted.",
+    `**${evaluated.size} of the 6 defined attacks evaluated.** ` +
+      (notRun.length > 0
+        ? `${notRun.join(", ")} ${notRun.length === 1 ? "is" : "are"} EXTENDED-E2 and ${notRun.length === 1 ? "was" : "were"} not run; "Not evaluated" is reported rather than omitted.`
+        : "All six were run."),
   );
   lines.push("");
   return lines.join("\n");
+}
+
+/**
+ * A6's category, and why it is not "Blocked".
+ *
+ * The ring is refused — every Sybil's `fund()` reverts `ReputationTooLow`, which is the
+ * chain's own answer, not a model's. But the same run measures an agent that earns
+ * genuine trusted feedback and is then admitted on exactly the evidence an honest
+ * seller presents. A gate that reads reputation cannot see conduct, so patience defeats
+ * it. "Blocked (structural)" would claim a property the experiment disproves in its own
+ * results, so the bound travels with the verdict.
+ */
+export function classifyA6(m: Record<string, unknown>): { outcome: string } {
+  const onChain = (m["onChain"] as { kind: string; funded: boolean }[] | undefined) ?? [];
+  const sybilFunded = onChain.filter((r) => r.kind === "sybil" && r.funded).length;
+  const defect = m["honestThenDefect"] as { admittedAfterDefection?: boolean } | null | undefined;
+
+  if (sybilFunded > 0) return { outcome: "Not blocked" };
+  if (defect?.admittedAfterDefection) {
+    return { outcome: "Mitigated (ring refused; an earned reputation still admits)" };
+  }
+  return { outcome: "Mitigated (ring refused)" };
 }
 
 /** A chart, generated from the same data. EVAL-004 asks for one; hand-drawing it would

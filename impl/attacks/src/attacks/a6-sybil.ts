@@ -186,6 +186,8 @@ export interface HonestThenDefect {
   admittedAfterDefection: boolean;
   /** Refused only once a trusted client withdrew its feedback. */
   admittedAfterRevocation: boolean;
+  /** How many entries had to be withdrawn to get there. */
+  entriesRevoked: number;
   note: string;
 }
 
@@ -204,8 +206,15 @@ export interface A6Deps {
   registerAgent: (uri: string, ownerIndex: number) => Promise<bigint>;
   /** Writes one feedback entry from a trusted client. */
   rateFromTrusted: (agentId: bigint, clientIndex: number, value: number) => Promise<void>;
-  /** Withdraws a trusted client's entry. */
-  revokeFromTrusted: (agentId: bigint, clientIndex: number, feedbackIndex: number) => Promise<void>;
+  /**
+   * Withdraws every entry a trusted client wrote for this agent.
+   *
+   * Takes a client rather than an index because ERC-8004's feedback indices are
+   * **1-based and per (agent, client)** — `revokeFeedback` requires `index > 0` and
+   * `index <= getLastIndex(agentId, client)`. Passing a position from a loop counter
+   * reverts, which is how this was found.
+   */
+  revokeAllFromTrusted: (agentId: bigint, clientIndex: number) => Promise<number>;
   /** Funds one job and reports the gas the transaction used. */
   fundForGas: (agentId: bigint, trustedClients: Address[]) => Promise<bigint>;
 }
@@ -243,12 +252,10 @@ async function runHonestThenDefect(
   // reads reputation, not conduct. The second fund is the measurement.
   const afterDefection = await deps.tryFund(agentId, population.trustedClients);
 
-  // The remedy. One trusted client withdraws its first entry; the agent is left with
-  // one client's entries, which the deployed floors still admit, so both are revoked.
-  await deps.revokeFromTrusted(agentId, 0, 0);
-  await deps.revokeFromTrusted(agentId, 0, 1);
-  await deps.revokeFromTrusted(agentId, 1, 0);
-  await deps.revokeFromTrusted(agentId, 1, 1);
+  // The remedy. Both trusted clients withdraw everything they wrote: one alone would
+  // leave the other's entries standing, which the deployed floors still admit.
+  let revoked = 0;
+  for (const clientIndex of [0, 1]) revoked += await deps.revokeAllFromTrusted(agentId, clientIndex);
   const afterRevocation = await deps.tryFund(agentId, population.trustedClients);
 
   return {
@@ -256,6 +263,7 @@ async function runHonestThenDefect(
     admittedAfterEarning: earned.funded,
     admittedAfterDefection: afterDefection.funded,
     admittedAfterRevocation: afterRevocation.funded,
+    entriesRevoked: revoked,
     note:
       "The gate is a pre-transaction filter over reputation, not conduct. An agent that " +
       "earns genuine trusted feedback is admitted on the same evidence an honest seller " +

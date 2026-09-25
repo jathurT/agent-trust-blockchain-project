@@ -426,17 +426,29 @@ async function runA6Experiment(
     await chain.client.waitForTransactionReceipt({ hash });
   };
 
-  const revokeFromTrusted = async (agentId: bigint, clientIndex: number, feedbackIndex: number): Promise<void> => {
+  const revokeAllFromTrusted = async (agentId: bigint, clientIndex: number): Promise<number> => {
     const client = fixtureAccount(ACCOUNT_INDEX.trustedClient + clientIndex);
-    const hash = await wallet(client).writeContract({
-      address: deployment.reputationRegistry,
-      abi: reputationRegistryAbi,
-      functionName: "revokeFeedback",
-      args: [agentId, BigInt(feedbackIndex)],
-      account: client,
-      chain: null,
-    });
-    await chain.client.waitForTransactionReceipt({ hash });
+    // 1-based, and bounded by what this client actually wrote for this agent.
+    const last = Number(
+      (await chain.client.readContract({
+        address: deployment.reputationRegistry,
+        abi: reputationRegistryAbi,
+        functionName: "getLastIndex",
+        args: [agentId, client.address],
+      })) as bigint,
+    );
+    for (let i = 1; i <= last; i++) {
+      const hash = await wallet(client).writeContract({
+        address: deployment.reputationRegistry,
+        abi: reputationRegistryAbi,
+        functionName: "revokeFeedback",
+        args: [agentId, BigInt(i)],
+        account: client,
+        chain: null,
+      });
+      await chain.client.waitForTransactionReceipt({ hash });
+    }
+    return last;
   };
 
   const fundGasOf = async (agentId: bigint, trustedClients: Address[]): Promise<bigint> => {
@@ -481,7 +493,7 @@ async function runA6Experiment(
       tryFund,
       registerAgent,
       rateFromTrusted,
-      revokeFromTrusted,
+      revokeAllFromTrusted,
       fundForGas: fundGasOf,
     },
     population,
