@@ -81,7 +81,7 @@ everything on the testnet path (blocked on ENV-006/007).
 
 ### The measured result
 
-| | fixture (labelled vulnerable baseline) | AgentTrust |
+| | baseline | AgentTrust |
 |---|---|---|
 | **A2** — executions per payment | 50 requests → **50**; 200 → **200** | **1**, in every configuration |
 | A2 — replay attempts producing an extra execution | 3,460 of 3,950 | **0 of 4,440** |
@@ -89,8 +89,16 @@ everything on the testnet path (blocked on ENV-006/007).
 | **A3** — substitutions served | **100 of 100** | **0 of 100** |
 | A3 — one-byte body mutations accepted | 100 of 100 | 0 of 100 |
 | A3 — **false refusals** (the control) | 0 | **0** |
+| **A4** — rounds with a duplicate execution | fixture with the window: **150 of 150** | **0 of 150** |
+| **A5** — ρ = 1 − settled/delivered | fixture, `upto` pricing: **0.98** | **0.00** |
+| A5 — seller over-draw | succeeded | structurally unavailable |
+| **A6** — Sybils admitted | the blueprint's gate v1: **5 of 5** | the trust-anchored gate: **0 of 5** |
+| A6 — honest newcomers refused | v1: **10 of 10** | v2: **10 of 10** |
+| **A1** — revert-grants, 20 trials per cell | no confirmation wait: **20 of 20**, every depth | k=3: **0 of 20** through depth 3, **20 of 20** at depth 5 |
 
-Thirteen runs, one commit, none with a dirty tree. Every figure is generated from a recorded run into `docs/results.tables.md`, which reproduces byte-for-byte. Full narrative and limits: `docs/results.md`.
+**22 runs, none with a dirty tree**, taken at 4 commits as each attack landed (`2c62ee5a`, `6b905fc5`, `bd5b431d`, `f87904b1`). Every figure is generated from a recorded run into `docs/results.tables.md`, which reproduces byte-for-byte. Full narrative and limits: `docs/results.md`.
+
+**Two rows are the ones worth reading twice.** A6's v1 row is a **negative result about the original design**: the blueprint's own gate admitted every Sybil in the ring *and* refused every honest newcomer. And A1's k=3 row is a bound, not a defence — the cliff at `d > k` means no confirmation policy closes that window.
 
 **Coverage: 6 of the 6 defined attacks**, all run by 2026-09-25. Four are blocked structurally; **A1 and A6 are bounded, not blocked**, and the bounds are reported with them. A4 and A5 are blocked *by construction* rather than by a defence that could have failed, and the results say so.
 
@@ -1344,7 +1352,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - [x] **Status:** DONE (2026-09-24) · **Authorized:** yes (user, "continue", 2026-09-24) · **Tier:** CORE-P0 · **Est:** 0.25 h · **Hat/agent:** U(D) · security-eval
 - **Objective:** Fix run counts, concurrency levels, statistics and baseline configuration **before** the first measured run, so nothing can be tuned afterwards.
 - **Refs:** §13 · ER-08, ER-10 · evaluation-plan §6 · Depends: SEC-002
-- **Acceptance:** ✔. The parameters were frozen in `evaluation-plan.md` §5–§6 on 2026-09-22, in the planning phase, **before any measurement existed** — the pre-registration is genuine and dated. Every constrained parameter (`runs`, `rounds`, `replays`, `concurrency`, `seed`, `variant`, `replayPolicy`, `sellerProcesses`) is recorded in every manifest, verified across all 13 runs.
+- **Acceptance:** ✔. The parameters were frozen in `evaluation-plan.md` §5–§6 on 2026-09-22, in the planning phase, **before any measurement existed** — the pre-registration is genuine and dated. Every constrained parameter (`runs`, `rounds`, `replays`, `concurrency`, `seed`, `variant`, `replayPolicy`, `sellerProcesses`) is recorded in every manifest, verified across all 13 runs that existed when the audit ran, and across all 22 today.
 - **What was actually missing was the other half: nobody had checked that the runs obeyed it.** `docs/planning/measurement-conformance.md` is that audit → `evidence/EVAL-001/`.
 - **Conforms:** N = 10 runs for all 11 A2 configurations; 100 rounds per A3 direction as §5 specifies; `seed = 1` recorded everywhere; Wilson 95% intervals on proportions; no headline from a single run.
 - **One requirement was unmet and is now met:** §6 asks for median, IQR, min and max, and the A2 table reported only the median. IQR and range are now computed from the same recorded runs — a derived statistic over existing data, not a re-run. The spread is **zero in every configuration**, which is the part that was hidden.
@@ -1413,7 +1421,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - **Objective:** Problem first, then what this is, how to run it, and what it does not claim.
 - **Refs:** §16, §20 · AR-08, AR-12, AR-13 · DF-03, DF-19 · Depends: INT-001, EVAL-004
 - **Steps:** 1) Problem statement with verified figures only. 2) What AgentTrust is, with the honest x402 interoperability sentence. 3) Quickstart: devnet, services, one paid job, one attack run. 4) Results summary linking `docs/results.md`. 5) Deployed addresses and explorer links. 6) Limitations link. 7) Licence and the ethics note.
-- **Acceptance:** ✔ both. Every script, package path and link the README names was checked to exist, and the quickstart was **executed as written** — `e2e-happy.sh` exited 0 with `"ok": true`, and `report.sh --check` confirmed the published tables still match the recorded runs (`evidence/DOC-001/walkthrough.txt`). Every figure in the problem statement cites a verification id (V-12, V-13, V-24); every figure in the results table was cross-checked line by line against `docs/results.tables.md`, which is generated from the 13 runs.
+- **Acceptance:** ✔ both. Every script, package path and link the README names was checked to exist, and the quickstart was **executed as written** — `e2e-happy.sh` exited 0 with `"ok": true`, and `report.sh --check` confirmed the published tables still match the recorded runs (`evidence/DOC-001/walkthrough.txt`). Every figure in the problem statement cites a verification id (V-12, V-13, V-24); every figure in the results table was cross-checked line by line against `docs/results.tables.md`, which is generated from the runs (22 today, 13 when DOC-001 was accepted).
 - **Verify:** `evidence/DOC-001/walkthrough.txt`. A genuine clean-clone run is DOC-006 and has **not** been done — what was verified here is that the commands exist and work in this tree.
 - **Outcome:** the README opens with the problem rather than the solution, and the figures in it are the published measurements (248 grants, 50→50, 100/100), each with its V-ID. It carries the honest interoperability sentence and the narrowed novelty claim (V-143: the x402 spec already defines an escrow scheme, so what is different is the reputation gate plus validator-attested release). The **deployed-addresses section is deliberately empty** and says why, rather than carrying a placeholder; the ERC-8004 registry addresses that *are* live are listed with the single-key upgrade caveat (V-97).
 - **Test counts were measured, not quoted.** A first draft said "160 Solidity tests" and "19 attacks tests" from memory; running them gave 154 + 6 invariants and 20. Corrected before commit — a wrong number in a README is the same defect as a wrong number in a results table.
@@ -1905,10 +1913,15 @@ faucet request, any contract verification, any publication, any contact with any
 | G2 (Fri 25) | one execution per job; A2/A3 fixture live; buyer E2E to delivery | ✔ two days early |
 | **G3a (Sat 26 16:00)** | **A2 + A3 on both targets, ≥10 runs each, results.json** | ✔ **three days early** |
 | G3b (Sat 26 23:59) | validator path; release + refund E2E; Python vectors | ✔ three days early |
-| G4 (Sun 27 12:00) | ≤2 extended items or "not evaluated"; demo recorded; results frozen | next |
+| G4 (Sun 27 12:00) | ≤2 extended items or "not evaluated"; demo recorded; results frozen | **exceeded on evaluation**, demo not recorded |
 | G5 (Mon 28 18:00) | freeze; clean-clone reproduction; references; rehearsal ≤ 3:00 | |
 
-**The headline result is measured and the local system is complete.** What remains is
+**G4's evaluation criterion was exceeded rather than met.** It allowed *at most two*
+EXTENDED-E2 items; **five were done** — API-010 plus SEC-005/006/007/008 — because the
+user asked for all six attacks. The results are frozen. What G4 still wants is the demo
+recording (PRES-003), which needs a person at a screen.
+
+**All six attacks are measured and the local system is complete.** What remains is
 delivery, and one thing that is genuinely blocked.
 
 **Blocked on you — ENV-006/007, wallets and faucet ETH.** Every task left on the testnet
@@ -1935,11 +1948,15 @@ testnet deployment was not done — which is a cut the gate list already anticip
    tool with no access to this repository can build the deck from it alone. Every
    number in the brief was verified against the recorded runs by script, not
    transcribed.
-3. **SEC-012** (P1) — the claims audit. Everything measured is in `docs/results.md`, and
-   the README, limitations, specs and slide script are written; this checks that no
-   sentence anywhere claims more than the runs show. Four phrasings to watch: "not
-   upstream x402", the qualified "indistinguishable" from V-99a, the narrowed novelty
-   claim from V-143, and the validator card's `doesNotCheck` (DF-08). This is the last
+3. **SEC-012 re-run** (P1) — the claims audit passed on 2026-09-24, but that was at
+   **2 of 6**. Four attacks have been measured since and every results document was
+   rewritten, so the audit's own "not covered" note — *the deck does not exist yet, so
+   the script is audited and the slides are not* — now also covers four new results.
+   Re-walk it once PRES-002 exists. Phrasings to watch, now six: "not upstream x402";
+   the qualified "indistinguishable" (V-99a); the narrowed novelty claim (V-143); the
+   validator card's `doesNotCheck` (DF-08); **"blocked" used of A4/A5**, where it means
+   *nothing to attack* rather than *a defence held*; and **"blocked" never used of A1 or
+   A6**, which are bounded. This is the last
    thing I can do without you.
 
 **Everything else that is left needs you or a teammate:** ADMIN-001/002 (deadline, group
