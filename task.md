@@ -36,7 +36,17 @@
 
 **Status (2026-09-24, 08:30):** **G1, G2, G3a and G3b all met.** **59 of 134 tasks DONE** — the local system is complete, **the A2 and A3 evaluation is measured**, and the demo, the deck script and the specifications are written.
 
-**443 tests across six packages**, all green: Solidity 154 + 6 invariants, core 87, seller 96, buyer 21, attacks 32, validator 73. Escrow line coverage 97.55%.
+**469 tests across six packages**, all green: Solidity 154 + 6 invariants, core 87, seller 96, buyer 21, attacks 32, validator 73. Escrow line coverage **98.14% (211/215)**, re-measured 2026-09-25.
+
+**Two corrections from that re-run.** (1) An earlier line said **443 tests**; the component counts were right but the total was typed rather than summed — it is 469. Third instance of that defect class, after the README counts and the slide word count. (2) Coverage was quoted as **97.55%**, which was *stale*: it was recorded in `f248db8` (CONTRACT-011) and the escrow changed afterwards in `85f36f7` (CONTRACT-010). Re-measured, it is 98.14% — higher, but the point is that nobody re-ran it after the contract moved.
+
+### One acceptance script is failing (2026-09-25)
+
+**`impl/scripts/claim-multiproc.sh` — API-005 acceptance (a) — fails.** It is the only failure in the whole local suite, and **the code under test is fine**: the same seller child starts and serves correctly when run standalone.
+
+The cause is in the test harness. `multiproc-driver.ts:21` waits a hard-coded **30 s** for a child to print `ready:<port>`. Measured on 2026-09-25, one seller child under `tsx` on this DrvFs workspace takes **36 s** to load its module graph — and the driver starts two concurrently, which is slower still. So the test is measuring filesystem speed, not the claim store. It passed on 2026-09-23 (`evidence/API-005/multiproc.log`) when the cache was warmer; nothing in the payment path changed since.
+
+This needs a decision rather than a quiet edit, because raising a timeout to make a test pass is the shape of weakening one (CLAUDE.md §10). The fix is to poll the port until it answers with a generous, configurable deadline, and to print the child's captured output on failure — the current message says only "never became ready", which is why this took a reproduction to diagnose. **API-005 stays DONE on its 2026-09-23 evidence, but its script does not currently run here.**
 
 **Every CORE-P0 task that does not need you or a teammate is now DONE.** What remains is
 the recording (PRES-003), the deck (PRES-002, blocked on ADMIN-002), the rehearsal, and

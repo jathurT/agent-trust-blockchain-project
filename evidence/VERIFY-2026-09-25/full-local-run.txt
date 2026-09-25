@@ -1,0 +1,74 @@
+### forge (unit + boundary)
+
+Ran 11 test suites in 162.43ms (601.57ms CPU time): 154 tests passed, 0 failed, 0 skipped (154 total tests)
+FORGE_EXIT=0
+
+### core
+ Test Files  6 passed (6)
+      Tests  87 passed (87)
+CORE_EXIT=0
+
+### validator (pytest)
+73 passed, 1 warning in 7.45s
+VAL_EXIT=0
+
+### seller
+ Test Files  8 passed (8)
+      Tests  96 passed (96)
+SELLER_EXIT=0
+### buyer
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+BUYER_EXIT=0
+### attacks
+ Test Files  4 passed (4)
+      Tests  32 passed (32)
+ATTACKS_EXIT=0
+
+### invariants
+[PASS]
+[PASS] invariant_A_EscrowHoldsExactlyTheFundedJobs
+[PASS] invariant_B_NoJobSettlesTwice
+[PASS] invariant_C_ConfigurationNeverTouchesTheBalance
+[PASS] invariant_E_ReleasedMoneyReachedThePayee
+[PASS] invariant_F_EachBuyersBalanceIsFullyExplained
+[PASS] invariant_G_NoThirdPartyHoldsEscrowedFunds
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 236.42s (236.42s CPU time)
+
+### secret-scan hook self-test
+  ok    block  impl/vectors/canonical-v1.json
+
+21 passed, 0 failed
+HOOK_EXIT=0
+
+### ERC-8004 ABI check (REG-001)
+Reputation 0x8004B663056A597Dffe9eCcC1965A193B7388713 impl=0x16e0fa7f7c56b9a767e34b192b51f921be31da34 version="2.0.0"  18/18 selectors present
+Validation 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 impl=0xdb31f5d9167f8ebc8b30fbbf814c4d297c2d7f99 version="2.0.0"  15/15 selectors present
+PASS: pinned ABI matches the deployed registries
+ABI_EXIT=0
+
+### coverage (re-measured)
+| File                                 | % Lines          | % Statements     | % Branches      | % Funcs         |
+| src/AgentTrustEscrow.sol             | 98.14% (211/215) | 96.73% (266/275) | 86.21% (50/58)  | 100.00% (30/30) |
+| src/CanonicalHash.sol                | 100.00% (6/6)    | 100.00% (6/6)    | N/A (0/0)       | 100.00% (3/3)   |
+| src/mocks/AdversarialTokens.sol      | 94.44% (34/36)   | 96.97% (32/33)   | 100.00% (3/3)   | 92.86% (13/14)  |
+| src/mocks/MockIdentityRegistry.sol   | 64.29% (45/70)   | 66.67% (46/69)   | 25.00% (5/20)   | 66.67% (10/15)  |
+| src/mocks/MockReputationRegistry.sol | 100.00% (69/69)  | 96.20% (76/79)   | 37.50% (9/24)   | 100.00% (13/13) |
+| src/mocks/MockUSDC.sol               | 72.22% (26/36)   | 70.00% (21/30)   | 66.67% (4/6)    | 83.33% (10/12)  |
+| src/mocks/MockValidationRegistry.sol | 100.00% (52/52)  | 100.00% (51/51)  | 21.05% (4/19)   | 100.00% (9/9)   |
+
+### INT-001 e2e happy path
+    "executions_completed": 1,
+    "total": 7705
+HAPPY_EXIT=0
+### INT-002 e2e refund paths
+      "state": 3,
+    "total": 9882
+REFUND_EXIT=0
+### API-005 cross-process claim
+MULTIPROC_EXIT=1
+
+### claim-multiproc root cause
+driver timeout: 30s (multiproc-driver.ts:21)
+measured child startup, isolated, idle machine: 36s
+standalone child: starts and prints ready:<port>, serves correctly
