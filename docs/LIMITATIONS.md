@@ -121,6 +121,36 @@ over every validation the agent has ever had, so it cannot be called from a sett
 path under the bounded-loop rule. The decision stands on **gas cost**, not on
 impossibility. *(DF-05, V-99, V-99a.)*
 
+### A validator that never answers costs the seller the work
+This is the residual A5 exposes, and it deserves stating on its own rather than as a
+footnote to a result. Pre-funding removes the published `upto` leak — the buyer cannot
+consume compute that was never escrowed, so ρ measured 0.00 against the fixture's 0.98.
+But it does not remove the seller's exposure; it **moves** it.
+
+A job whose validator never attests is **delivered and then refunded**. The seller did
+the work, the buyer got the bytes, and after `deadline + grace` the money goes back to
+the buyer. The loss is identical to A5's in size and direction — only the cause has
+changed, from "the buyer ran out of allowance" to "the validator did not answer".
+
+That path is exercised by INT-002 but its **rate was not measured**, because it depends
+on validator liveness rather than on anything the protocol controls. A deployment that
+cares about this needs validator redundancy — k-of-n attestation is named as future work
+and is not built. *(DF-10, H-A5-3.)*
+
+### A reorg deeper than the confirmation policy takes the payment back
+The seller waits `k` confirmations before it executes. A reorg of depth `d > k` removes
+the funding transaction after the work has been handed over, and the seller has
+delivered for nothing. Measured at 20 trials per cell: at `k=3` the job survived every
+reorg through depth 3 (**0/20** revert-grants)
+and lost the payment at depth 5 (**20/20**).
+Serving with no confirmation wait at all loses it at every depth tested.
+
+**No value of `k` closes this.** A deeper reorg defeats any policy, so the claim is
+*mitigated up to depth k* and never "blocked" (DF-11). Raising `k` trades the risk
+against latency: every confirmation is a block the buyer waits through. Base's unsafe
+head can reorg; the `safe` tag is stronger and far slower. The choice is a deployment
+parameter, and whichever value is picked, the residual belongs to the seller.
+
 ### `requestHash` squatting is unbounded against a mempool watcher
 The salt that makes a validation request unguessable is secret only until the seller
 **broadcasts** `validationRequest`. From that moment an adversary watching the mempool
@@ -197,22 +227,36 @@ packages and is **not** evidence about anyone else's implementation. Establishin
 anything about upstream would require running against a pinned upstream version — that is
 API-009, and it **was not done**. *(DF-18.)*
 
-### Four of the six defined attacks were not evaluated
+### All six were evaluated; four were blocked and two were bounded
 
 | attack | status |
 |---|---|
 | A1 revert-grant (reorg) | **Evaluated — mitigated up to depth k, never blocked.** Measured at depths 1, 2, 3, 5 against policies k = 0, 1, 3: the cliff is exactly `d > k`. Serving optimistically (k=0) loses the payment at every depth. No confirmation policy can close this window; a deeper reorg defeats any k. |
-| A4 concurrent duplication | **Evaluated — 0 of 150 rounds duplicated**, against 50/50 on a fixture that has the window. Weaker evidence than it looks: AgentTrust has no verify→settle window to race, so zero was expected by construction rather than won under pressure. |
+| A4 concurrent duplication | **Evaluated — 0 of 150 rounds duplicated**, against **50 of 50 at every concurrency level** (10, 20 and 50 concurrent requests; 150 of 150 overall) on a fixture that has the window. Weaker evidence than it looks: AgentTrust has no verify→settle window to race, so zero was expected by construction rather than won under pressure. |
 | A5 allowance overdraft | **Evaluated — ρ = 0 against the fixture's 0.98.** But this is a refusal rather than a defence: AgentTrust does not price `upto` at all. And the residual is real — a job whose validator never attests is delivered and then refunded, so the seller carries the same loss by another route. That path is exercised by INT-002, not counted as a rate. |
 | A6 Sybil selection | **Evaluated — Mitigated, not blocked.** The ring is refused on-chain, but an attacker that earns genuine trusted feedback is admitted on the same evidence an honest seller presents, and is refused only once those clients revoke. See below. The published 60.2% figure is still **not** reproduced — it came from an LLM discovery-ranking experiment, and nothing here is comparable to it. |
 
 Coverage is **6 of 6**. Two of them — A4 and A5 — are blocked structurally rather than by a defence that could have failed, and two — A1 and A6 — are *bounded* rather than blocked. The denominator travels with the number, and so do the qualifiers.
 
-### "Blocked (structural)" is a claim about a mechanism
-For A2 it is the atomic claim store keyed by `(chainId, escrow, jobId)` plus the
-payer-signed retry. For A3 it is the `resourceHash` the escrow computes on-chain. Both
-are asserted by unit tests as well as measured. Neither claim extends to an attacker
-doing something these runs did not attempt, and neither is a proof.
+### "Blocked (structural)" covers two different claims, and the weaker one is worth naming
+Four rows carry that label and they do not all mean the same thing.
+
+**A2 and A3 are blocked by a mechanism that could have failed.** For A2 it is the atomic
+claim store keyed by `(chainId, escrow, jobId)` plus the payer-signed retry; for A3 it is
+the `resourceHash` the escrow computes on-chain. Both are asserted by unit tests as well
+as measured, and both were under genuine pressure — 4,440 replay attempts and 100
+substitution rounds had real opportunities to get through.
+
+**A4 and A5 are blocked because there was nothing there to attack.** AgentTrust has no
+verify→settle window for A4's race to exploit, and no shared allowance for A5 to drain,
+because every job is pre-funded at an exact price. The zeros were not won; they follow
+from the design not having the feature the attack needs. That is a weaker kind of
+evidence and is worth saying before someone asks — the measurements are more
+interesting as a demonstration that the *fixtures* reproduce the published conditions
+than as proof that AgentTrust withstands them.
+
+Neither kind of claim extends to an attacker doing something these runs did not attempt,
+and neither is a proof.
 
 ### The A3 zero depends on its control
 A server that refused everything would also serve 0 of 100 substitutions. The result
