@@ -16,18 +16,60 @@ const total = Number(process.argv[2] ?? 50);
 const processes = Number(process.argv[3] ?? 2);
 const basePort = 8500;
 
+/**
+ * How long a child gets to print `ready:<port>`.
+ *
+ * This was 30 s, and on 2026-09-25 the script started failing on an idle machine with
+ * nothing but "never became ready". The child was fine — run standalone it starts and
+ * serves correctly — but loading its module graph under `tsx` on this DrvFs workspace
+ * was **measured at 36 s**, and the children start one after another. The test was
+ * timing the filesystem rather than the claim store (CLAUDE.md §15: small-file I/O
+ * here is ~38x slower than ext4).
+ *
+ * The default is deliberately far above the measurement rather than just above it: a
+ * loaded machine is several times slower again, and a startup wait that is merely
+ * "usually enough" produces a flaky test, which is worse than a slow one. Nothing is
+ * being relaxed about what the test *asserts* — 50 requests must still produce exactly
+ * one execution. Override with MULTIPROC_READY_TIMEOUT_MS on a faster filesystem.
+ */
+const READY_TIMEOUT_MS = Number(process.env["MULTIPROC_READY_TIMEOUT_MS"] ?? 180_000);
+
 async function waitForReady(child: ChildProcess, port: number): Promise<void> {
+  // Accumulated, not examined chunk by chunk: `ready:8500` can be split across two
+  // reads, and the previous version tested each chunk on its own, so a marker that
+  // arrived in two pieces was never seen at all.
+  let output = "";
+  const started = Date.now();
+
   await new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`process on ${port} never became ready`)), 30_000);
-    child.stdout?.on("data", (chunk: Buffer) => {
-      if (chunk.toString().includes(`ready:${port}`)) {
+    const fail = (reason: string) =>
+      reject(
+        new Error(
+          `${reason}\n` +
+            `  waited ${((Date.now() - started) / 1000).toFixed(1)}s of ` +
+            `${(READY_TIMEOUT_MS / 1000).toFixed(0)}s ` +
+            `(raise MULTIPROC_READY_TIMEOUT_MS if this workspace is simply slow)\n` +
+            `  captured output from the child:\n` +
+            (output.trim() ? output.replace(/^/gm, "    ") : "    (nothing)"),
+        ),
+      );
+
+    const timer = setTimeout(() => fail(`process on ${port} never became ready`), READY_TIMEOUT_MS);
+    const collect = (chunk: Buffer) => {
+      output += chunk.toString();
+      // `ready:` is written from inside app.listen's callback, so seeing it means the
+      // socket is accepting connections — exactly the precondition for firing requests.
+      if (output.includes(`ready:${port}`)) {
         clearTimeout(timer);
         resolve();
       }
-    });
+    };
+
+    child.stdout?.on("data", collect);
+    child.stderr?.on("data", collect);
     child.on("exit", (code) => {
       clearTimeout(timer);
-      reject(new Error(`process on ${port} exited with ${code}`));
+      fail(`process on ${port} exited with ${code} before becoming ready`);
     });
   });
 }
@@ -99,6 +141,7 @@ async function main(): Promise<void> {
       },
     );
     child.stderr?.on("data", (c: Buffer) => process.stderr.write(`[seller ${port}] ${c.toString()}`));
+    child.stdout?.on("data", (c: Buffer) => process.stderr.write(`[seller ${port}] ${c.toString()}`));
     children.push(child);
     await waitForReady(child, port);
   }

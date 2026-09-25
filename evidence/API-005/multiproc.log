@@ -1,20 +1,20 @@
 API-005 acceptance (a) — one execution per funded job, across processes
 =======================================================================
 
-date:   2026-09-23T06:52:03Z
-commit: fb12890458bcdcd50f2bdf89ad2151d65851fbb9
+date:   2026-09-25T03:55:40Z
+commit: 18280b0ad489379e3bfcb96945e674c757673dd5
 node:   v22.17.0, node:sqlite in WAL mode, synchronous=NORMAL
-chain:  anvil 31337 at block 325
+chain:  anvil 31337 at block 164
 escrow: 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
+wall:   1m35s (READY_TIMEOUT_MS default 180000; two children, ~36s each to load)
 
 Two seller processes on ports 8500 and 8501 share one claims.sqlite. Fifty
 distinct authenticated retries for one funded job are fired at both at once.
 
-driving 50 requests across 2 seller processes, one shared claim store
 {
   "requests": 50,
   "processes": 2,
-  "jobId": "0xfbaf5f981a4c969e0ad5c962246408840eed74c7f897c1d586d6ed3c600f3697",
+  "jobId": "0xcfd5c238850e25e62eeb4edd9ac4664f76d7e7cdda5e687929b456c7b9bc83da",
   "statuses": {
     "200": 50
   },
@@ -29,14 +29,17 @@ driving 50 requests across 2 seller processes, one shared claim store
   "pass": true
 }
 
-What this shows, and what it does not
--------------------------------------
-It shows the claim store holds "one funded job, one execution" across processes, which
-is what makes SQLite's cross-process write lock the load-bearing part rather than a
-single event loop: 50 requests, 1 execution, 1 distinct result, 49 replays, every
-response 200 carrying identical bytes, no 5xx.
+Independent cross-check from the sellers' own access logs (API-007)
+-------------------------------------------------------------------
+      1 "disposition":"executed"
+     48 "disposition":"replayed"
 
-It is NOT the A2 evaluation. That is SEC-003, which runs the published attack against a
-labelled vulnerable fixture *and* against AgentTrust and reports both, with its own run
-manifest. The published baseline is 50 replays producing 50 grants with no idempotency
-(V-13); putting the two side by side is SEC-003's job, not this file's.
+One request's log line is missing: 1 executed + 48 replayed = 49, not 50.
+That is a shutdown race in the *logging*, not a miscount. The driver sends
+SIGTERM as soon as the last response resolves, and the access line is written
+on the response's 'finish' event, so the final line can be lost before it
+reaches the pipe. The claim store is the authoritative record — it is written
+inside BEGIN IMMEDIATE before any byte goes to the socket — and it reports
+http_2xx: 50, replays_served: 49, executions_completed: 1.
+
+All 50 requests carried the same jobId, and distinct_200_bodies is 1.

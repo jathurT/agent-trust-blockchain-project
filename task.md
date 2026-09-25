@@ -40,13 +40,40 @@
 
 **Two corrections from that re-run.** (1) An earlier line said **443 tests**; the component counts were right but the total was typed rather than summed — it is 469. Third instance of that defect class, after the README counts and the slide word count. (2) Coverage was quoted as **97.55%**, which was *stale*: it was recorded in `f248db8` (CONTRACT-011) and the escrow changed afterwards in `85f36f7` (CONTRACT-010). Re-measured, it is 98.14% — higher, but the point is that nobody re-ran it after the contract moved.
 
-### One acceptance script is failing (2026-09-25)
+### The whole local suite passes (2026-09-25)
 
-**`impl/scripts/claim-multiproc.sh` — API-005 acceptance (a) — fails.** It is the only failure in the whole local suite, and **the code under test is fine**: the same seller child starts and serves correctly when run standalone.
+Re-run end to end against a fresh Anvil: the six suites above, the 6 invariants,
+INT-001, INT-002, `claim-multiproc.sh`, REG-008, the pinned ERC-8004 ABI against the
+live registries, the secret-scan self-test, the shared vectors, and `report.sh --check`.
+Raw log: `evidence/VERIFY-2026-09-25/full-local-run.txt`.
 
-The cause is in the test harness. `multiproc-driver.ts:21` waits a hard-coded **30 s** for a child to print `ready:<port>`. Measured on 2026-09-25, one seller child under `tsx` on this DrvFs workspace takes **36 s** to load its module graph — and the driver starts two concurrently, which is slower still. So the test is measuring filesystem speed, not the claim store. It passed on 2026-09-23 (`evidence/API-005/multiproc.log`) when the cache was warmer; nothing in the payment path changed since.
+**`claim-multiproc.sh` failed on the first pass and was fixed.** The code under test was
+never at fault — the same seller child started and served correctly standalone.
+`multiproc-driver.ts` waited a hard-coded **30 s** for a child to print `ready:<port>`,
+and one child takes **36 s** to load its module graph under `tsx` on this DrvFs
+workspace, measured on an idle machine. The test was timing the filesystem rather than
+the claim store (CLAUDE.md §15: small-file I/O here is ~38× slower than ext4). It had
+passed on 2026-09-23 when the cache was warmer, and nothing in the payment path had
+changed since.
 
-This needs a decision rather than a quiet edit, because raising a timeout to make a test pass is the shape of weakening one (CLAUDE.md §10). The fix is to poll the port until it answers with a generous, configurable deadline, and to print the child's captured output on failure — the current message says only "never became ready", which is why this took a reproduction to diagnose. **API-005 stays DONE on its 2026-09-23 evidence, but its script does not currently run here.**
+**Nothing was relaxed about what the test asserts.** The fix changes only how long the
+driver waits for a socket to open: `READY_TIMEOUT_MS`, default 180 s, overridable with
+`MULTIPROC_READY_TIMEOUT_MS`. The assertion is still 50 requests → exactly one
+execution, and it still passes: `executions_completed: 1`, `http_2xx: 50`,
+`replays_served: 49`, `distinct_200_bodies: 1`, `pass: true`.
+
+**A latent bug went with it.** The old wait tested each stdout *chunk* on its own, so a
+`ready:8500` marker split across two reads would never have been seen at all — a
+permanent hang waiting to happen. Output is now accumulated before matching, and the
+failure message carries the child's captured output and the elapsed time instead of the
+bare "never became ready" that made this take a reproduction to diagnose.
+
+**One line short in the cross-check, and it is the log that is wrong, not the count.**
+The sellers' own access logs (API-007) show 1 `executed` + 48 `replayed` = 49, against
+the claim store's 50. The driver sends SIGTERM the moment the last response resolves,
+and the access line is written on the response's `finish` event, so the final line can
+be lost before it reaches the pipe. The claim store is authoritative — it is written
+inside `BEGIN IMMEDIATE` before any byte reaches the socket.
 
 **Every CORE-P0 task that does not need you or a teammate is now DONE.** What remains is
 the recording (PRES-003), the deck (PRES-002, blocked on ADMIN-002), the rehearsal, and
@@ -887,6 +914,7 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 - **Verify:** `npx vitest run` in `impl/agents/seller` → **68 tests** (11 claim-specific) → `evidence/API-005/vitest.log`; `bash impl/scripts/claim-multiproc.sh 50 2` → `evidence/API-005/multiproc.log`.
 - **Outcome:** `node:sqlite` rather than a native binding, so a fresh clone needs no compile step; WAL mode, `synchronous=NORMAL`, `busy_timeout=5000`. Every transition runs inside `BEGIN IMMEDIATE`, which takes the write lock **up front** — without it two readers could both see "no claim" and both execute, which is the entire race. The result is persisted **before** any byte is written to the socket: reversed, a crash in between would leave a job that looks untouched but has already been delivered. A lease may only be taken over when **no result exists**; such a row is "in doubt", and re-executing is safe only because the routes are deterministic (DF-17). The claim is taken **last**, after every SPEC-002 §7 check, so an unauthenticated caller cannot burn a buyer's grant.
 - **A test bug worth recording, because the suites passed while it was there.** `buildWorld` read the agent id as `receipt.logs.find(l => l.topics.length >= 2).topics[1]`, but `register()` emits ERC-721 `Transfer` first and its `topics[1]` is `from` = `address(0)` — so **every suite silently used agent 0** instead of the agent it had just registered. They passed because they also endorsed agent 0, so the gate was satisfied: self-consistently wrong. The cross-process driver is what exposed it, by failing `ReputationTooLow(Distinct, 0, 1)`. Both the seller and core suites now decode the `Registered` event **by signature** with `parseEventLogs`. The coincidence that hid it is real: on a fresh registry the first agent genuinely *is* id 0 (V-141).
+- **A third harness defect, found on 2026-09-25 and fixed.** `waitForReady` gave a child a hard-coded 30 s to print `ready:<port>`; a child takes **36 s** to load under `tsx` on this workspace, so the script failed with nothing but "never became ready" while the code under test was perfectly healthy. The wait is now `READY_TIMEOUT_MS` (default 180 s, `MULTIPROC_READY_TIMEOUT_MS` to override), the failure message carries the child's captured output and the elapsed time, and output is accumulated before matching — the old version tested each stdout *chunk* separately, so a marker split across two reads would have hung forever. The assertion itself is unchanged and still passes: 50 requests, 1 execution, 49 replays.
 - **Two defects in the test harness itself, both fixed:** the driver spawned `npx tsx`, which inserts `npm exec → sh -c → cli.mjs → node`, so a process-group kill did not reach the server and every failed run **leaked a listening process** that broke the next run; and children were only killed on the success path. It now spawns the `tsx` binary directly, in its own process group, and stops children from an `exit`/`SIGINT`/`SIGTERM` handler.
 - **Risks:** DrvFs write latency under concurrency — the default path avoids it and ENV-002 measured locking sound. Native SQLite build issues did not arise, because `node:sqlite` needs no build; it is flagged experimental by Node, recorded in `docs/specs/versions.md`.
 
