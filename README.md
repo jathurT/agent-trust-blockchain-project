@@ -176,7 +176,7 @@ The tests:
 (cd impl/agents/seller && npx vitest run)      # 96
 (cd impl/agents/buyer  && npx vitest run)      # 21
 (cd impl/attacks       && npx vitest run)      # 32
-(cd impl/validator     && uv run pytest)       # 73
+(cd impl/validator     && uv run pytest)       # 76
 ```
 
 The buyer, seller, attacks and validator suites drive a **live chain**, so they need the

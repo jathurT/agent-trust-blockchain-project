@@ -36,7 +36,7 @@
 
 **Status (2026-09-24, 08:30):** **G1, G2, G3a and G3b all met.** **59 of 134 tasks DONE** — the local system is complete, **the A2 and A3 evaluation is measured**, and the demo, the deck script and the specifications are written.
 
-**469 tests across six packages**, all green: Solidity 154 + 6 invariants, core 87, seller 96, buyer 21, attacks 32, validator 73. Escrow line coverage **98.14% (211/215)**, re-measured 2026-09-25.
+**472 tests across six packages**, all green: Solidity 154 + 6 invariants, core 87, seller 96, buyer 21, attacks 32, validator 76. Escrow line coverage **98.14% (211/215)**, re-measured 2026-09-25.
 
 **Two corrections from that re-run.** (1) An earlier line said **443 tests**; the component counts were right but the total was typed rather than summed — it is 469. Third instance of that defect class, after the README counts and the slide word count. (2) Coverage was quoted as **97.55%**, which was *stale*: it was recorded in `f248db8` (CONTRACT-011) and the escrow changed afterwards in `85f36f7` (CONTRACT-010). Re-measured, it is 98.14% — higher, but the point is that nobody re-ran it after the contract moved.
 
