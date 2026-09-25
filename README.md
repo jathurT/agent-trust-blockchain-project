@@ -63,8 +63,11 @@ buyer ──402──► seller ────────────────
 
 ## Results
 
-Measured on a local devnet, 13 runs at one commit. Full narrative, controls and limits:
-**[`docs/results.md`](docs/results.md)**.
+Measured on a local devnet. **22 recorded runs**, each with a manifest fixing the
+commit, tool versions, chain, block, parameters and seed. Full narrative, controls and
+limits: **[`docs/results.md`](docs/results.md)**.
+
+### The two the demo shows
 
 | | vulnerable fixture | AgentTrust |
 |---|---|---|
@@ -74,9 +77,33 @@ Measured on a local devnet, 13 runs at one commit. Full narrative, controls and 
 | **A3** substitutions served | **100 of 100** | **0 of 100** |
 | false refusals *(the control)* | 0 | **0** |
 
-**Coverage: 2 of the 6 defined attacks.** A1 (reorg), A4 (concurrent duplication),
-A5 (allowance overdraft) and A6 (Sybil selection) were **not evaluated** and are reported
-as such.
+### The other four
+
+Two of these compare against the fixture; the other two compare AgentTrust against a
+weaker configuration of itself, so the baseline column names what it is in each case.
+
+| | baseline | AgentTrust as deployed |
+|---|---|---|
+| **A4** rounds with a duplicate execution | fixture, with a verify→settle window: **150 of 150** | **0 of 150** |
+| **A5** ρ = 1 − settled/delivered | fixture, `upto` pricing: **0.98** | **0.00** |
+| **A6** Sybils admitted | the blueprint's gate v1: **5 of 5** | the trust-anchored gate: **0 of 5** |
+| **A1** revert-grants, 20 trials per cell | no confirmation wait (k=0): **20 of 20**, every depth | k=3: **0 of 20** through depth 3, **20 of 20** at depth 5 |
+
+**Coverage: 6 of 6 — but that is not the same as six defended.**
+
+- **Four blocked, two bounded.** A1 holds only to the confirmation depth chosen; a
+  deeper reorg defeats any policy. A6 refuses the Sybil ring, but an attacker patient
+  enough to earn genuine trusted feedback is admitted like anyone else.
+- **Two of the four "blocked" are structural, not hard-won.** A4 and A5 had nothing to
+  defeat: there is no verify→settle window to race and no allowance to exhaust, because
+  every job is pre-funded at an exact price. A2 and A6 are where a mechanism was under
+  real pressure.
+- **A5's exposure moved rather than vanished.** A job whose validator never attests is
+  delivered and then refunded, so the seller carries the same loss by another route.
+
+**The most useful finding is a negative one about the original design.** Its reputation
+gate admitted **all five** Sybils while refusing **all ten** honest newcomers — the
+cold-start cost with none of the benefit.
 
 The comparison target is a **deliberately vulnerable fixture written for this project**
 (`impl/attacks/src/vulnerable-server.ts`). It is **not** upstream x402, **not** the
