@@ -81,6 +81,22 @@ Raising the ceiling raises the cost of every `fund()`. Lowering it below
 would switch the gate off while leaving it looking applied. This is a property of
 ERC-8004's read, not of the escrow. *(DF-09.)*
 
+**A6 confirmed this from the other side.** Rather than measuring the read, it asked
+whether `fund()` succeeds as an honest seller accumulates ratings: fundable at 26
+entries, refused at 28 with `ReputationTooLow`. `fund()` grew **8,588 gas per entry**
+against the ~8,589 measured on the read — two paths sharing no code, agreeing to within
+one gas. The practical consequence is worth stating plainly: **a seller can be rated
+into invisibility**, and nothing in the protocol stops a would-be competitor from doing
+the rating.
+
+### The gate cannot see conduct, only reputation
+An agent that earns genuine feedback from a buyer's trusted clients is admitted, and
+stays admitted when it starts misbehaving — measured, not argued (A6, H-A6-5). At the
+moment of the check, an honest seller and a patient attacker are the same thing. The
+only remedy is a trusted client revoking, which is retrospective: whatever the agent was
+paid before that stays paid. This is why A6 is reported as **Mitigated** rather than
+**Blocked**.
+
 ---
 
 ## 4. Timing windows that can cost someone money
@@ -188,9 +204,9 @@ API-009, and it **was not done**. *(DF-18.)*
 | A1 revert-grant (reorg) | **Not evaluated.** The defence is a confirmation policy, and the honest claim would be "mitigated up to reorg depth k" — which requires measuring against `anvil_reorg` at several depths. Not run. |
 | A4 concurrent duplication | **Not evaluated.** The claim store is tested under 200-way concurrency across two processes, but the published A4 is a race *inside* a verify→settle window that AgentTrust does not have; a faithful reproduction needs its own fixture. |
 | A5 allowance overdraft | **Not evaluated.** The buyer approves the exact amount rather than an unlimited allowance, which is the structural answer, but no measurement was taken. |
-| A6 Sybil selection | **Not evaluated** as an experiment. The registry-level property is asserted by tests — five cross-endorsing addresses pass the blueprint's gate and contribute nothing to the trust-anchored one — but the published 60.2% figure comes from an LLM discovery-ranking experiment that was not reproduced. |
+| A6 Sybil selection | **Evaluated — Mitigated, not blocked.** The ring is refused on-chain, but an attacker that earns genuine trusted feedback is admitted on the same evidence an honest seller presents, and is refused only once those clients revoke. See below. The published 60.2% figure is still **not** reproduced — it came from an LLM discovery-ranking experiment, and nothing here is comparable to it. |
 
-Coverage is **2 of 6**, and is reported with that denominator.
+Coverage is **3 of 6**, and is reported with that denominator.
 
 ### "Blocked (structural)" is a claim about a mechanism
 For A2 it is the atomic claim store keyed by `(chainId, escrow, jobId)` plus the

@@ -1,0 +1,531 @@
+{
+  "runId": "a6_sybil-agenttrust-ring5-1000-1790330615960",
+  "attackId": "a6_sybil",
+  "target": "agenttrust",
+  "targetLabel": null,
+  "config": "ring5-1000",
+  "metrics": {
+    "spec": {
+      "honest": 10,
+      "sybils": 5,
+      "newcomers": 10,
+      "trustedClients": 3,
+      "honestScore": [
+        8000,
+        9800
+      ],
+      "sybilScore": 10000,
+      "sybilEntriesPerAttester": 2,
+      "honestEntriesPerClient": 2,
+      "seed": 1
+    },
+    "populationLabel": "REG-009 seeded reputation fixture. The Sybil ring is constructed, not observed: five agents with distinct owners endorsing one another, which ERC-8004 permits because feedback needs no proof of interaction (V-93). Honest sellers carry feedback only from the buyer's named trusted clients. Newcomers carry none.",
+    "eligibility": [
+      {
+        "agentId": "0",
+        "kind": "honest",
+        "score": 8000,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "1",
+        "kind": "honest",
+        "score": 8028,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "2",
+        "kind": "honest",
+        "score": 9110,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "3",
+        "kind": "honest",
+        "score": 8128,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "4",
+        "kind": "honest",
+        "score": 9005,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "5",
+        "kind": "honest",
+        "score": 8312,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "6",
+        "kind": "honest",
+        "score": 8265,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "7",
+        "kind": "honest",
+        "score": 8182,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "8",
+        "kind": "honest",
+        "score": 8840,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "9",
+        "kind": "honest",
+        "score": 9222,
+        "totalCount": 6,
+        "totalDistinct": 3,
+        "trustedCount": 6,
+        "trustedDistinct": 3,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": true
+        }
+      },
+      {
+        "agentId": "10",
+        "kind": "sybil",
+        "score": 10000,
+        "totalCount": 8,
+        "totalDistinct": 4,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "11",
+        "kind": "sybil",
+        "score": 10000,
+        "totalCount": 8,
+        "totalDistinct": 4,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "12",
+        "kind": "sybil",
+        "score": 10000,
+        "totalCount": 8,
+        "totalDistinct": 4,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "13",
+        "kind": "sybil",
+        "score": 10000,
+        "totalCount": 8,
+        "totalDistinct": 4,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "14",
+        "kind": "sybil",
+        "score": 10000,
+        "totalCount": 8,
+        "totalDistinct": 4,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": true,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "15",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "16",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "17",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "18",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "19",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "20",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "21",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "22",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "23",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      },
+      {
+        "agentId": "24",
+        "kind": "newcomer",
+        "score": null,
+        "totalCount": 0,
+        "totalDistinct": 0,
+        "trustedCount": 0,
+        "trustedDistinct": 0,
+        "eligible": {
+          "none": true,
+          "v1": false,
+          "v2": false
+        }
+      }
+    ],
+    "admitted": {
+      "none": {
+        "honest": 10,
+        "sybil": 5,
+        "newcomer": 10
+      },
+      "v1": {
+        "honest": 10,
+        "sybil": 5,
+        "newcomer": 0
+      },
+      "v2": {
+        "honest": 10,
+        "sybil": 0,
+        "newcomer": 0
+      }
+    },
+    "captureShare": {
+      "none": {
+        "top-score": {
+          "sybil": 1000,
+          "rounds": 1000
+        },
+        "weighted": {
+          "sybil": 365,
+          "rounds": 1000
+        }
+      },
+      "v1": {
+        "top-score": {
+          "sybil": 1000,
+          "rounds": 1000
+        },
+        "weighted": {
+          "sybil": 383,
+          "rounds": 1000
+        }
+      },
+      "v2": {
+        "top-score": {
+          "sybil": 0,
+          "rounds": 1000
+        },
+        "weighted": {
+          "sybil": 0,
+          "rounds": 1000
+        }
+      }
+    },
+    "falseRefusals": {
+      "none": {
+        "newcomersTotal": 10,
+        "newcomersRefused": 0,
+        "honestTotal": 10,
+        "honestRefused": 0
+      },
+      "v1": {
+        "newcomersTotal": 10,
+        "newcomersRefused": 10,
+        "honestTotal": 10,
+        "honestRefused": 0
+      },
+      "v2": {
+        "newcomersTotal": 10,
+        "newcomersRefused": 10,
+        "honestTotal": 10,
+        "honestRefused": 0
+      }
+    },
+    "onChain": [
+      {
+        "agentId": "0",
+        "kind": "honest",
+        "funded": true,
+        "revert": null
+      },
+      {
+        "agentId": "10",
+        "kind": "sybil",
+        "funded": false,
+        "revert": "ReputationTooLow"
+      },
+      {
+        "agentId": "15",
+        "kind": "newcomer",
+        "funded": false,
+        "revert": "ReputationTooLow"
+      }
+    ],
+    "honestThenDefect": {
+      "agentId": "25",
+      "admittedAfterEarning": true,
+      "admittedAfterDefection": true,
+      "admittedAfterRevocation": false,
+      "entriesRevoked": 4,
+      "note": "The gate is a pre-transaction filter over reputation, not conduct. An agent that earns genuine trusted feedback is admitted on the same evidence an honest seller is, and defection changes nothing the gate can read. The only remedy is a trusted client revoking, which is retrospective: whatever the agent was paid before that stays paid. This is a limitation of the mechanism, not a defect in it."
+    },
+    "gasVsHistory": [
+      {
+        "entries": 1,
+        "fundGas": "327221",
+        "refused": null
+      },
+      {
+        "entries": 5,
+        "fundGas": "361574",
+        "refused": null
+      },
+      {
+        "entries": 10,
+        "fundGas": "404516",
+        "refused": null
+      },
+      {
+        "entries": 20,
+        "fundGas": "490401",
+        "refused": null
+      },
+      {
+        "entries": 24,
+        "fundGas": "524755",
+        "refused": null
+      },
+      {
+        "entries": 26,
+        "fundGas": "541920",
+        "refused": null
+      },
+      {
+        "entries": 28,
+        "fundGas": null,
+        "refused": "ReputationTooLow"
+      },
+      {
+        "entries": 30,
+        "fundGas": null,
+        "refused": "ReputationTooLow"
+      },
+      {
+        "entries": 40,
+        "fundGas": null,
+        "refused": "ReputationTooLow"
+      }
+    ],
+    "fundableHistoryBound": {
+      "lastFundable": 26,
+      "firstRefused": 28,
+      "refusal": "ReputationTooLow"
+    }
+  },
+  "outcome": null,
+  "hypothesis": "H-A6-1..5",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

@@ -78,6 +78,54 @@ The fixture does refuse a request with **no** authorization, which is worth stat
 because it shows the zero in that row is a real check rather than an artefact of the
 harness.
 
+## A6 — the Sybil ring against the reputation gate
+
+**The blueprint's own gate gives no protection against the attack it was written for.**
+Gate v1 (`score ≥ 6000`, `count ≥ 5`, `distinct ≥ 3` over every client) admitted **all
+five** Sybils, because a ring of five agents with distinct owners can endorse each
+other: `distinct = 4 ≥ 3`, and two entries apiece gives `count = 8 ≥ 5`, at a score the
+ring picks for itself. That was DF-09's prediction on paper (H-A6-2); it is now
+measured. Worse, v1 admitted every Sybil while refusing all ten honest newcomers — it
+imposes the cold-start cost and returns nothing for it.
+
+**The implemented gate refuses the ring, and the chain says so rather than a model.**
+`fund()` was actually sent: an honest seller funded, a Sybil reverted
+`ReputationTooLow`, a newcomer likewise (H-A6-3).
+
+**The cost is real and is now a number, not a caveat.** Ten of ten honest newcomers were
+refused (H-A6-4). A seller with no shared history is refused exactly as a Sybil is, and
+for the same reason — the gate cannot tell them apart.
+
+### Two results that limit the claim
+
+**Patience defeats the gate** (H-A6-5). An agent that earns genuine feedback from the
+buyer's own trusted clients is admitted, stays admitted after it starts misbehaving, and
+is refused only once those clients revoke — four entries, after the fact. The gate is a
+pre-transaction filter over *reputation*; it has no view of *conduct*, so at the moment
+of the check an honest seller and a patient attacker are indistinguishable. Whatever was
+paid before the revocation stays paid. This is why the coverage table says **Mitigated**
+and not **Blocked**.
+
+**An honest seller can be rated into invisibility.** Past **26** feedback entries from
+one trusted client, `fund()` was refused; 28 reverted `ReputationTooLow`. `getSummary`
+runs under a 250,000-gas ceiling, and over it the read is caught and reads as
+`count = 0` — which the gate cannot distinguish from having no reputation at all. It
+fails closed, so it is safe, but the client's opinion stops counting silently. `fund()`
+grew **8,588 gas per entry** across the sweep; CONTRACT-005 measured **~8,589** on the
+read itself. Two paths sharing no code, agreeing to within one gas.
+
+### What the capture-share numbers are, and are not
+
+A capture share can be manufactured by choosing how the buyer picks, so both rules are
+reported: ranking by score gives the ring **100%** under no gate and under v1; weighting
+by score gives **36.5%** and **38.3%**. Gate v2 gives 0% under either. The spread
+between the two rules is the honest measure of how much the rule is doing, and neither
+number is comparable to the 60.2% in arXiv 2605.11781 — that was an LLM
+discovery-ranking experiment, not an escrow gate.
+
+**Eligibility is the model-free part**: who each gate admits is a fact about the
+registry and the rule, and for v2 it was confirmed by a transaction.
+
 ## What this does not show
 
 - **Nothing about Base Sepolia.** Every run is on a local Anvil. Latency, gas and
@@ -169,6 +217,34 @@ Environment: anvil, chain 31337, commit `bd5b431d6971`.
 
 **fixture — Not blocked.** 100 of 100 substitutions were served
 
+### A6 — Sybil seller selection
+
+Who each gate admits, out of the same populated registry:
+
+| gate | honest admitted | **Sybils admitted** | newcomers admitted |
+|---|---|---|---|
+| none | 10/10 | **5/5** | 10/10 |
+| v1 (the blueprint's rule) | 10/10 | **5/5** | 0/10 |
+| v2 (implemented) | 10/10 | **0/5** | 0/10 |
+
+Selection share landing on a Sybil. **The rule is a choice, not a measurement**, so both are shown:
+
+| gate | top-score | weighted |
+|---|---|---|
+| none | 100.0% | 36.5% |
+| v1 | 100.0% | 38.3% |
+| v2 | 0.0% | 0.0% |
+
+Gate v2 as the chain enforces it — `fund()` actually sent:
+
+- **honest** — funded
+- **sybil** — refused, `ReputationTooLow`
+- **newcomer** — refused, `ReputationTooLow`
+
+**An attacker that earns trusted feedback is admitted** (H-A6-5): admitted after earning `true`, still admitted after defecting `true`, refused only after 4 entries were revoked `false`. The gate reads reputation, not conduct, so patience defeats it and the only remedy is retrospective.
+
+**An honest seller becomes unfundable past 26 feedback entries** from one trusted client — 28 was refused with `ReputationTooLow`. `getSummary` runs under a 250,000-gas ceiling; over it the read is caught and reads as `count = 0`, which the gate treats as no reputation. Fail-closed, so safe, but the client's opinion stops counting silently. `fund()` grew 8,588 gas per entry here, against the ~8,589 CONTRACT-005 measured on the read itself — two independent paths agreeing to within a gas.
+
 ### Defence coverage
 
 | attack | outcome for AgentTrust | mechanism, where blocked |
@@ -178,6 +254,6 @@ Environment: anvil, chain 31337, commit `bd5b431d6971`.
 | A3 cross-resource substitution | Blocked (structural) | on-chain `resourceHash` over method, URI, body, amount, token and chain |
 | A4 concurrent duplication | Not evaluated | — |
 | A5 allowance overdraft | Not evaluated | — |
-| A6 Sybil selection | Not evaluated | — |
+| A6 Sybil selection | Mitigated (ring refused; an earned reputation still admits) | `getSummary` over a bounded list of buyer-named trusted clients, enforced in `fund()` |
 
-**2 of the 6 defined attacks evaluated.** A1, A4, A5 and A6 are EXTENDED-E2 and were not run; "Not evaluated" is reported rather than omitted.
+**3 of the 6 defined attacks evaluated.** A1, A4, A5 are EXTENDED-E2 and were not run; "Not evaluated" is reported rather than omitted.

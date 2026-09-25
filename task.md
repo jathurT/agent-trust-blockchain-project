@@ -92,7 +92,7 @@ everything on the testnet path (blocked on ENV-006/007).
 
 Thirteen runs, one commit, none with a dirty tree. Every figure is generated from a recorded run into `docs/results.tables.md`, which reproduces byte-for-byte. Full narrative and limits: `docs/results.md`.
 
-**Coverage: 2 of the 6 defined attacks.** A1, A4, A5 and A6 are EXTENDED-E2 and are reported as **Not evaluated**, not omitted.
+**Coverage: 3 of the 6 defined attacks.** A6 was run on 2026-09-25; A1, A4 and A5 remain EXTENDED-E2 and are reported as **Not evaluated**, not omitted.
 
 **The baseline is a fixture written for this evaluation — not upstream x402, not the `@x402/*` packages.** Anything about upstream needs API-009, which was not run.
 
@@ -674,7 +674,10 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### REG-009 — Seed reputation fixtures
 
-- [ ] **Status:** TODO · **Authorized:** no · **Tier:** CORE-P1 · **Est:** 0.5 h · **Hat/agent:** U(B) · security-eval
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** yes (user, 2026-09-25) · **Tier:** CORE-P1 · **Est:** 0.5 h · **Hat/agent:** U(B) · security-eval
+- **Outcome:** `impl/attacks/src/population.ts` — a seeded population of honest sellers (endorsed only by the buyer's named trusted clients), a cross-endorsing Sybil ring, and newcomers with no history. Reproducible from a seed and recorded in every result, because "Sybils captured N%" means nothing without knowing how many of each and who vouched for whom.
+- **The detail that decides whether the experiment says anything:** the blueprint's gate needs `count >= 5`, and five Sybils can endorse each other only four times apiece — the registry refuses feedback from an agent's own owner. One entry each gives `count = 4` and the ring fails on a technicality rather than on its merits. Two gives `count = 8`, which is DF-09's actual arithmetic. Honest sellers get the same treatment so the comparison is about *who the attesters are*, not entry volume.
+- **Devnet-only by construction:** it funds fixture accounts with `anvil_setBalance` and **refuses to run on any chain but 31337**, because on a testnet those accounts would need faucet funding (ENV-007), which a fixture may not assume.
 - **Objective:** Labelled, reproducible reputation data for the demo and for gate tests.
 - **Refs:** §5.1(2) · FR-02, FR-08 · DF-09, DF-21
 - **Depends:** REG-003, SPEC-004
@@ -1256,7 +1259,15 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-007 — A6 Sybil selection and the gate
 
-- [ ] **Status:** DEFERRED · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 3 h · **Hat/agent:** U(D)
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** yes (user, 2026-09-25) · **Tier:** EXTENDED-E2 · **Est:** 3 h · **Hat/agent:** U(D)
+- **Run:** `a6_sybil-agenttrust-ring5-1000-1790330615960`, commit `6b905fc5`, `dirty: false`, 1000 selection rounds per configuration. Evidence: `evidence/SEC-007/`.
+- **H-A6-2 HELD, and it is the finding worth having.** Gate v1 — the blueprint's own rule — admitted **all five** Sybils (`distinct = 4 >= 3`, `count = 8 >= 5`, score self-assigned) **and refused all ten honest newcomers**. It imposes the cold-start cost and returns nothing for it. A negative result about the original design, measured rather than argued.
+- **H-A6-3 HELD, on-chain.** `fund()` was actually sent: honest funded, Sybil reverted `ReputationTooLow`, newcomer likewise. The verdict is the contract's, not a model's.
+- **H-A6-4 HELD.** 10 of 10 honest newcomers refused by v2. The cost `docs/LIMITATIONS.md` described now has a number.
+- **H-A6-5 HELD — this is why A6 is "Mitigated" and not "Blocked".** An agent that earns genuine trusted feedback is admitted, *stays* admitted after defecting, and is refused only once those clients revoke (4 entries, retrospectively). The gate reads reputation, not conduct; at the moment of the check a patient attacker and an honest seller are the same thing.
+- **H-A6-1 is reported as two numbers, not one.** Capture share is a property of the selection rule, so both are given: ranking by score gives the ring 100% under no gate and under v1; weighting by score gives 36.5% and 38.3%; v2 gives 0% under either. Not comparable to the paper's 60.2%, which came from an LLM discovery-ranking experiment — stated in the results rather than left for a reader to assume.
+- **An unplanned confirmation.** The gas sweep walked off the history cliff `LIMITATIONS` §3 documents and crashed. Rebuilt to record refusals, it located the boundary: **fundable at 26 entries, refused at 28**, and `fund()` grew **8,588 gas per entry** against the **~8,589** CONTRACT-005 measured on the read itself. Two paths sharing no code, one gas apart. The practical statement is blunter than the caveat was: **a seller can be rated into invisibility**, and nothing stops a competitor doing the rating.
+- **Three bugs of mine on the way**, all in the harness rather than the system: fixture accounts had no gas (anvil pre-funds only its first ten; the cohorts start at index 100); feedback indices were assumed 0-based when ERC-8004's are 1-based per `(agent, client)` — caught because the mock reproduces the quirk faithfully, which is REG-002's whole purpose; and the gas checkpoints stepped over the cliff instead of straddling it.
 - **Refs:** §3 A6, §12.2, §13(4) · ER-04 · DF-09, DF-21 · V-14 · Depends: REG-009, CONTRACT-005
 - **Objective:** Capture share under no gate / gate v1 (mock-only) / gate v2; the five-agent cross-endorsing ring; an honest-then-defect Sybil; false refusals of honest newcomers; gas versus feedback history.
 - **Note:** H-A6-2 predicts the **blueprint's own gate admits the ring** — a negative result about the original design, and one of the more interesting findings if it holds.

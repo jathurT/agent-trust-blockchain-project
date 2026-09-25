@@ -235,6 +235,79 @@ export function render(loaded: Loaded[]): string {
   }
 
   // ------------------------------------------------------------- coverage
+  // ----------------------------------------------------------------- A6
+  const a6 = loaded.filter((l) => l.results.attackId === "a6_sybil");
+  if (a6.length > 0) {
+    const m = a6[0]!.results.metrics;
+    const admitted = m["admitted"] as Record<string, Record<string, number>>;
+    const capture = m["captureShare"] as Record<string, Record<string, { sybil: number; rounds: number }>>;
+    const onChain = (m["onChain"] as { kind: string; funded: boolean; revert: string | null }[]) ?? [];
+    const defect = m["honestThenDefect"] as Record<string, unknown> | null;
+    const bound = m["fundableHistoryBound"] as { lastFundable: number | null; firstRefused: number | null };
+    const gas = (m["gasVsHistory"] as { entries: number; fundGas: string | null }[]) ?? [];
+
+    lines.push("### A6 — Sybil seller selection");
+    lines.push("");
+    lines.push("Who each gate admits, out of the same populated registry:");
+    lines.push("");
+    lines.push("| gate | honest admitted | **Sybils admitted** | newcomers admitted |");
+    lines.push("|---|---|---|---|");
+    for (const g of ["none", "v1", "v2"]) {
+      const a = admitted?.[g];
+      if (!a) continue;
+      const label = g === "v1" ? "v1 (the blueprint's rule)" : g === "v2" ? "v2 (implemented)" : "none";
+      lines.push(`| ${label} | ${a["honest"]}/10 | **${a["sybil"]}/5** | ${a["newcomer"]}/10 |`);
+    }
+    lines.push("");
+    lines.push("Selection share landing on a Sybil. **The rule is a choice, not a measurement**, so both are shown:");
+    lines.push("");
+    lines.push("| gate | top-score | weighted |");
+    lines.push("|---|---|---|");
+    for (const g of ["none", "v1", "v2"]) {
+      const c = capture?.[g];
+      if (!c) continue;
+      const pct = (x?: { sybil: number; rounds: number }) =>
+        x ? `${((100 * x.sybil) / x.rounds).toFixed(1)}%` : "—";
+      lines.push(`| ${g} | ${pct(c["top-score"])} | ${pct(c["weighted"])} |`);
+    }
+    lines.push("");
+    lines.push("Gate v2 as the chain enforces it — `fund()` actually sent:");
+    lines.push("");
+    for (const r of onChain) {
+      lines.push(`- **${r.kind}** — ${r.funded ? "funded" : `refused, \`${r.revert}\``}`);
+    }
+    lines.push("");
+    if (defect) {
+      lines.push(
+        `**An attacker that earns trusted feedback is admitted** (H-A6-5): admitted after earning ` +
+          `\`${String(defect["admittedAfterEarning"])}\`, still admitted after defecting ` +
+          `\`${String(defect["admittedAfterDefection"])}\`, refused only after ${String(defect["entriesRevoked"])} ` +
+          `entries were revoked \`${String(defect["admittedAfterRevocation"])}\`. The gate reads reputation, ` +
+          "not conduct, so patience defeats it and the only remedy is retrospective.",
+      );
+      lines.push("");
+    }
+    if (bound?.lastFundable != null) {
+      const first = gas[0];
+      const last = gas.filter((p) => p.fundGas !== null).at(-1);
+      const perEntry =
+        first?.fundGas && last?.fundGas && last.entries > first.entries
+          ? Math.round((Number(last.fundGas) - Number(first.fundGas)) / (last.entries - first.entries))
+          : null;
+      lines.push(
+        `**An honest seller becomes unfundable past ${bound.lastFundable} feedback entries** from one trusted ` +
+          `client — ${bound.firstRefused} was refused with \`ReputationTooLow\`. \`getSummary\` runs under a ` +
+          "250,000-gas ceiling; over it the read is caught and reads as `count = 0`, which the gate treats as no " +
+          "reputation. Fail-closed, so safe, but the client's opinion stops counting silently." +
+          (perEntry !== null
+            ? ` \`fund()\` grew ${perEntry.toLocaleString()} gas per entry here, against the ~8,589 CONTRACT-005 ` +
+              "measured on the read itself — two independent paths agreeing to within a gas."
+            : ""),
+      );
+      lines.push("");
+    }
+  }
+
   lines.push("### Defence coverage");
   lines.push("");
   lines.push("| attack | outcome for AgentTrust | mechanism, where blocked |");

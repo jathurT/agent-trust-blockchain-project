@@ -1,6 +1,6 @@
 # PRES-001 — Five-slide outline
 
-Three minutes, five slides, one presenter. The spoken script below is **386 words**,
+Three minutes, five slides, one presenter. The spoken script below is **391 words**,
 counted rather than estimated — a first draft came out at 440, which is about three and
 a half minutes. Recount after any edit; the time limit is what decides the cuts.
 
@@ -113,15 +113,21 @@ upstream x402"**. Right pane: AgentTrust.
 
 **Visual:** the coverage table with all six rows and their outcomes; repository QR.
 
-> "Two of six defined attacks evaluated. Both blocked structurally — by the claim store
-> and by the on-chain resource hash. The other four are on the table as not evaluated,
-> not left off it. And what this does not show: the validator attests that the bytes are
-> the correct deterministic result, not that the result was worth paying for. As agents
-> transact without us, the escrow has to be as automated as the payment."
+> "Three of six attacks evaluated. Replay and cross-resource: blocked structurally. The
+> third is the interesting one — the original design's gate admitted all five Sybils and
+> refused all ten honest newcomers. Ours refuses the ring, but a patient attacker who
+> earns real feedback gets in, so that one is mitigated, not blocked. What none of it
+> shows is whether the answer was any good. As agents transact without us, the escrow
+> has to be as automated as the payment."
 
-- **2 of 6 evaluated**, with A1, A4, A5, A6 shown as "Not evaluated" — `docs/results.md`
+- **3 of 6 evaluated**, with A1, A4, A5 shown as "Not evaluated" — `docs/results.md`
   §"Defence coverage". **Corrected from §17:** "six published attacks, six blocked" is
   not a claim this project can make.
+- **A6 is the one to mention if there is a spare breath**, because it is the only
+  finding that is *against* the original design: the blueprint's own gate admitted all
+  five Sybils while refusing all ten honest newcomers. And say the bound — the
+  implemented gate is **Mitigated, not Blocked**, because an attacker patient enough to
+  earn trusted feedback is admitted like anyone else.
 - **Corrected from §17:** no deployed Base Sepolia address is shown. The deployment is
   blocked on testnet funds (ENV-006/007); if it lands before the talk, the address and
   explorer link replace the QR's second line, and if it does not, the slide says
@@ -145,8 +151,8 @@ Measured word counts, at roughly 129 words per minute:
 | 2 Problem | 0:25–1:05 | 106 | 0:49 |
 | 3 Solution | 1:05–1:40 | 83 | 0:39 |
 | 4 Demo | 1:40–2:30 | 70 | 0:33 |
-| 5 Results | 2:30–3:00 | 74 | 0:34 |
-| | **3:00** | **386** | **3:00** |
+| 5 Results | 2:30–3:00 | 79 | 0:36 |
+| | **3:00** | **391** | **3:02** |
 
 Slide 4 is under its 50-second slot because the video runs for 45 of those seconds and
 the presenter should not be talking over all of it. Slide 2 is the longest and is the
