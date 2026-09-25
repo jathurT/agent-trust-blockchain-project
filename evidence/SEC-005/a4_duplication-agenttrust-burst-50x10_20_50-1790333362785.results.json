@@ -1,0 +1,45 @@
+{
+  "runId": "a4_duplication-agenttrust-burst-50x10_20_50-1790333362785",
+  "attackId": "a4_duplication",
+  "target": "agenttrust",
+  "targetLabel": null,
+  "config": "burst-50x10_20_50",
+  "metrics": {
+    "rounds": 150,
+    "by_concurrency": {
+      "10": {
+        "rounds": 50,
+        "rounds_with_duplicate_execution": 0,
+        "duplicate_round_rate": 0,
+        "max_executions_in_a_round": 1,
+        "total_executions": 50,
+        "total_http_2xx": 51
+      },
+      "20": {
+        "rounds": 50,
+        "rounds_with_duplicate_execution": 0,
+        "duplicate_round_rate": 0,
+        "max_executions_in_a_round": 1,
+        "total_executions": 50,
+        "total_http_2xx": 50
+      },
+      "50": {
+        "rounds": 50,
+        "rounds_with_duplicate_execution": 0,
+        "duplicate_round_rate": 0,
+        "max_executions_in_a_round": 1,
+        "total_executions": 50,
+        "total_http_2xx": 50
+      }
+    },
+    "rounds_with_duplicate_execution": 0,
+    "max_executions_in_a_round": 1,
+    "verify_window_ms": 5
+  },
+  "outcome": null,
+  "hypothesis": "H-A4-2",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

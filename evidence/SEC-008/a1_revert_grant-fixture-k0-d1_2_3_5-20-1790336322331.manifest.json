@@ -1,0 +1,62 @@
+{
+  "runId": "a1_revert_grant-fixture-k0-d1_2_3_5-20-1790336322331",
+  "startedAt": "2026-09-25T11:38:43.654Z",
+  "finishedAt": "2026-09-25T11:55:00.466Z",
+  "attackId": "a1_revert_grant",
+  "target": "fixture",
+  "targetVersion": "vulnerable-fixture-v1",
+  "configName": "k0-d1_2_3_5-20",
+  "gitCommit": "f87904b1476f468e86ca65f2f46b258056552c10",
+  "dirty": false,
+  "env": {
+    "chainId": 31337,
+    "rpc": "http://127.0.0.1:8545",
+    "blockNumber": "1",
+    "blockTimestamp": 1790336254,
+    "mode": "anvil",
+    "confirmations": 0
+  },
+  "versions": {
+    "git": "f87904b1476f468e86ca65f2f46b258056552c10",
+    "dirty": false,
+    "node": "v22.17.0",
+    "pnpm": "9.15.9",
+    "python": "3.12.3",
+    "foundry": "forge Version: 1.8.3",
+    "solc": "0.8.37",
+    "packages": {
+      "@agenttrust/core": "link:../packages/core",
+      "@agenttrust/seller": "link:../agents/seller",
+      "express": "5.2.1",
+      "viem": "2.56.8",
+      "@types/express": "5.0.6",
+      "@types/node": "26.6.2",
+      "@types/supertest": "6.0.3",
+      "supertest": "7.3.0",
+      "tsx": "4.23.15",
+      "typescript": "7.0.2",
+      "vitest": "5.0.1"
+    }
+  },
+  "contracts": {
+    "escrow": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "token": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "identity": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "reputation": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "validation": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+  },
+  "params": {
+    "runs": 10,
+    "replays": 50,
+    "rounds": 100,
+    "concurrency": 1,
+    "seed": 1,
+    "variant": "original",
+    "replayPolicy": "idempotent",
+    "sellerProcesses": 1
+  },
+  "notes": [
+    "DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.",
+    "Local Anvil (chain 31337). These are devnet measurements: latencies, gas and confirmation behaviour do not transfer to Base Sepolia."
+  ]
+}

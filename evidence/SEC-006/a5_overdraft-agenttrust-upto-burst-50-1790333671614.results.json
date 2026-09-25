@@ -1,0 +1,26 @@
+{
+  "runId": "a5_overdraft-agenttrust-upto-burst-50-1790333671614",
+  "attackId": "a5_overdraft",
+  "target": "agenttrust",
+  "targetLabel": null,
+  "config": "upto-burst-50",
+  "metrics": {
+    "requests": 50,
+    "delivered": 50,
+    "settled": 50,
+    "unsettled": 0,
+    "rho": 0,
+    "overdraw_succeeded": false,
+    "overdraw_detail": "Structurally unavailable. The escrow holds a fixed `amount` snapshotted at fund() and pays exactly that to the snapshotted payee; the amount is one of the fields hashed into resourceHash, so a request for a different amount is a different job. There is no draw call for a seller to inflate.",
+    "statuses": {
+      "200": 50
+    },
+    "allowance": "250000"
+  },
+  "outcome": null,
+  "hypothesis": "H-A5-2/3",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

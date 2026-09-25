@@ -235,6 +235,100 @@ export function render(loaded: Loaded[]): string {
   }
 
   // ------------------------------------------------------------- coverage
+  // ----------------------------------------------------------------- A4
+  const a4 = loaded.filter((l) => l.results.attackId === "a4_duplication");
+  if (a4.length > 0) {
+    lines.push("### A4 — concurrent duplication");
+    lines.push("");
+    lines.push("One payment, N requests fired together, 50 rounds per level.");
+    lines.push("");
+    lines.push("| target | concurrency | rounds with a duplicate execution | max executions in one round |");
+    lines.push("|---|---|---|---|");
+    for (const l of sorted(a4)) {
+      const by = l.results.metrics["by_concurrency"] as Record<string, Record<string, number>>;
+      for (const level of Object.keys(by).sort((x, y) => Number(x) - Number(y))) {
+        const c = by[level]!;
+        lines.push(
+          `| ${l.results.target} | ${level} | **${c["rounds_with_duplicate_execution"]} / ${c["rounds"]}** | ${c["max_executions_in_a_round"]} |`,
+        );
+      }
+    }
+    lines.push("");
+    lines.push(
+      "The fixture's rate is **a function of its verify window** (" +
+        `${String(a4[0]!.results.metrics["verify_window_ms"])} ms here), not a reproduction of the published 6%. ` +
+        "What is reproduced is the condition — a check-then-act race inside verify→settle — not the number.",
+    );
+    lines.push("");
+  }
+
+  // ----------------------------------------------------------------- A5
+  const a5 = loaded.filter((l) => l.results.attackId === "a5_overdraft");
+  if (a5.length > 0) {
+    lines.push("### A5 — resource leakage under `upto` pricing");
+    lines.push("");
+    lines.push("| target | delivered | settled | unsettled | **ρ = 1 − settled/delivered** | seller over-draw |");
+    lines.push("|---|---|---|---|---|---|");
+    for (const l of sorted(a5)) {
+      const m = l.results.metrics;
+      lines.push(
+        `| ${l.results.target} | ${m["delivered"]} | ${m["settled"]} | ${m["unsettled"]} | ` +
+          `**${Number(m["rho"]).toFixed(4)}** | ${m["overdraw_succeeded"] ? "succeeded" : "structurally unavailable"} |`,
+      );
+    }
+    lines.push("");
+    lines.push(
+      "The fixture's ρ is close to the published 97.76%, but that is **a consequence of the allowance chosen " +
+        "here** (one job's worth against a fifty-request burst), not an independent reproduction of their figure.",
+    );
+    lines.push("");
+  }
+
+  // ----------------------------------------------------------------- A1
+  const a1 = loaded.filter((l) => l.results.attackId === "a1_revert_grant");
+  if (a1.length > 0) {
+    lines.push("### A1 — revert-grant under reorg");
+    lines.push("");
+    lines.push("Work delivered for a payment a reorg then removed, out of 20 trials per cell.");
+    lines.push("");
+    const depths = [1, 2, 3, 5];
+    lines.push(`| target | policy | ${depths.map((d) => `d=${d}`).join(" | ")} | mitigated up to |`);
+    lines.push(`|---|---|${depths.map(() => "---").join("|")}|---|`);
+    for (const l of sorted(a1).filter((x) => x.results.target === "agenttrust")) {
+      const m = l.results.metrics;
+      const cells = m["cells"] as Record<string, Record<string, number>>;
+      const k = (m["policies"] as number[])[0]!;
+      const row = depths.map((d) => {
+        const c = cells[`k=${k},d=${d}`];
+        return c ? `${c["revert_grants"]}/${c["trials"]}` : "—";
+      });
+      const bound = (m["mitigated_up_to_depth"] as Record<string, number | null>)[`k=${k}`];
+      lines.push(`| agenttrust | k=${k} | ${row.join(" | ")} | **${bound === null ? "nothing" : `depth ${bound}`}** |`);
+    }
+    lines.push("");
+    lines.push(
+      "**This is a bound, and it can never read \"blocked\".** A reorg deeper than `k` defeats any `k`; the " +
+        "cliff sits exactly at `d > k`, which is arithmetic. What the runs establish is that the seller counts " +
+        "confirmations against the funding block rather than the tip or the clock, and that a job a reorg removed " +
+        "really does read as gone.",
+    );
+    lines.push("");
+    const fx = sorted(a1).find((x) => x.results.target === "fixture");
+    if (fx) {
+      const cells = fx.results.metrics["cells"] as Record<string, Record<string, number>>;
+      const delivered = Object.values(cells).map((c) => `${c["delivered"]}/${c["trials"]}`);
+      lines.push(
+        `**The fixture delivered ${delivered[0]} in every cell**, at every depth, because it grants without ` +
+          "waiting for any confirmation — which is the A1 condition. Its *settlement survival* figures are **not " +
+          "reported**: the settlements are fired out of band and land a trial late, so the per-trial reading " +
+          "alternates survived/gone in lockstep with trial parity. That measures the fixture's own pipeline, not " +
+          "reorg depth. The optimistic baseline for the revert-grant claim is the `k=0` row above, where the job " +
+          "is read from chain state directly.",
+      );
+      lines.push("");
+    }
+  }
+
   // ----------------------------------------------------------------- A6
   const a6 = loaded.filter((l) => l.results.attackId === "a6_sybil");
   if (a6.length > 0) {
@@ -335,12 +429,29 @@ export function render(loaded: Loaded[]): string {
             unauthorized_2xx_total: rows.reduce((a, r) => a + Number(r.results.metrics["unauthorized_2xx_total"] ?? 0), 0),
           }
         : (rows[0]?.results.metrics ?? {});
+    // A1 reports the *best* bound across the policies that were run, so the row
+    // describes the confirmation policy a deployment would actually choose.
+    const a1Merged =
+      id === "a1_revert_grant"
+        ? {
+            mitigated_up_to_depth: Object.assign(
+              {},
+              ...rows.map((r) => r.results.metrics["mitigated_up_to_depth"] ?? {}),
+            ),
+          }
+        : merged;
     const { outcome } =
       id === "a2_replay"
         ? classifyA2(merged as Record<string, unknown>)
         : id === "a6_sybil"
           ? classifyA6(merged)
-          : classifyA3(merged);
+          : id === "a4_duplication"
+            ? classifyA4(merged)
+            : id === "a5_overdraft"
+              ? classifyA5(merged)
+              : id === "a1_revert_grant"
+                ? classifyA1(a1Merged as Record<string, unknown>)
+                : classifyA3(merged);
     const mechanism =
       id === "a2_replay"
         ? "atomic claim store keyed by (chainId, escrow, jobId), plus payer-signed delivery"
@@ -348,7 +459,13 @@ export function render(loaded: Loaded[]): string {
           ? "on-chain `resourceHash` over method, URI, body, amount, token and chain"
           : id === "a6_sybil"
             ? "`getSummary` over a bounded list of buyer-named trusted clients, enforced in `fund()`"
-            : "—";
+            : id === "a4_duplication"
+              ? "the same atomic claim as A2; there is no verify→settle window to race"
+              : id === "a5_overdraft"
+                ? "funds locked at an exact price before execution, so there is no allowance to exhaust"
+                : id === "a1_revert_grant"
+                  ? "the seller's confirmation policy — a bound, not a barrier"
+                  : "—";
     lines.push(
       `| ${name} | ${outcome} | ${outcome.startsWith("Blocked") || outcome.startsWith("Mitigated") ? mechanism : "—"} |`,
     );
@@ -375,6 +492,40 @@ export function render(loaded: Loaded[]): string {
  * it. "Blocked (structural)" would claim a property the experiment disproves in its own
  * results, so the bound travels with the verdict.
  */
+/** A4: zero duplicate rounds at every concurrency level. */
+export function classifyA4(m: Record<string, unknown>): { outcome: string } {
+  const by = (m["by_concurrency"] as Record<string, Record<string, number>>) ?? {};
+  const cells = Object.values(by);
+  if (cells.length === 0) return { outcome: "Not evaluated" };
+  const dup = cells.reduce((a, c) => a + Number(c["rounds_with_duplicate_execution"] ?? 0), 0);
+  return { outcome: dup === 0 ? "Blocked (structural)" : "Not blocked" };
+}
+
+/**
+ * A5. "Blocked" covers the direction that was measured — no delivered work went
+ * unsettled, and the seller cannot over-draw. It does **not** cover the residual: a job
+ * whose validator never answers is delivered and then refunded, so the seller carries
+ * the same loss by another route. That path is exercised by INT-002 rather than
+ * measured as a rate here, and the qualifier travels with the verdict.
+ */
+export function classifyA5(m: Record<string, unknown>): { outcome: string } {
+  const rho = Number(m["rho"] ?? 1);
+  const overdraw = Boolean(m["overdraw_succeeded"]);
+  if (rho > 0 || overdraw) return { outcome: "Not blocked" };
+  return { outcome: "Blocked (structural, for the measured direction)" };
+}
+
+/** A1 is a bound by construction: `mitigated up to depth k`, never "blocked". */
+export function classifyA1(m: Record<string, unknown>): { outcome: string } {
+  const bounds = (m["mitigated_up_to_depth"] as Record<string, number | null>) ?? {};
+  const best = Object.values(bounds).reduce<number | null>(
+    (a, b) => (b === null ? a : a === null ? b : Math.max(a, b)),
+    null,
+  );
+  if (best === null) return { outcome: "Not blocked at any depth tested" };
+  return { outcome: `Mitigated up to reorg depth ${best} (policy k=${best})` };
+}
+
 export function classifyA6(m: Record<string, unknown>): { outcome: string } {
   const onChain = (m["onChain"] as { kind: string; funded: boolean }[] | undefined) ?? [];
   const sybilFunded = onChain.filter((r) => r.kind === "sybil" && r.funded).length;

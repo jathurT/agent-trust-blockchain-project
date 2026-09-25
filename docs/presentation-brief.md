@@ -135,29 +135,30 @@ is the point.
 
 # Slide 5 — What we measured, and what we did not
 
-**Dominant figure:** `3 / 6`
+**Dominant figure:** `6 / 6`
 
-**On-slide text** — the coverage table, all six rows, nothing omitted:
+**On-slide text** — the coverage table, all six rows, with the qualifiers **on the
+slide** and not hidden in the notes:
 
 | attack | outcome |
 |---|---|
-| A1 revert-grant (reorg) | Not evaluated |
+| A1 revert-grant (reorg) | **Mitigated to depth k** — a deeper reorg still wins |
 | A2 replay | **Blocked (structural)** |
 | A3 cross-resource substitution | **Blocked (structural)** |
-| A4 concurrent duplication | Not evaluated |
-| A5 allowance overdraft | Not evaluated |
+| A4 concurrent duplication | **Blocked (structural)** |
+| A5 allowance overdraft | **Blocked** — for the measured direction |
 | A6 Sybil selection | **Mitigated** — ring refused; an earned reputation still admits |
 
 Plus one line: *Testnet only, valueless tokens, our own services, published
 vulnerabilities, no third-party targets.*
 
 **Speaker script (79 words)**
-> "Three of six attacks evaluated. Replay and cross-resource: blocked structurally. The
-> third is the interesting one — the original design's gate admitted all five Sybils and
-> refused all ten honest newcomers. Ours refuses the ring, but a patient attacker who
-> earns real feedback gets in, so that one is mitigated, not blocked. What none of it
-> shows is whether the answer was any good. As agents transact without us, the escrow
-> has to be as automated as the payment."
+> "All six evaluated. Four blocked structurally, two bounded — a reorg deeper than our
+> confirmation policy still wins, and a patient attacker who earns real feedback still
+> gets past the gate. The gate finding is the one worth your time: the original design
+> admitted all five Sybils and refused all ten honest newcomers. What none of it shows
+> is whether the answer was good. As agents transact without us, the escrow has to be as
+> automated as the payment."
 
 ---
 
@@ -243,6 +244,48 @@ under either. The spread between the two rules is the honest measure of how much
 rule is doing. **None of these is comparable to the 60.2% figure in the literature** —
 that came from an LLM discovery-ranking experiment, not an escrow gate.
 
+## A4 — concurrent duplication
+
+One payment, N requests fired together, 50 rounds per level.
+
+| target | rounds with a duplicate execution (c=10 / 20 / 50) | max executions in one round |
+|---|---|---|
+| fixture | **50/50 · 50/50 · 50/50** | 10, 20, 50 |
+| AgentTrust | **0/50 · 0/50 · 0/50** | 1 |
+
+**Own the weakness if asked:** AgentTrust has no verify→settle window to race, so zero
+was expected *by construction*, not won under pressure. And the fixture's 100% rate is a
+function of its 5 ms verify window — it is **not** a reproduction of the published 6%.
+
+## A5 — leakage under `upto` pricing
+
+| target | delivered | settled | **ρ** | seller over-draw |
+|---|---|---|---|---|
+| fixture | 50 | 1 | **0.98** | succeeded |
+| AgentTrust | 50 | 50 | **0.00** | structurally unavailable |
+
+**The original design had this backwards** — its defence capped the *seller's* draw, but
+the published loss is the *seller* delivering work that never settles.
+
+**AgentTrust's zero is a refusal, not a defence:** it does not price `upto` at all. And
+the exposure does not vanish — a job whose validator never answers is delivered and then
+refunded, so the seller carries the same loss by another route. Pre-funding moves the
+risk from "the buyer ran out of allowance" to "the validator did not answer".
+
+## A1 — revert-grant under reorg
+
+Work delivered for a payment a reorg then removed, 20 trials per cell:
+
+| policy | d=1 | d=2 | d=3 | d=5 | mitigated up to |
+|---|---|---|---|---|---|
+| k=0 | 20/20 | 20/20 | 20/20 | 20/20 | **nothing** |
+| k=1 | **0/20** | 20/20 | 20/20 | 20/20 | **depth 1** |
+| k=3 | **0/20** | **0/20** | **0/20** | 20/20 | **depth 3** |
+
+**This can never be called "blocked."** A reorg deeper than k defeats any k. The cliff
+at `d > k` is arithmetic; what the runs establish is that the implementation matches it
+— the seller counts confirmations against the funding block, not the tip or the clock.
+
 ## Engineering evidence, if a slide or a question needs it
 
 - **469 tests** across six packages, all passing: Solidity 154 + 6 invariants, shared
@@ -262,10 +305,14 @@ These are not stylistic preferences. Each one is a claim the evidence does not s
    deliberately vulnerable fixture written for this project, reproducing conditions two
    published papers describe. Nothing was run against the real `@x402/*` packages or
    anyone else's endpoint. The left pane of the demo must be captioned as a fixture.
-2. **Never say "six attacks, six blocked."** It is **3 of 6**, and the other three
-   appear on the table as "Not evaluated" rather than being left off.
-3. **Never say A6 is "blocked."** It is *mitigated* — the same run shows a patient
-   attacker getting in.
+2. **Never say "six attacks, six blocked."** All six were evaluated, but only four are
+   blocked, and **two are bounded** — A1 to the confirmation depth chosen, A6 to a ring
+   that has not earned real feedback. The qualifiers belong on the slide. It is also
+   worth owning, rather than being caught by, that A4 and A5 are blocked *by
+   construction* — no window to race, no allowance to exhaust — not by a defence that
+   could have failed.
+3. **Never say A6 or A1 is "blocked."** Both are *mitigated*. The A6 run itself shows a
+   patient attacker getting in; no confirmation policy closes A1's window.
 4. **Never claim to be first.** An escrow scheme already exists in the x402
    specification; the difference is the reputation gate plus validator-attested release.
 5. **Never say "proof of delivery."** The validator attests that the delivered bytes are

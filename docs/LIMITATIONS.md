@@ -201,12 +201,12 @@ API-009, and it **was not done**. *(DF-18.)*
 
 | attack | status |
 |---|---|
-| A1 revert-grant (reorg) | **Not evaluated.** The defence is a confirmation policy, and the honest claim would be "mitigated up to reorg depth k" — which requires measuring against `anvil_reorg` at several depths. Not run. |
-| A4 concurrent duplication | **Not evaluated.** The claim store is tested under 200-way concurrency across two processes, but the published A4 is a race *inside* a verify→settle window that AgentTrust does not have; a faithful reproduction needs its own fixture. |
-| A5 allowance overdraft | **Not evaluated.** The buyer approves the exact amount rather than an unlimited allowance, which is the structural answer, but no measurement was taken. |
+| A1 revert-grant (reorg) | **Evaluated — mitigated up to depth k, never blocked.** Measured at depths 1, 2, 3, 5 against policies k = 0, 1, 3: the cliff is exactly `d > k`. Serving optimistically (k=0) loses the payment at every depth. No confirmation policy can close this window; a deeper reorg defeats any k. |
+| A4 concurrent duplication | **Evaluated — 0 of 150 rounds duplicated**, against 50/50 on a fixture that has the window. Weaker evidence than it looks: AgentTrust has no verify→settle window to race, so zero was expected by construction rather than won under pressure. |
+| A5 allowance overdraft | **Evaluated — ρ = 0 against the fixture's 0.98.** But this is a refusal rather than a defence: AgentTrust does not price `upto` at all. And the residual is real — a job whose validator never attests is delivered and then refunded, so the seller carries the same loss by another route. That path is exercised by INT-002, not counted as a rate. |
 | A6 Sybil selection | **Evaluated — Mitigated, not blocked.** The ring is refused on-chain, but an attacker that earns genuine trusted feedback is admitted on the same evidence an honest seller presents, and is refused only once those clients revoke. See below. The published 60.2% figure is still **not** reproduced — it came from an LLM discovery-ranking experiment, and nothing here is comparable to it. |
 
-Coverage is **3 of 6**, and is reported with that denominator.
+Coverage is **6 of 6**. Two of them — A4 and A5 — are blocked structurally rather than by a defence that could have failed, and two — A1 and A6 — are *bounded* rather than blocked. The denominator travels with the number, and so do the qualifiers.
 
 ### "Blocked (structural)" is a claim about a mechanism
 For A2 it is the atomic claim store keyed by `(chainId, escrow, jobId)` plus the

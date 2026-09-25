@@ -208,7 +208,7 @@ There are real ones, and they are written down: **[`docs/LIMITATIONS.md`](docs/L
 The short version — a single selected validator has to be honest; a seller colluding with
 its validator is not addressed; "correctness" means a deterministic fixture recomputes to
 the same bytes, not that an answer is good; the reputation gate refuses honest newcomers
-by design; a patient attacker that earns trusted feedback defeats the gate; three of six attacks were not evaluated.
+by design; a patient attacker that earns trusted feedback defeats the gate; a reorg deeper than the confirmation policy defeats A1; and the seller's A5 exposure moves to validator liveness rather than disappearing.
 
 ---
 

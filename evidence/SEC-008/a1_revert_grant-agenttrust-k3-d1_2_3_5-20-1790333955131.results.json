@@ -1,0 +1,55 @@
+{
+  "runId": "a1_revert_grant-agenttrust-k3-d1_2_3_5-20-1790333955131",
+  "attackId": "a1_revert_grant",
+  "target": "agenttrust",
+  "targetLabel": null,
+  "config": "k3-d1_2_3_5-20",
+  "metrics": {
+    "trials": 80,
+    "depths": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "policies": [
+      3
+    ],
+    "cells": {
+      "k=3,d=1": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 20,
+        "revert_grants": 0
+      },
+      "k=3,d=2": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 20,
+        "revert_grants": 0
+      },
+      "k=3,d=3": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 20,
+        "revert_grants": 0
+      },
+      "k=3,d=5": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 0,
+        "revert_grants": 20
+      }
+    },
+    "mitigated_up_to_depth": {
+      "k=3": 3
+    },
+    "total_revert_grants": 20
+  },
+  "outcome": null,
+  "hypothesis": "H-A1-2",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

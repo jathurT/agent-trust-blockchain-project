@@ -113,16 +113,21 @@ upstream x402"**. Right pane: AgentTrust.
 
 **Visual:** the coverage table with all six rows and their outcomes; repository QR.
 
-> "Three of six attacks evaluated. Replay and cross-resource: blocked structurally. The
-> third is the interesting one — the original design's gate admitted all five Sybils and
-> refused all ten honest newcomers. Ours refuses the ring, but a patient attacker who
-> earns real feedback gets in, so that one is mitigated, not blocked. What none of it
-> shows is whether the answer was any good. As agents transact without us, the escrow
-> has to be as automated as the payment."
+> "All six evaluated. Four blocked structurally, two bounded — a reorg deeper than our
+> confirmation policy still wins, and a patient attacker who earns real feedback still
+> gets past the gate. The gate finding is the one worth your time: the original design
+> admitted all five Sybils and refused all ten honest newcomers. What none of it shows
+> is whether the answer was good. As agents transact without us, the escrow has to be as
+> automated as the payment."
 
-- **3 of 6 evaluated**, with A1, A4, A5 shown as "Not evaluated" — `docs/results.md`
-  §"Defence coverage". **Corrected from §17:** "six published attacks, six blocked" is
-  not a claim this project can make.
+- **6 of 6 evaluated.** **Corrected from §17:** it is still not "six blocked". Four are
+  blocked structurally; **A1 and A6 are bounded**, and the bounds belong on the slide,
+  not in the notes. A1 is mitigated only up to the confirmation depth chosen, and A6
+  only against a ring that has not earned real feedback.
+- **Two of the four "blocked" are weaker than they sound**, and it is better to own that
+  than be asked: A4 and A5 are blocked by construction — there is no verify→settle
+  window to race and no allowance to exhaust — rather than by a defence that could have
+  failed under pressure.
 - **A6 is the one to mention if there is a spare breath**, because it is the only
   finding that is *against* the original design: the blueprint's own gate admitted all
   five Sybils while refusing all ten honest newcomers. And say the bound — the
@@ -151,7 +156,7 @@ Measured word counts, at roughly 129 words per minute:
 | 2 Problem | 0:25–1:05 | 106 | 0:49 |
 | 3 Solution | 1:05–1:40 | 83 | 0:39 |
 | 4 Demo | 1:40–2:30 | 70 | 0:33 |
-| 5 Results | 2:30–3:00 | 79 | 0:36 |
+| 5 Results | 2:30–3:00 | 79 | 0:37 |
 | | **3:00** | **391** | **3:02** |
 
 Slide 4 is under its 50-second slot because the video runs for 45 of those seconds and

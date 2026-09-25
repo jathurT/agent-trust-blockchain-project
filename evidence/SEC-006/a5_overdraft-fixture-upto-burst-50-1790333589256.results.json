@@ -1,0 +1,26 @@
+{
+  "runId": "a5_overdraft-fixture-upto-burst-50-1790333589256",
+  "attackId": "a5_overdraft",
+  "target": "fixture",
+  "targetLabel": "DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.",
+  "config": "upto-burst-50",
+  "metrics": {
+    "requests": 50,
+    "delivered": 50,
+    "settled": 1,
+    "unsettled": 49,
+    "rho": 0.98,
+    "overdraw_succeeded": true,
+    "overdraw_detail": "The authorization names a ceiling, not a price, and the draw happens after delivery with nothing comparing the two. Whatever the seller draws up to the ceiling is what the buyer pays.",
+    "statuses": {
+      "200": 50
+    },
+    "allowance": "250000"
+  },
+  "outcome": null,
+  "hypothesis": "H-A5-1",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}

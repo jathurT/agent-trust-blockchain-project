@@ -92,7 +92,7 @@ everything on the testnet path (blocked on ENV-006/007).
 
 Thirteen runs, one commit, none with a dirty tree. Every figure is generated from a recorded run into `docs/results.tables.md`, which reproduces byte-for-byte. Full narrative and limits: `docs/results.md`.
 
-**Coverage: 3 of the 6 defined attacks.** A6 was run on 2026-09-25; A1, A4 and A5 remain EXTENDED-E2 and are reported as **Not evaluated**, not omitted.
+**Coverage: 6 of the 6 defined attacks**, all run by 2026-09-25. Four are blocked structurally; **A1 and A6 are bounded, not blocked**, and the bounds are reported with them. A4 and A5 are blocked *by construction* rather than by a defence that could have failed, and the results say so.
 
 **The baseline is a fixture written for this evaluation — not upstream x402, not the `@x402/*` packages.** Anything about upstream needs API-009, which was not run.
 
@@ -974,10 +974,14 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### API-010 — Vulnerable fixtures for A1, A4 and A5
 
-- [ ] **Status:** DEFERRED · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 1.5 h · **Hat/agent:** U(D)
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 1.5 h · **Hat/agent:** U(D)
 - **Objective:** Optimistic pre-confirmation grant (A1), non-atomic check-then-act idempotency (A4), `upto` allowance (A5).
 - **Refs:** §12.2 · DF-10, DF-11, DF-18 · V-15, V-25, V-26 · Depends: API-008
 
+- **Three modes, one per published condition** rather than one server wrong in four ways — a baseline that fails for many reasons cannot attribute a result to any of them. `replay` is untouched byte for byte, because the frozen A2/A3 runs depend on it.
+- `check-then-act` (A4): checks, yields, then records, so everything inside the window has already passed the check — the published shape, a race inside verify→settle, not absent idempotency.
+- `upto` (A5): deliver first, draw after, against a finite allowance.
+- `optimistic` (A1): grant before finality.
 ### Phase 7 — Buyer (AGENT)
 
 ### AGENT-001 — Shared TypeScript core library
@@ -1248,16 +1252,23 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-005 — A4 concurrent duplication
 
-- [ ] **Status:** DEFERRED · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 2 h · **Hat/agent:** U(D)
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 2 h · **Hat/agent:** U(D)
 - **Refs:** §3 A4, §12.2 · DF-01 · V-25 · Depends: API-010, SEC-002
 - **Objective:** 50 rounds × {10, 20, 50} concurrency per target; AgentTrust across two processes; measure rounds with more than one execution.
 
+- **Result:** fixture **50/50 rounds duplicated** at every concurrency level (10, 20, 50), with executions equal to the concurrency — 50 executions from one payment in a single round at c=50. AgentTrust **0 of 150 rounds**, max 1 execution.
+- **Stated as weaker evidence than it looks, because it is.** AgentTrust has no verify→settle window to race: no facilitator round trip, the chain read directly, and the claim taken in one `BEGIN IMMEDIATE` before any work. Zero was expected **by construction**, not won under pressure. Its value is exercising the claim store through the real HTTP path at the paper's concurrency rather than through a purpose-built driver.
+- **The fixture's rate is not the published 6%.** That came from whatever verify window that server had; ours is a parameter (5 ms), recorded in the result. The *condition* is reproduced, not the number.
 ### SEC-006 — A5 overdraft and leakage, both directions
 
-- [ ] **Status:** DEFERRED · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 2.5 h · **Hat/agent:** U(D)
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 2.5 h · **Hat/agent:** U(D)
 - **Refs:** §3 A5, §13(3) · ER-03 · DF-10 · V-26 · Depends: API-010
 - **Objective:** ρ on the `upto` fixture versus pre-funded escrow; seller over-draw attempt; and the honest-seller residual (delivered but refunded).
 
+- **Result:** fixture ρ = **0.9800** (50 delivered, 1 settled); AgentTrust ρ = **0.0000** (50/50 settled). Seller over-draw succeeded on the fixture, structurally unavailable on AgentTrust — the amount is hashed into the job identity, so a different amount is a different job.
+- **DF-10 confirmed: the blueprint had the direction backwards.** Its `quotedMax` capped the *seller's* draw; the published loss is the *seller* delivering work that never settles.
+- **AgentTrust's zero is a refusal, not a defence** — it does not price `upto` at all. And the fixture's 0.98 is close to the published 97.76% only because of the allowance chosen here (one job against a fifty-request burst); it is not an independent reproduction.
+- **H-A5-3 not measured as a rate.** The residual is real — a job whose validator never attests is delivered then refunded, so the seller carries the same loss by another route. INT-002 exercises that path; A5 does not count it. Hence the coverage row says *for the measured direction*.
 ### SEC-007 — A6 Sybil selection and the gate
 
 - [x] **Status:** DONE (2026-09-25) · **Authorized:** yes (user, 2026-09-25) · **Tier:** EXTENDED-E2 · **Est:** 3 h · **Hat/agent:** U(D)
@@ -1275,10 +1286,15 @@ Legend per task: `Status · Authorized · Tier · Est · Hat/agent`. Hats: U = i
 
 ### SEC-008 — A1 revert-grant under reorgs
 
-- [ ] **Status:** DEFERRED · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 3 h · **Hat/agent:** U(D)
+- [x] **Status:** DONE (2026-09-25) · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 3 h · **Hat/agent:** U(D)
 - **Refs:** §3 A1, §12.2 · DF-11 · V-15, V-107 · Depends: API-010
 - **Objective:** `anvil_reorg` at depths {1,2,3,5} against confirmation policies {0,1,3}; report "mitigated up to depth k", never "blocked".
 
+- **Result, 20 trials per cell:** k=0 loses the payment at **every** depth (20/20 at d=1,2,3,5). k=1 → 0/20 at d=1, 20/20 from d=2. k=3 → 0/20 at d=1,2,3, 20/20 at d=5. Exactly `mitigated up to depth k`, cliff at `d > k`.
+- **Never reported as blocked** (DF-11): a reorg deeper than k defeats any k. The cliff is arithmetic; what the runs establish is that the implementation matches it — the seller counts confirmations against the **funding block**, not the tip or the clock, and a job a reorg removed reads as gone rather than from a cached view.
+- **No probability is reported.** Depths are chosen, not sampled, so cells are deterministic. The published 4.70–5.18% came from a reorg model with its own depth distribution and is not comparable.
+- **One set of numbers withheld, deliberately.** The fixture delivered 20/20 in every cell — the A1 condition, clean. But its *settlement survival* alternated survived/gone in lockstep with trial parity, because its settlements are fired out of band and land a trial late: that measures the fixture's pipeline, not reorg depth. The k=0 row is the optimistic baseline instead, read from chain state directly.
+- **A 34-minute hang, root-caused and fixed.** `anvil_reorg` drops the fixture's settlements, leaving a nonce gap, so later ones queue forever and `waitForTransactionReceipt` never returns (mempool: 3 queued, 0 pending). `settled()` is now bounded — and that is the correct semantics, not a workaround: a settlement the chain has forgotten *is* unsettled.
 ### SEC-009 — Derived adversarial scenarios
 
 - [ ] **Status:** DEFERRED · **Authorized:** no · **Tier:** EXTENDED-E2 · **Est:** 2 h · **Hat/agent:** U(D)

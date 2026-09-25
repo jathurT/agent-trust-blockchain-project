@@ -1,0 +1,55 @@
+{
+  "runId": "a1_revert_grant-fixture-k0-d1_2_3_5-20-1790336322331",
+  "attackId": "a1_revert_grant",
+  "target": "fixture",
+  "targetLabel": "DELIBERATELY VULNERABLE FIXTURE — reproduces the conditions described in arXiv 2605.11781 §4.3 (replay without idempotency) and arXiv 2605.30998 §4.1 (cross-resource substitution). This is NOT upstream x402, NOT the @x402/* packages, and NOT evidence about anyone else's implementation. It exists only as a control target for AgentTrust's own evaluation, on a local testnet, against itself.",
+  "config": "k0-d1_2_3_5-20",
+  "metrics": {
+    "trials": 80,
+    "depths": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "policies": [
+      0
+    ],
+    "cells": {
+      "k=0,d=1": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 0,
+        "revert_grants": 20
+      },
+      "k=0,d=2": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 10,
+        "revert_grants": 10
+      },
+      "k=0,d=3": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 10,
+        "revert_grants": 10
+      },
+      "k=0,d=5": {
+        "trials": 20,
+        "delivered": 20,
+        "payment_survived": 10,
+        "revert_grants": 10
+      }
+    },
+    "mitigated_up_to_depth": {
+      "k=0": null
+    },
+    "total_revert_grants": 50
+  },
+  "outcome": null,
+  "hypothesis": "H-A1-1",
+  "hypothesisHeld": null,
+  "rawLogs": [
+    "raw.ndjson"
+  ]
+}
