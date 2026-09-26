@@ -13,13 +13,156 @@ the "do not claim" rules are as important as the content.
 - **Spoken script:** 391 words ≈ 3:02 at 129 wpm. The script is the constraint; if a
   slide needs more words than are below, cut the slide, not the timing.
 
-## Design direction
+## Visual design system
 
-Technical but not corporate. Dark or light both fine. **The numbers are the design** —
-every slide has one figure that should dominate, and the body text exists to frame it.
-Slides are looked at, not read: the speaker script carries the argument, so on-slide
-text is deliberately sparse below. Monospace for anything that is a literal identifier
-(`ReputationTooLow`, `resourceHash`).
+**Technical, calm, and confident — a security result, not a crypto pitch.** The numbers
+are the design: every slide has one figure that dominates, and everything else exists to
+frame it. Slides are *looked at*, not read — the speaker carries the argument, so
+on-slide text stays sparse.
+
+Every colour below was **computed, not chosen by eye** — run through a
+colour-blindness validator and WCAG contrast checks against the exact slide
+backgrounds. The figures are given so the choices can be defended if anyone asks.
+
+### The one rule everything follows
+
+> **Orange is always the baseline. Blue is always AgentTrust.** On every slide, in every
+> chart, without exception.
+
+The audience learns it on slide 2 and reads every later slide faster because of it. The
+"baseline" changes by attack — the vulnerable fixture for A2–A5, the blueprint's own
+gate for A6, a zero-confirmation policy for A1 — but it is *always orange*.
+
+**Why not red for the baseline?** Red reads as "critical error", and the fixture is not
+failing — it is doing exactly what it was built to show. Orange says *the vulnerable
+one* without shouting, and it validates far better against blue for colour-blind
+viewers.
+
+Outcome status (Blocked / Mitigated) uses **separate green and amber pills with an icon
+and a word** — never the orange/blue series colours, so "which system" and "what
+happened" can never be confused.
+
+### Theme — pick by the room, not by taste
+
+| | when | background |
+|---|---|---|
+| **Dark — recommended** | screen, TV, or a projector in a dimmed room | deep navy `#0f172a` |
+| **Light** | a projector in a **lit** room that can't be dimmed | white `#ffffff` |
+
+Dark slides look sharper and more technical, and every colour clears contrast on navy
+with room to spare. But under room lighting a projector washes dark slides into murky
+grey. **Check the room before deciding** — the palette below is specified for both.
+
+### Colour tokens
+
+| role | dark theme | light theme | notes |
+|---|---|---|---|
+| slide background | `#0f172a` | `#ffffff` | |
+| primary text | `#f8fafc` · 17.1:1 | `#0f172a` · 17.9:1 | titles, hero figures, body |
+| secondary text | `#94a3b8` · 7.0:1 | `#475569` · 7.6:1 | subtitles, labels |
+| muted / captions | `#64748b` · 3.8:1 | `#64748b` · 4.8:1 | sources, footnotes only |
+| **AgentTrust** | **`#3987e5`** · 4.9:1 | **`#2a78d6`** · 4.4:1 | the defended system |
+| **Baseline** | **`#d95926`** · 4.6:1 | **`#eb6834`** · 3.2:1 | whatever is being compared against |
+| hairlines, gridlines | `#1e293b` | `#e2e8f0` | recessive — barely there |
+
+Contrast ratios are against that theme's own background. Orange vs blue was validated
+for colour-blind separation: **CVD ΔE 24.7 light / 26.8 dark**, against a target of 8 —
+safe for protan, deutan and tritan viewers.
+
+**Text never wears the series colour.** A number printed in blue is harder to read than
+the same number in white or navy beside a blue mark. Colour goes on the *mark* (bar,
+dot, pill, underline); the words stay in the text tokens.
+
+### Status pills
+
+The coverage table's outcomes. Always **icon + word**, never colour alone.
+
+| outcome | icon | fill | text | outline (light theme) |
+|---|---|---|---|---|
+| **Blocked** | ✓ | green `#0ca30c` | dark `#0f172a` | `#15803d` |
+| **Mitigated** | ◐ (half-filled circle) | amber `#fab219` | dark `#0f172a` | `#b45309` |
+
+**Light theme needs the outline — this was measured, not assumed.** Amber on a white
+slide is **1.83:1**, close to invisible as a filled shape. Text inside the pill is fine
+(9.7:1), but the pill's *edge* vanishes. A 2px `#b45309` outline (5.0:1) fixes it; the
+green pill gets `#15803d` (also 5.0:1) so the two read as a matched pair. On the dark
+theme no outline is needed — both fills clear 3:1 on navy.
+
+**A4 and A5 get a small secondary tag, `by construction`,** in muted text beside the
+green pill. They are blocked because there was nothing to attack, not because a defence
+held — the tag is the honest version of the badge, and it pre-empts the obvious question.
+
+### Typography
+
+- **IBM Plex Sans** for everything, **IBM Plex Mono** for literal identifiers
+  (`ReputationTooLow`, `resourceHash`, `fund()`). One family, technical in feel, free
+  under the OFL. Fallback: the system sans (`Segoe UI` / `Helvetica`).
+- **Two typefaces maximum.** No display fonts, no script, no serif.
+
+| element | size (16:9, 13.33″ × 7.5″) | weight |
+|---|---|---|
+| hero figure | **96–140 pt** | SemiBold 600 |
+| slide title | 36–40 pt | SemiBold 600 |
+| on-slide body | 24–28 pt | Regular 400 |
+| chart labels | 18–20 pt | Regular 400 |
+| sources, captions | 14–16 pt | Regular 400, muted |
+
+**Nothing below 14 pt** — it is unreadable from the back of a lecture room. Hero figures
+use proportional numerals; tables use **tabular** numerals so columns align.
+
+### Layout
+
+- **16:9**, margins of about **0.6″** (≈ 6%) on every side, a 12-column grid.
+- **One idea per slide.** Title top-left; hero figure left or centre; one supporting
+  visual right. At most **~20 words** of on-slide text.
+- **White space is the design.** An empty third of a slide is not wasted — it is what
+  makes the hero figure land.
+- Align everything to the grid. Nothing floating, nothing centred-by-eye.
+
+### Iconography
+
+Simple **line icons, 2 px stroke**, from one consistent open-source set — **Lucide** or
+**Phosphor**. Use them sparingly and only where they carry meaning: an agent (`bot` or
+`cpu`), a payment (`coins`), the escrow (`vault` or `shield`), the validator
+(`badge-check`), the registry (`database`). Icons match the text colour, never a series
+colour.
+
+### Motion
+
+**One build per slide, at most** — and use it where the reveal *is* the argument: show
+the baseline's number first, pause, then AgentTrust's. That beat carries slides 2, 4
+and 5. Transitions: a 200 ms fade or none. No fly-ins, spins, bounces or zooms.
+
+### Accessibility
+
+- **Never colour alone.** Every orange/blue mark carries a word — *Baseline* /
+  *AgentTrust* — and every status pill an icon and a word.
+- **Grayscale test:** view the finished deck in grayscale. Any slide that stops making
+  sense was relying on colour; add a label.
+- Contrast: body text ≥ 4.5:1, graphics ≥ 3:1 — every token above already clears it.
+
+### Check the finished deck against this
+
+Before presenting, go through every slide once:
+
+- [ ] Orange is the baseline and blue is AgentTrust **everywhere** — no slide swaps them
+- [ ] Every coloured mark also has a word on it; every status pill has an icon and a word
+- [ ] Viewed in **grayscale**, every slide still makes sense
+- [ ] One hero figure per slide, and it is the largest thing on it
+- [ ] No text below 14 pt; nothing printed in the orange or blue series colours
+- [ ] Light theme only: the amber and green pills have their darker outlines
+- [ ] A1 and A6 say **Mitigated**, never Blocked; A4 and A5 carry `by construction`
+- [ ] The left pane of the demo is labelled as a deliberately vulnerable fixture
+- [ ] Nothing from the *Avoid* list below made it in
+
+### Avoid — these make a security talk look like a crypto advert
+
+- Glowing coins, Bitcoin or Ethereum logos, isometric "blockchain cubes"
+- Circuit-board, hexagon-mesh or falling "matrix code" backgrounds; neon gradients
+- Padlocks on every slide; stock photos of humanoid robots
+- Pie and donut charts, 3D charts, dual axes, rainbow palettes
+- Gradients, photos or textures behind text; drop shadows; bevels
+- Red for the baseline (see the one rule, above)
 
 ---
 
@@ -32,7 +175,14 @@ text is deliberately sparse below. Monospace for anything that is a literal iden
 - Embedded in Google Cloud, Cloudflare, Stripe
 - 75.41M in 30 days *(x402.org, 22 Sep 2026)*
 
-**Visual:** two agent icons exchanging a coin. Keep it abstract; avoid stock-photo robots.
+**Visual.** The figure **130,000,000** as a hero at ~120 pt, left-aligned in the
+upper-left two-thirds, in the primary text colour — not a series colour. Beneath it, in
+secondary text at 24 pt: *all-time x402 transactions*. On the right third, a small,
+quiet diagram: two agent icons (Lucide `bot`) linked by a line with a coin (`coins`)
+travelling between them — line icons only, 2 px stroke, no glow. The number is the
+slide; the icons are a footnote to it.
+
+**Build:** none. This slide should land in one beat.
 
 **Speaker script (53 words)**
 > "AI agents already pay each other. One protocol, x402, reports a hundred and thirty
@@ -56,8 +206,22 @@ figure is x402.org's own dashboard and changes daily, so the date must be spoken
 - Pay for one endpoint, take another → **100 / 100**
 - 11 vulnerabilities, 5 classes *(2026 audit of 3 SDKs, 4 live endpoints)*
 
-**Visual:** the six-attack table with A2 and A3 highlighted. Or a single diagram: one
-payment token fanning out into many served responses.
+**Visual.** Two stacked beats, each a hero pair.
+
+- **Top:** `248` in **orange** and `1` in **blue**, at ~110 pt, joined by a thin arrow
+  and labelled beneath in secondary text: *grants of the resource* → *on-chain
+  settlement*. The gap in size between the two numbers is the whole argument.
+- **Bottom:** `100 / 100` in **orange** at ~64 pt, labelled *paid for one endpoint, took
+  another*.
+
+A one-line source strip along the bottom in muted 14 pt: *arXiv 2605.11781 · arXiv
+2605.30998 · Chainalysis 2022.*
+
+**Why orange here even though it is not our fixture:** these numbers describe the
+vulnerable systems, so they take the baseline colour. It trains the audience on the
+colour rule before the demo, where it matters.
+
+**Build:** reveal `248`, then the arrow and `1`.
 
 **Speaker script (106 words)**
 > "But payment arrived before trust. x402 is pay first, hope for delivery. A 2026 audit
@@ -82,6 +246,20 @@ seconds and weakens nothing measured.
 # Slide 3 — What AgentTrust adds
 
 **Dominant element:** a five-box flow — **buyer → seller → escrow → validator → ERC-8004 registries**
+
+**Visual.** Five rounded rectangles in a single left-to-right row across the middle
+of the slide, joined by thin arrows. The **escrow** box is the only filled one — solid
+**blue**, white label — because it is the thing being defended; the other four are
+outlined in a hairline. Each arrow carries a small numbered step in secondary text:
+**① quote · ② gate + fund · ③ deliver · ④ attest · ⑤ release.** A Lucide icon sits above
+each box (`bot`, `server`, `vault`, `badge-check`, `database`).
+
+Below the row, the three additions as three short columns, each headed by its icon:
+**Gate** (`shield`), **Resource-bound escrow** (`link`), **Validation trigger**
+(`badge-check`). Four or five words under each, no more.
+
+**Build:** the row appears first; the three columns appear together on the second
+click, as the speaker names them.
 
 **On-slide text**
 - **Gate** — read the seller's reputation before any money moves
@@ -113,6 +291,18 @@ funding time* plus *release against a validator attestation*.
 
 **Visual:** pre-recorded 45-second split screen, cropped to the two counters.
 Left pane captioned **"deliberately vulnerable fixture — not upstream x402"**.
+
+**Framing the video.** Put a thin **orange** bar (6 px) above the left pane and a thin
+**blue** bar above the right, each with its label in white text on the bar:
+**BASELINE — deliberately vulnerable fixture** and **AGENTTRUST**. The colour rule
+does the explaining; nobody needs to read which side is which.
+
+Below each pane, the counter as a hero figure at ~96 pt: **`50`** under the left,
+**`1`** under the right, with *executions from one payment* in secondary text. If the
+video's own counters are too small to read from the back of the room — they will be —
+these overlays are what the audience actually reads.
+
+**Build:** the video plays; the two hero counters appear when it ends.
 
 **On-slide text**
 | | fixture | AgentTrust |
@@ -151,6 +341,25 @@ slide** and not hidden in the notes:
 
 Plus one line: *Testnet only, valueless tokens, our own services, published
 vulnerabilities, no third-party targets.*
+
+**Visual.** A two-part slide.
+
+- **Left third:** `6 / 6` as a hero figure at ~120 pt in primary text, with *attacks
+  evaluated* beneath. Under that, the split that matters, in two lines at 28 pt:
+  **4 blocked · 2 bounded**.
+- **Right two-thirds:** the coverage table as six rows. Attack name on the left in 20 pt;
+  the **status pill** on the right (see *Status pills*). A4 and A5 carry the small
+  muted `by construction` tag beside their green pill. The two **Mitigated** rows (A1,
+  A6) each get a one-line bound in secondary text directly beneath:
+  *a deeper reorg still wins* and *an earned reputation still admits*.
+- **Highlight A6** with a thin blue left border on its row — it is the finding worth the
+  audience's attention, and the speaker points to it.
+- The ethics line sits along the bottom in muted 14 pt.
+
+No zebra striping, no heavy table borders — hairline row dividers in the hairline token
+and plenty of row height. The pills carry the colour; the table stays quiet.
+
+**Build:** the hero `6 / 6` appears first, then the table.
 
 **Speaker script (79 words)**
 > "All six evaluated. Four blocked structurally, two bounded — a reorg deeper than our
@@ -340,6 +549,71 @@ These are not stylistic preferences. Each one is a claim the evidence does not s
    in any source that could be found. Do not use it.
 
 ---
+
+# Drawing the results — one visual per attack
+
+For the backup "results detail" slides. Each result has a form that fits its shape, and
+the wrong form hides the finding. **Where the number alone is the argument, show the
+number** — a bar chart of two bars, or a pie of two slices, is a worse version of two
+large figures.
+
+Every chart: **one axis**, orange for the baseline and blue for AgentTrust, a word
+label on every mark, hairline gridlines, and no chart junk.
+
+**A1 — a staircase heatmap. The shape *is* the result.**
+A 3 × 4 grid: rows are the confirmation policy (**k = 0, 1, 3**), columns the reorg
+depth (**d = 1, 2, 3, 5**). Each cell is **blue** where the payment survived and
+**orange** where it was lost, with its fraction printed inside in text (`0/20`,
+`20/20`) so colour is never the only signal. The blue cells form a staircase that climbs
+with k. Draw a thin line along the staircase edge and label it **"mitigated to depth
+k"** — that edge is the entire finding, and the audience sees it before anyone explains
+it. The k = 0 row is solid orange: serving without waiting loses the payment at every
+depth.
+
+**A2 — a hero pair, with an optional unit strip.**
+`50 → 50` in orange against `50 → 1` in blue, labelled *executions from one payment*.
+If there is room, a strip beneath: fifty small orange dots on the left, a single blue
+dot on the right. Fifty against one, drawn as fifty against one, lands harder than any
+axis.
+
+**A3 — a hero pair, plus the control.**
+`100 / 100` in orange against `0 / 100` in blue, labelled *substitutions served*. Then,
+smaller but **not optional**: *false refusals: 0 / 100*. A server that refused
+everything would also score zero — the control is what makes the zero mean "bound"
+rather than "broken", so it must be on the slide.
+
+**A4 — grouped bars, three pairs.**
+Three groups for concurrency **10, 20, 50**; in each, an orange bar for the most
+executions the baseline produced in a single round (**10, 20, 50**) and a blue bar for
+AgentTrust's (**1**). The orange bars climb with concurrency, the blue ones never move.
+Label the value on top of every bar. Caption, in secondary text: *blocked by construction
+— there is no verify→settle window to race.*
+
+**A5 — two stacked horizontal bars of 50 deliveries.**
+Baseline: **1 settled** (solid orange) and **49 unsettled** (orange outline, hollow).
+AgentTrust: **50 settled** (solid blue). Label ρ at the right end of each bar —
+**0.98** and **0.00**. Solid versus hollow carries "paid versus unpaid" without a legend.
+Caption: *the seller's exposure moves to validator liveness; it does not vanish.*
+
+**A6 — a dot matrix. The most important chart in the deck.**
+Three rows, one per gate: **no gate** (neutral grey), **v1 — the original design**
+(orange), **v2 — AgentTrust** (blue). Each row is 25 dots in three labelled groups —
+**10 honest · 5 Sybil · 10 newcomers** — with a thin bracket around the Sybil group in
+every row. **Filled = admitted, hollow = refused.**
+
+Read down the Sybil column and the finding is visible at once: filled, **filled**,
+hollow. The original design's gate let every Sybil through and turned away every
+newcomer. Annotate the v1 row directly: *admits 5 / 5 Sybils · refuses 10 / 10
+newcomers.*
+
+A small strip beneath for the patient attacker, three steps left to right: *earned
+trusted feedback* → **admitted** ✓ · *started misbehaving* → **still admitted** ✓ ·
+*clients revoked* → **refused** ✗. Title it *the gate reads reputation, not conduct*.
+
+**Gas cliff (A6 detail, optional) — a single line.**
+`fund()` gas against feedback entries, 1 to 26: a straight line climbing about 8,600 gas
+per entry. At 28 it stops — draw a vertical marker labelled **unfundable past 26 entries**.
+One series, one axis, no legend needed.
 
 # Backup slides
 
